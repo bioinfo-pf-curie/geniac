@@ -332,6 +332,31 @@ process output_documentation {
     """
 }
 
+
+/*
+ * FastQC
+ */
+process fastqc {
+  tag "${prefix}"
+  publishDir "${params.outdir}/fastqc", mode: 'copy',
+      saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
+
+  input:
+  set val(prefix), file(reads) from raw_reads_fastqc
+
+  output:
+  file "*_fastqc.{zip,html}" into fastqc_results
+
+  script:
+  pbase = reads[0].toString() - ~/(\.fq)?(\.fastq)?(\.gz)?$/
+  """
+  fastqc -q $reads
+  mv ${pbase}_fastqc.html ${prefix}_fastqc.html
+  mv ${pbase}_fastqc.zip ${prefix}_fastqc.zip
+  """
+}
+
+
 workflow.onComplete {
 
     /*pipeline_report.html*/
