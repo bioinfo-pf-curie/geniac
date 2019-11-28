@@ -72,20 +72,7 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
    exit 1, "The provided genome '${params.genome}' is not available in the genomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
 }
 
-// Reference index path configuration
-// Define these here - after the profiles are loaded with the genomes paths
-params.star_index = params.genome ? params.genomes[ params.genome ].star ?: false : false
-params.bowtie2_index = params.genome ? params.genomes[ params.genome ].bowtie2 ?: false : false
-params.hisat2_index = params.genome ? params.genomes[ params.genome ].hisat2 ?: false : false
-params.rrna = params.genome ? params.genomes[ params.genome ].rrna ?: false : false
-params.gtf = params.genome ? params.genomes[ params.genome ].gtf ?: false : false
-params.bed12 = params.genome ? params.genomes[ params.genome ].bed12 ?: false : false
 
-// Tools option configuration
-// Add here the list of options that can change from a reference genome to another
-if (params.genome){
-  params.star_options = params.genomes[ params.genome ].star_opts ?: params.star_opts
-}
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
 custom_runName = params.name
@@ -104,75 +91,11 @@ ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
  */
 
 // Validate inputs
-if (params.aligner != 'star' && params.aligner != 'hisat2' && params.aligner != 'tophat2'){
-    exit 1, "Invalid aligner option: ${params.aligner}. Valid options: 'star', 'hisat2', 'tophat2'"
-}
-if (params.counts != 'star' && params.counts != 'featureCounts' && params.counts != 'HTseqCounts'){
-    exit 1, "Invalid counts option: ${params.counts}. Valid options: 'star', 'featureCounts', 'HTseqCounts'"
-}
-if (params.counts == 'star' && params.aligner != 'star'){
-    exit 1, "Cannot run STAR counts without STAR aligner. Please check the '--aligner' and '--counts' parameters."
-}
-if (params.stranded != 'auto' && params.stranded != 'reverse' && params.stranded != 'forward' && params.stranded != 'no'){
-    exit 1, "Invalid stranded option: ${params.stranded}. Valid options: 'auto', 'reverse', 'forward', 'no'"
-}
-
 if ((params.reads && params.samplePlan) || (params.readPaths && params.samplePlan)){
    exit 1, "Input reads must be defined using either '--reads' or '--samplePlan' parameter. Please choose one way"
 }
 
-if( params.star_index && params.aligner == 'star' ){
-    star_index = Channel
-        .fromPath(params.star_index)
-        .ifEmpty { exit 1, "STAR index not found: ${params.star_index}" }
-}
-else if ( params.hisat2_index && params.aligner == 'hisat2' ){
-    hs2_indices = Channel
-        .fromPath("${params.hisat2_index}*")
-        .ifEmpty { exit 1, "HISAT2 index not found: ${params.hisat2_index}" }
-}
-else if ( params.bowtie2_index && params.aligner == 'tophat2' ){
-    Channel.fromPath("${params.bowtie2_index}*")
-        .ifEmpty { exit 1, "TOPHAT2 index not found: ${params.bowtie2_index}" }
-        .set { tophat2_indices}
-}
-else {
-    exit 1, "No reference genome specified!"
-}
 
-if( params.gtf ){
-    Channel
-        .fromPath(params.gtf)
-        .ifEmpty { exit 1, "GTF annotation file not found: ${params.gtf}" }
-        .into { gtf_star; gtf_dupradar; gtf_featureCounts; gtf_genetype; gtf_HTseqCounts; gtf_tophat; gtf_table; gtf_makeHisatSplicesites }
-}else {
-    log.warn "No GTF annotation specified - dupRadar, table counts - will be skipped !" 
-    Channel
-        .empty()
-        .into { gtf_star; gtf_dupradar; gtf_featureCounts; gtf_genetype; gtf_HTseqCounts; gtf_tophat; gtf_table; gtf_makeHisatSplicesites }
-}
-
-if( params.bed12 ){
-    Channel
-        .fromPath(params.bed12)
-        .ifEmpty { exit 1, "BED12 annotation file not found: ${params.bed12}" }
-        .into { bed_rseqc; bed_read_dist; bed_genebody_coverage} 
-}else{
-    log.warn "No BED gene annotation specified - strandness detection, gene body coverage, read distribution - will be skipped !"
-    Channel
-       .empty()
-       .into { bed_rseqc; bed_read_dist; bed_genebody_coverage}
-}
-
-if( params.rrna ){
-    Channel
-        .fromPath(params.rrna)
-        .ifEmpty { exit 1, "rRNA annotation file not found: ${params.rrna}" }
-        .set { rrna_annot }
-}else{
-    log.warn "No rRNA fasta file available - rRNA mapping - will be skipped !"
-    rrna_annot = Channel.empty()
-}
 
 if ( params.metadata ){
    Channel
@@ -350,7 +273,7 @@ process fastqc {
   script:
   pbase = reads[0].toString() - ~/(\.fq)?(\.fastq)?(\.gz)?$/
   """
-  fastqc -q $reads
+  fastqc ${params.fastqc_opts} $reads
   mv ${pbase}_fastqc.html ${prefix}_fastqc.html
   mv ${pbase}_fastqc.zip ${prefix}_fastqc.zip
   """
