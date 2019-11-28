@@ -1,0 +1,11 @@
+======================================================================
+DISCLAIMER
+
+This software is currently under active development and the results 
+have been generated with a non stable version.
+The reliability, reproducibility and the quality of the results are 
+therefore not guaranteed.
+
+/!\ Do not use the results for any kind of projects /!\
+======================================================================
+

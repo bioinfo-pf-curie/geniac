@@ -1,0 +1,32 @@
+# You can use this file to create a conda environment for this pipeline:
+#   conda env create -f environment.yml
+name: rnaseq-2.0
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - anaconda::openjdk=8.0.152 # Needed for FastQC - conda build hangs without this
+  - conda-forge:libiconv=1.15 # for rtracklayer
+  - bioconda::fastqc=0.11.8
+  - bioconda::star=2.6.1b
+  - bioconda::hisat2=2.1.0
+  - bioconda::picard=2.18.15
+  - bioconda::bioconductor-dupradar=1.10.0
+  - conda-forge::r-data.table=1.11.4
+  - conda-forge::r-gplots=3.0.1
+  - bioconda::bioconductor-rtracklayer=1.42.1
+  - bioconda::bioconductor-genomicfeatures=1.34.1
+  - bioconda::bioconductor-edger=3.22.5
+  - bioconda::bioconductor-deseq2=1.22.1
+  - conda-forge::r-markdown=0.8
+  - bioconda::csvtk=0.15.0
+  - bioconda::preseq=2.0.3
+  - bioconda::rseqc=2.6.4
+  - bioconda::samtools=1.9
+  - bioconda::subread=1.6.2
+  - bioconda::multiqc=1.6
+  - bioconda::bowtie=1.2
+  - bioconda::bowtie2=2.2.5
+  - bioconda::tophat=2.1.1
+  - bioconda::htseq=0.11.2

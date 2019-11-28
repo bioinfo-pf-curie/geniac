@@ -1,0 +1,21 @@
+/*
+ * Institut Curie configuration profile
+ * Edit your own configurations to use the pipeline on your infrastructure
+ */
+
+/*
+ * -------------------------------------------------
+ * Define tools path for `-profile toolsPath`
+ * -------------------------------------------------
+ */
+singularity {
+  enabled = false 
+}
+
+params {
+   toolsPath = "/bioinfo/local/curie/ngs-data-analysis/centos/tools/conda/envs/rnaseq-2.0"
+}
+
+process {
+  beforeScript = "export PATH=${params.toolsPath}/bin:$PATH"
+}

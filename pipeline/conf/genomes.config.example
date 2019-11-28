@@ -1,0 +1,162 @@
+/*
+ * -------------------------------------------------
+ *  Nextflow config file for Genomes paths
+ * -------------------------------------------------
+ * Defines reference genomes
+ * Can be used by any config that customises the base
+ * path using $params.genomes_base / --genomes_base
+ */
+
+params {
+  //Set path to annoation folder
+  genomes_base = "/data/annotations/pipelines"
+
+  genomes {
+
+    'hg19' {
+      star    = "${params.genomes_base}/Human/hg19/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Human/hg19/indexes/bowtie2/hg19"	
+      hisat2  =	"${params.genomes_base}/Human/hg19/indexes/hisat2/hg19"
+      rrna    = "${params.genomes_base}/Human/rRNA/rRNA_human_complete"
+      bed12   = "${params.genomes_base}/Human/hg19/gtf/parseGTFAnnotation/gencode.v19.annotation.bed12"
+      gtf     = "${params.genomes_base}/Human/hg19/gtf/gencode.v19.annotation.gtf"
+    }
+
+    'hg19_base' {
+      star    = "${params.genomes_base}/Human/hg19_base/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Human/hg19_base/indexes/bowtie2/hg19_base"	
+      hisat2  =	"${params.genomes_base}/Human/hg19/indexes/hisat2/hg19_base"
+      rrna    = "${params.genomes_base}/Human/rRNA/rRNA_human_complete"
+      bed12   = "${params.genomes_base}/Human/hg19_base/gtf/parseGTFAnnotation/gencode.v19.annotation.bed12"
+      gtf     = "${params.genomes_base}/Human/hg19_base/gtf/gencode.v19.annotation.gtf"
+    }
+
+    'hg38' {
+      star    = "${params.genomes_base}/Human/hg38/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Human/hg38/indexes/bowtie2/hg38"	
+      hisat2  =	"${params.genomes_base}/Human/hg38/indexes/hisat2/hg38"
+      rrna    = "${params.genomes_base}/Human/rRNA/rRNA_human_complete"
+      bed12   = "${params.genomes_base}/Human/hg38/gtf/parseGTFAnnotation/gencode.v29.annotation.bed12"
+      gtf     = "${params.genomes_base}/Human/hg38/gtf/gencode.v29.annotation.gtf"
+    }
+
+    'mm10' {
+      star    = "${params.genomes_base}/Mouse/mm10/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Mouse/mm10/indexes/bowtie2/mm10"
+      hisat2  = "${params.genomes_base}/Mouse/mm10/indexes/hisat2/mm10"
+      rrna    = "${params.genomes_base}/Mouse/rRNA/rRNA_mouse_complete"
+      bed12   = "${params.genomes_base}/Mouse/mm10/gtf/parseGTFAnnotation/gencode.vM13.annotation.bed12"
+      gtf     = "${params.genomes_base}/Mouse/mm10/gtf/gencode.vM13.annotation.gtf"
+    }
+
+    'mm9' {
+      star    = "${params.genomes_base}/Mouse/mm9/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Mouse/mm9/indexes/bowtie2/mm9"
+      hisat2  = "${params.genomes_base}/Mouse/mm9/indexes/hisat2/mm9"
+      rrna    = "${params.genomes_base}/Mouse/rRNA/rRNA_mouse_complete"
+      bed12   = "${params.genomes_base}/Mouse/mm9/gtf/parseGTFAnnotation/gencode.vM1.annotation.bed12"
+      gtf     = "${params.genomes_base}/Mouse/mm9/gtf/gencode.vM1.annotation.gtf"
+    }
+
+    'danRer11' {
+      star    = "${params.genomes_base}/Zebrafish/danRer11/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Zebrafish/danRer11/indexes/bowtie2/danRer11"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Zebrafish/danRer11/gtf/parseGTFAnnotation/danRer11_UCSC_RefGene.bed12"
+      gtf     = "${params.genomes_base}/Zebrafish/danRer11/gtf/danRer11_UCSC_RefGene.gtf"
+    }
+
+    'danRer10' {
+      star    = "${params.genomes_base}/Zebrafish/danRer10/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Zebrafish/danRer10/indexes/bowtie2/danRer10"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Zebrafish/danRer10/gtf/parseGTFAnnotation/danRer10_UCSC_RefGene.bed12"
+      gtf     = "${params.genomes_base}/Zebrafish/danRer10/gtf/danRer10_UCSC_RefGene.gtf"
+    }
+
+    'dmel_r6.21_FB2018_02' {
+      star    = "${params.genomes_base}/Drosophila_melanogaster/dmel_r6.21_FB2018_02/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Drosophila_melanogaster/dmel_r6.21_FB2018_02/indexes/bowtie2/dmel-all-chromosome-r6.21"
+      hisat2  = ""
+      rrna    = "${params.genomes_base}/Drosophila_melanogaster/rRNA/dmel-all-rRNA-r6.21"
+      bed12   = "${params.genomes_base}/Drosophila_melanogaster/dmel_r6.21_FB2018_02/gtf/parseGTFAnnotation/dmel-all-r6.21.bed12"
+      gtf     = "${params.genomes_base}/Drosophila_melanogaster/dmel_r6.21_FB2018_02/gtf/dmel-all-r6.21.gtf"
+    }
+
+    'TAIR10' {
+      star    = "${params.genomes_base}/Arabidopsis_thaliana/TAIR10/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Arabidopsis_thaliana/TAIR10/indexes/bowtie2/TAIR10"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Arabidopsis_thaliana/TAIR10/gtf/parseGTFAnnotation/Arabidopsis_thaliana.TAIR10.39.bed12"
+      gtf     = "${params.genomes_base}/Arabidopsis_thaliana/TAIR10/gtf/Arabidopsis_thaliana.TAIR10.39.gtf"
+    }
+
+    'sacCer3' {
+      star    = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer3/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer3/indexes/bowtie2/sacCer3"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer2/gtf/parseGTFAnnotation/sacCer3_ensembl.bed12"
+      gtf     = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer3/gtf/sacCer3_ensembl.gtf"
+    }
+
+    'sacCer2' {
+      star    = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer2/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer2/indexes/bowtie2/sacCer2"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer2/gtf/parseGTFAnnotation/sacCer2_ensembl.bed12"
+      gtf     = "${params.genomes_base}/Saccharomyces_cerevisiae/sacCer2/gtf/sacCer2_ensembl.gtf"
+    }
+
+    'S288c' {
+      star    = "${params.genomes_base}/Saccharomyces_cerevisiae/S288c/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Saccharomyces_cerevisiae/S288c/indexes/bowtie2/Saccharomyces_cerevisiae.R64-1-1.dna.toplevel"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Saccharomyces_cerevisiae/S288c/gtf/parseGTFAnnotation/Saccharomyces_cerevisiae.R64-1-1.93.bed12"
+      gtf     = "${params.genomes_base}/Saccharomyces_cerevisiae/S288c/gtf/Saccharomyces_cerevisiae.R64-1-1.93.gtf"
+    }
+
+    'Erdman' {
+      star    = "${params.genomes_base}/Mycobacterium_tuberculosis/Erdman/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Mycobacterium_tuberculosis/Erdman/indexes/bowtie2/Mycobacterium_tuberculosis_str_erdman_atcc_35801.ASM35020v1"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Mycobacterium_tuberculosis/Erdman/gtf/parseGTFAnnotation/Escherichia_coli_lf82.ASM28449v1.42.bed12"
+      gtf     = "${params.genomes_base}/Mycobacterium_tuberculosis/Erdman/gtf/Mycobacterium_tuberculosis_str_erdman_atcc_35801.ASM35020v1.41.gtf"
+    }
+
+    'LF82' {
+      star    = "${params.genomes_base}/Escherichia_coli/LF82/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Escherichia_coli/LF82/indexes/bowtie2/Mycobacterium_tuberculosis_str_erdman_atcc_35801.ASM35020v1"
+      hisat2  = ""
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Escherichia_coli/LF82/gtf/parseGTFAnnotation/Escherichia_coli_lf82.ASM28449v1.42.bed12"
+      gtf     = "${params.genomes_base}/Escherichia_coli/LF82/gtf/Escherichia_coli_lf82.ASM28449v1.42.gtf"
+    }
+
+    'bomo_v3' {
+      star    = "${params.genomes_base}/Bombyx_mori/bomo_v3/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Bombyx_mori/bomo_v3/indexes/bowtie2/Bomo_genome_assembly"
+      hisat2  = "${params.genomes_base}/Bombyx_mori/bomo_v3/indexes/hisat2/Bomo_genome_assembly"
+      rrna    = ""
+      bed12   = ""
+      gtf     = ""
+    }
+
+    'CBS_4309_ASM23734v1' {
+      star    = "${params.genomes_base}/Naumovozyma_castellii/CBS_4309_ASM23734v1/indexes/STAR/"
+      bowtie2 = "${params.genomes_base}/Naumovozyma_castellii/CBS_4309_ASM23734v1/indexes/Bowtie2/Naumovozyma_castellii_cbs_4309_gca_000237345.ASM23734v1.dna.toplevel"
+      hisat2  = "${params.genomes_base}/Naumovozyma_castellii/CBS_4309_ASM23734v1/indexes/hisat2/Naumovozyma_castellii_cbs_4309_gca_000237345.ASM23734v1.dna.toplevel"
+      rrna    = ""
+      bed12   = "${params.genomes_base}/Naumovozyma_castellii/CBS_4309_ASM23734v1/gtf/parseGTFAnnotation/Naumovozyma_castellii_cbs_4309_gca_000237345.ASM23734v1.45.bed12"
+      gtf     = "${params.genomes_base}/Naumovozyma_castellii/CBS_4309_ASM23734v1/gtf/Naumovozyma_castellii_cbs_4309_gca_000237345.ASM23734v1.45.gtf"
+    }
+
+
+  }
+}

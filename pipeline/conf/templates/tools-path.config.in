@@ -1,0 +1,21 @@
+/*
+ * Institut Curie configuration profile
+ * Edit your own configurations to use the pipeline on your infrastructure
+ */
+
+/*
+ * -------------------------------------------------
+ * Define tools path for `-profile toolsPath`
+ * -------------------------------------------------
+ */
+singularity {
+  enabled = false 
+}
+
+params {
+   toolsPath = "@ap_tools_path@"
+}
+
+process {
+  beforeScript = "export PATH=${params.toolsPath}:$PATH"
+}

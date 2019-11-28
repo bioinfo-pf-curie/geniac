@@ -1,0 +1,10 @@
+#id: 'sample-correlation'
+#section_name: 'Sample(s) Correlation' 
+#description: "is generated from variance stabilized (VST) normalized counts table.
+#       Pearson correlation between normalized counts values are calculated and clustered."
+#plot_type: 'heatmap'
+#anchor: 'rnaseq-sample_cor'
+#pconfig:
+#    title: 'Pearson Correlation'
+#    xlab: True
+#    reverseColors: True
