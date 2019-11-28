@@ -10,98 +10,15 @@ params {
   containerPath = "/bioinfo/local/curie/ngs-data-analysis/centos/tools/containers/singularity/rnaseq-2.0/images"
 
   // Options: Tool versions
-  fastqc_version = '1.5.0'
-  bowtie_version = '1.2'
-  bowtie2_version = '2.2.5'
-  dupradar_version = '1.10.0'
   fastqc_version = '0.11.8'
-  hisat2_version = '2.1.0'
-  htseq_version = '0.11.2'
-  multiqc_version = '1.7'
-  preseq_version = '2.0.3'
   rmarkdown_version = '0.8'
-  rnaseq_version = '2.0'
-  rseqc_version = '2.6.4'
-  samtools_version = '1.9'
-  star_version = '2.6.1b'
-  subread_version = '1.6.2'
-  tophat_version = '2.1.1'
 }
+
 
 process {
   // Process-specific resource requirements
   withName:fastqc {
     container = "${params.containerPath}/fastqc-${params.fastqc_version}.simg"
-  }
-  withName:rRNA_mapping {
-    container = "${params.containerPath}/bowtie-${params.bowtie_version}.simg"
-  }
-  withName:prep_rseqc {
-    container = "${params.containerPath}/bowtie2-${params.bowtie2_version}.simg"
-  }
-  withName:rseqc {
-    container = "${params.containerPath}/rseqc-${params.rseqc_version}.simg"
-  }
-  withName:genebody_coverage {
-    container = "${params.containerPath}/rseqc-${params.rseqc_version}.simg"
-  }
-  withName:bam_subsample {
-    container = "${params.containerPath}/samtools-${params.samtools_version}.simg"
-  }
-  withName:star {
-    container = "${params.containerPath}/star-${params.star_version}.simg"
-  }
-  withName:star_sort {
-    container = "${params.containerPath}/samtools-${params.samtools_version}.simg"
-  }
-  withName:tophat2 {
-    container = "${params.containerPath}/tophat-${params.tophat_version}.simg"
-  }
-  withName:hisat2Align {
-    container = "${params.containerPath}/hisat2-${params.hisat2_version}.simg"
-  }
-  withName:makeHisatSplicesites {
-    container = "${params.containerPath}/hisat2-${params.hisat2_version}.simg"
-  }
-  withName:hisat2_sort {
-    container = "${params.containerPath}/samtools-${params.samtools_version}.simg"
-  }
-
-  withName:preseq {
-    container = "${params.containerPath}/preseq-${params.preseq_version}.simg"
-  }
-  withName:markDuplicates {
-    container = "${params.containerPath}/markduplicates.simg"
-  }
-  withName:dupradar {
-    container = "${params.containerPath}/dupradar-${params.dupradar_version}.simg"
-  }
-  withName:featureCounts {
-    container = "${params.containerPath}/subread-${params.subread_version}.simg"
-  }
-  withName:HTseqCounts {
-    container = "${params.containerPath}/htseq-${params.htseq_version}.simg"
-  }
-  withName:merge_counts {
-    container = "${params.containerPath}/merge_counts.simg"
-  }
-  withName:read_distribution {
-    container = "${params.containerPath}/rseqc-${params.rseqc_version}.simg"
-  }
-  withName:exploratory_analysis {
-    container = "${params.containerPath}/exploratory_analysis.simg"
-  }
-  withName:multiqc {
-    container = "${params.containerPath}/multiqc-${params.multiqc_version}.simg"
-  }
-  withName:getCountsPerGeneType {
-    container = "${params.containerPath}/merge_counts.simg"
-  }
-  withName:geneSaturation {
-    container = "${params.containerPath}/geneSaturation.simg"
-  }
-  withName:get_software_versions {
-    container = "${params.containerPath}/rnaseq-${params.rnaseq_version}.simg"
   }
   withName:output_documentation {
     container = "${params.containerPath}/r-markdown-${params.rmarkdown_version}.simg"
