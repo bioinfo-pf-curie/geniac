@@ -26,16 +26,7 @@ The full error message was:
 
 ${errorReport}
 """
-} else if(skipped_poor_alignment.size() > 0) {
-    out << """##################################################
-## rnaseq execution completed with warnings ##
-##################################################
-The pipeline finished successfully, but the following samples were skipped,
-due to very low alignment (less than 5%):
-
-  - ${skipped_poor_alignment.join("\n  - ")}
-"""
-} else {
+}  else {
     out << "## rnaseq execution completed successfully! ##"
 }
 %>
