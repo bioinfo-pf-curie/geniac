@@ -241,6 +241,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  * Sub-routine
  */
 process output_documentation {
+    label 'rmarkdown'
     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
@@ -260,6 +261,7 @@ process output_documentation {
  * FastQC
  */
 process fastqc {
+  label 'fastqc'
   tag "${prefix}"
   publishDir "${params.outdir}/fastqc", mode: 'copy',
       saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
