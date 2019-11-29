@@ -49,4 +49,13 @@ params {
     fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
     rmarkdown = "conda-forge::r-markdown=0.8" 
   }
+
+   // Options: Tool versions
+  fastqc_version = '0.11.8'
+  rmarkdown_version = '0.8'
+
+  containers {
+    singularityImagePath = "@ap_singularity_image_path@"
+  }
+
 }
