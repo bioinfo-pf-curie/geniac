@@ -72,7 +72,7 @@ Channel
     }
 
 Channel
-    .fromPath("${baseDir}/dockerfiles/*.Dockerfile")
+    .fromPath("${baseDir}/docker/*.Dockerfile")
     .map{
         String optionalFile = null
         if (it.simpleName == 'r') {
