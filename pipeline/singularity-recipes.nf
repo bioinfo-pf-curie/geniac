@@ -95,7 +95,7 @@ Channel
  * PROCESSES
 **/
 
-process buildDefaultSingularityRecip {
+process buildDefaultSingularityRecipe {
     publishDir params.containers.singularityRecipes, overwrite: true
 
     output:
@@ -120,7 +120,7 @@ process buildDefaultSingularityRecip {
     """
 }
 
-process buildSingularityRecipFromCondaFile {
+process buildSingularityRecipeFromCondaFile {
     tag "${key}"
     publishDir params.containers.singularityRecipes, overwrite: true
 
@@ -166,7 +166,7 @@ process buildSingularityRecipFromCondaFile {
     """
 }
 
-process buildSingularityRecipFromCondaPackages {
+process buildSingularityRecipeFromCondaPackages {
     tag "${key}"
     publishDir params.containers.singularityRecipes, overwrite: true
 
