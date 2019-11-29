@@ -108,7 +108,8 @@ process buildDefaultDockerfile {
     cat << EOF > ${key}.Dockerfile
     FROM conda/miniconda2-centos7
 
-    RUN yum install -y which
+    RUN yum install -y which \\\\
+    && yum clean all
 
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
@@ -145,8 +146,11 @@ process buildDockerfileFromCondaFile {
     ADD \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
     RUN yum install -y which ${yumPkgs} ${cplmtGit} \\\\
+    && yum clean all \\\\
     && conda env create -f /opt/\$(basename ${condaFile}) \\\\
-    && echo "source activate \${env_name}" > ~/.bashrc
+    && echo "source activate \${env_name}" > ~/.bashrc \\\\
+    && conda clean -a
+
 
     ENV PATH /usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
 
@@ -185,8 +189,11 @@ process buildDockerfileFromCondaPackages {
     FROM conda/miniconda2-centos7
 
     RUN yum install -y which ${yumPkgs} ${cplmtGit} \\\\
+    && yum clean all \\\\
     && conda create -y -n ${key}_env ${cplmtConda} \\\\
-    && echo "source activate ${key}_env" > ~/.bashrc
+    && echo "source activate ${key}_env" > ~/.bashrc \\\\
+    && conda clean -a
+
 
     ENV PATH /usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
 
