@@ -56,6 +56,17 @@ params {
 
   containers {
     singularityImagePath = "@ap_singularity_image_path@"
+    root = "${baseDir}"
+    dockerfiles = "${params.containers.root}/dockerfiles"
+    yum {
+            fastqc = 'fontconfig dejavu*'
+            hgvs = 'python-biopython postgresql bind-utils'
+        }
+
+        git {
+            // keep this as syntax example
+            some_tools = 'https://github.com/some_user/some_tools::commit_hash'
+        }
   }
 
 }
