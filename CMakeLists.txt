@@ -4,7 +4,7 @@
 cmake_minimum_required (VERSION 3.10.2)
 project (analysis_pipeline LANGUAGES NONE)
 
-
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/utils/cmake;${CMAKE_MODULE_PATH}")
 set(CMAKE_BUILD_TYPE Release)
 
 # force out-of-source build
@@ -14,32 +14,39 @@ if ( ${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR} )
         You may need to remove CMakeCache.txt." )
 endif()
 
-if(NOT WIN32)
-  string(ASCII 27 Esc)
-  set(ColourReset "${Esc}[m")
-  set(ColourBold  "${Esc}[1m")
-  set(Red         "${Esc}[31m")
-  set(Green       "${Esc}[32m")
-  set(Yellow      "${Esc}[33m")
-  set(Blue        "${Esc}[34m")
-  set(Magenta     "${Esc}[35m")
-  set(Cyan        "${Esc}[36m")
-  set(White       "${Esc}[37m")
-  set(BoldRed     "${Esc}[1;31m")
-  set(BoldGreen   "${Esc}[1;32m")
-  set(BoldYellow  "${Esc}[1;33m")
-  set(BoldBlue    "${Esc}[1;34m")
-  set(BoldMagenta "${Esc}[1;35m")
-  set(BoldCyan    "${Esc}[1;36m")
-  set(BoldWhite   "${Esc}[1;37m")
-endif()
-
+include("utils/cmake/utils.cmake")
 
 option(ap_use_containers "Allow the usage of singularity images (profile Containers)" ON)
-option(ap_use_toolspath "Allow the usage of tools installed in existing directories (profile toolsPath) " OFF)
+option(ap_use_toolspath "Allow the usage of tools installed in existing directories (profile toolsPath)" OFF)
+option(ap_docker_recipes "Generate Dockerfiles" OFF)
+option(ap_singularity_recipes "Generate Singularity def files" OFF)
 
 
 find_package(Git 1.8)
+
+
+if(ap_singularity_recipes)
+  find_package(Singularity 3.6)
+  if(SINGULARITY_FOUND)
+    message_color(OK "Singularity found")
+  else()
+    message_color(ERROR "Singularity not found")
+  endif()
+endif()
+
+if(ap_docker_recipes)
+  find_package(Docker 19)
+  if(DOCKER_FOUND)
+    message_color(OK "Docker found")
+  else()
+    message_color(ERROR "Docker not found")
+  endif()
+endif()
+
+
+if(NOT IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
+  message_color(ERROR "Source directory is not a git repository")
+endif()
 
 if(GIT_FOUND)
   execute_process(
@@ -73,16 +80,16 @@ if(GIT_FOUND)
   )
 
   if(${_devel_version})
-    message( STATUS "GIT hash exists in release branch")
+    message_color( INFO "GIT hash exists in release branch")
   else()
-    message( STATUS "GIT hash does not exist in release branch: this is a development version")
+    message_color( WARNING "GIT hash does not exist in release branch: this is a development version")
   endif()
   #string(REGEX REPLACE ".*/" ""  _devel_version ${_devel_version})
 
-  message( STATUS "GIT repository on master: a${_devel_version}a")
+  message_color( INFO "GIT repository on master: ${_devel_version}")
 
 else()
-  message(STATUS "GIT not found")
+  message_color(ERROR "GIT not found")
 endif()
 
 install(DIRECTORY pipeline/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS PATTERN "conf/templates" EXCLUDE PATTERN ".git*" EXCLUDE PATTERN "CMakeLists.txt" EXCLUDE PATTERN "*.example" EXCLUDE PATTERN)
