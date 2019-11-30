@@ -34,9 +34,39 @@ if(NOT WIN32)
   set(BoldWhite   "${Esc}[1;37m")
 endif()
 
+
 option(ap_use_containers "Allow the usage of singularity images (profile Containers)" ON)
 option(ap_use_toolspath "Allow the usage of tools installed in existing directories (profile toolsPath) " OFF)
 
+
+find_package(Git 1.8)
+
+if(GIT_FOUND)
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE _build_version
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  message( STATUS "GIT hash: ${_build_version}")
+
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} remote get-url origin
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE _git_repo_name
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  string(REGEX REPLACE ".*/" ""  _git_repo_name ${_git_repo_name})
+  string(REGEX REPLACE ".git$" ""  _git_repo_name ${_git_repo_name})
+
+  message( STATUS "GIT repository name: ${_git_repo_name}")
+
+else()
+  message(STATUS "GIT not found")
+endif()
 
 install(DIRECTORY pipeline/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS PATTERN "conf/templates" EXCLUDE PATTERN ".git*" EXCLUDE PATTERN "CMakeLists.txt" EXCLUDE PATTERN "*.example" EXCLUDE PATTERN)
 
