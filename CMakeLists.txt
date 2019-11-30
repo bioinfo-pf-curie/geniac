@@ -64,6 +64,23 @@ if(GIT_FOUND)
 
   message( STATUS "GIT repository name: ${_git_repo_name}")
 
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} branch release --contains ${_build_version}
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE _devel_version
+    ERROR_QUIET
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  if(${_devel_version})
+    message( STATUS "GIT hash exists in release branch")
+  else()
+    message( STATUS "GIT hash does not exist in release branch: this is a development version")
+  endif()
+  #string(REGEX REPLACE ".*/" ""  _devel_version ${_devel_version})
+
+  message( STATUS "GIT repository on master: a${_devel_version}a")
+
 else()
   message(STATUS "GIT not found")
 endif()
