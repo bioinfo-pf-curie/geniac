@@ -212,7 +212,6 @@ process buildSingularityRecipeFromCondaPackages {
 }
 
 process buildImages {
-    maxForks 1
     tag "${key}"
     publishDir params.containers.singularityRecipes, overwrite: true
 
