@@ -54,6 +54,7 @@ params {
   fastqc_version = '0.11.8'
   rmarkdown_version = '0.8'
 
+
   containers {
     singularityImagePath = "@ap_singularity_image_path@"
     root = "${baseDir}"
@@ -70,5 +71,8 @@ params {
             some_tools = 'https://github.com/some_user/some_tools::commit_hash'
         }
   }
+
+  // option to build the singularity images
+  buildSingularityImages = false
 
 }

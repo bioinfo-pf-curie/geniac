@@ -216,6 +216,9 @@ process buildImages {
     tag "${key}"
     publishDir params.containers.singularityRecipes, overwrite: true
 
+    when:
+    params.buildSingularityImages
+
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4)
 
