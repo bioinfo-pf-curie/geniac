@@ -66,5 +66,7 @@ params {
   }
 }
 
-Note that the name of the software provided in `params.tools` can be anyname (is it not necessarly the same nane as the software will be called in command line)
-{: .alert .alert-warning}
+Note that the name of the software provided in `params.tools` can be anyname (is it not necessarly the same nane as the software will be called in command line).
+
+
+### The software is available in conda but a tricky yml recipe is needed
