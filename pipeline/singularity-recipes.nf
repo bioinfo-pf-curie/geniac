@@ -87,7 +87,7 @@ Channel
 
         return [it.simpleName, it, optionalFile]
     }
-    .set{ dockerfileCh1 }
+    .set{ singularityRecipeCh1 }
 
 
 
@@ -99,7 +99,7 @@ process buildDefaultSingularityRecipe {
     publishDir params.containers.singularityRecipes, overwrite: true
 
     output:
-    set val(key), file("${key}.def"), val('EMPTY') into dockerfileCh2
+    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
 
     script:
     key = 'notools'
@@ -131,7 +131,7 @@ process buildSingularityRecipeFromCondaFile {
         .map{ [it[0], it[1][0].join(), it[2], it[3]] }
 
     output:
-    set val(key), file("${key}.def"), val(condaFile) into dockerfileCh3
+    set val(key), file("${key}.def"), val(condaFile) into singularityRecipeCh3
 
     script:
     String cplmtGit = buildCplmtGit(git)
@@ -211,53 +211,22 @@ process buildSingularityRecipeFromCondaPackages {
     """
 }
 
-// process buildImages {
-//     maxForks 1
-//     tag "${key}"
-// 
-//     input:
-//     set val(key), file(dockerfile), val(optionalPath) from dockerfileCh1.mix(dockerfileCh2).mix(dockerfileCh3).mix(dockerfileCh4)
-// 
-//     output:
-//     val("drg-${key.toLowerCase()}") into builtCh
-// 
-//     script:
-//     String contextDir = optionalPath == 'EMPTY' ? '.' : "\$(dirname \$(realpath ${optionalPath}))"
-// 
-//     """
-//     docker build -f ${dockerfile} -t drg-${key.toLowerCase()} ${contextDir}
-//     """
-// }
-// 
-// process registerImages {
-//     tag "${imgName}"
-// 
-//     input:
-//     val(imgName) from builtCh
-// 
-//     output:
-//     val(imgName) into registeredCh
-// 
-//     script:
-//     """
-//     docker tag ${imgName} localhost:5000/${imgName}
-//     docker push localhost:5000/${imgName}
-//     """
-// }
-// 
-// process convertToSingularity {
-//     maxForks 1
-//     tag "${imgName}"
-//     publishDir params.containers.images, overwrite: true
-// 
-//     input:
-//     val(imgName) from registeredCh
-// 
-//     output:
-//     file("${imgName}.simg")
-// 
-//     script:
-//     """
-//     SINGULARITY_NOHTTPS=1 singularity build ${imgName}.simg docker://localhost:5000/${imgName}
-//     """
-// }
+process buildImages {
+    maxForks 1
+    tag "${key}"
+    publishDir params.containers.singularityRecipes, overwrite: true
+
+    input:
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4)
+
+    output:
+    file("${key.toLowerCase()}.simg")
+
+    script:
+    String contextDir = optionalPath == 'EMPTY' ? '.' : "\$(dirname \$(realpath ${optionalPath}))"
+
+    """
+    singularity build ${key.toLowerCase()}.simg ${singularityRecipe}
+    """
+}
+
