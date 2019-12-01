@@ -282,6 +282,21 @@ process fastqc {
 }
 
 
+/*
+ * Some process with a software that has to be
+ * installed with a custom conda yml file
+ */
+
+
+process trickySoftware {
+  label 'trickySoftware'
+  
+  script:
+  """
+  python --version
+  """
+}
+
 workflow.onComplete {
 
     /*pipeline_report.html*/

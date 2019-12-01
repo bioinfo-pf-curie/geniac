@@ -69,4 +69,22 @@ params {
 Note that the name of the software provided in `params.tools` can be anyname (is it not necessarly the same nane as the software will be called in command line).
 
 
+* edit the file `pipeline/conf/multiconda.config` and add
+
+```
+process {
+    withLabel: rmarkdown { conda = params.tools.rmarkdown}
+ 
+}
+```
+
+
+* edit the file `pipeline/conf/singularity.config` and add
+
+TO BE COMPLETED
+
+
+
+
+
 ### The software is available in conda but a tricky yml recipe is needed

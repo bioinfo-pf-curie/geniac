@@ -1,8 +1,0 @@
-name: sambamba_env
-channels:
-    - bioconda
-    - conda-forge
-    - defaults
-dependencies:
-    - sambamba=0.7.0=h89e63da_1
-
