@@ -153,7 +153,7 @@ process buildSingularityRecipeFromCondaFile {
 
     # real path from baseDir: ${condaFile}
     %files
-        \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
+        ${condaFile} /opt/\$(basename ${condaFile})
     
     %post
         yum install -y which ${yumPkgs} ${cplmtGit} \\\\
@@ -213,7 +213,7 @@ process buildSingularityRecipeFromCondaPackages {
 
 process buildImages {
     tag "${key}"
-    publishDir params.containers.singularityRecipes, overwrite: true
+    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityImages
