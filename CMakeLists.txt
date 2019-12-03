@@ -92,7 +92,9 @@ else()
   message_color(ERROR "GIT not found")
 endif()
 
-install(DIRECTORY pipeline/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS PATTERN "conf/templates" EXCLUDE PATTERN ".git*" EXCLUDE PATTERN "CMakeLists.txt" EXCLUDE PATTERN "*.example" EXCLUDE PATTERN)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS PATTERN "conf/templates" EXCLUDE PATTERN ".git*" EXCLUDE PATTERN "CMakeLists.txt" EXCLUDE PATTERN "*.example" EXCLUDE PATTERN "utils/" EXCLUDE)
 
-add_subdirectory (pipeline/conf/templates)
+
+
+add_subdirectory (conf/templates)
 
