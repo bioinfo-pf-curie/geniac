@@ -153,7 +153,7 @@ process buildSingularityRecipeFromCondaFile {
 
     # real path from baseDir: ${condaFile}
     %files
-        ${condaFile} /opt/\$(basename ${condaFile})
+        \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
     
     %post
         yum install -y which ${yumPkgs} ${cplmtGit} \\\\

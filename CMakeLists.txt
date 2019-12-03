@@ -16,33 +16,35 @@ endif()
 
 include("utils/cmake/utils.cmake")
 
-option(ap_use_containers "Allow the usage of singularity images (profile Containers)" ON)
-option(ap_use_toolspath "Allow the usage of tools installed in existing directories (profile toolsPath)" OFF)
-option(ap_docker_recipes "Generate Dockerfiles" OFF)
-option(ap_singularity_recipes "Generate Singularity def files" OFF)
+#option(ap_use_containers "Allow the usage of singularity images (profile Containers)" ON)
+#option(ap_use_toolspath "Allow the usage of tools installed in existing directories (profile toolsPath)" OFF)
+#option(ap_docker_recipes "Generate Dockerfiles" OFF)
+#option(ap_singularity_recipes "Generate Singularity def files" OFF)
 
+
+set(ap_conda_recipes_path "recipes/conda")
 
 find_package(Git 1.8)
+find_package(Nextflow)
 
 
-if(ap_singularity_recipes)
-  find_package(Singularity 3.6)
+  find_package(Singularity 3.0)
   if(SINGULARITY_FOUND)
     message_color(OK "Singularity found")
   else()
-    message_color(ERROR "Singularity not found")
+	  message_color(WARNING "Singularity not found")
   endif()
-endif()
 
-if(ap_docker_recipes)
   find_package(Docker 19)
   if(DOCKER_FOUND)
     message_color(OK "Docker found")
   else()
-    message_color(ERROR "Docker not found")
+	  message_color(WARNING "Docker not found")
   endif()
-endif()
 
+##################
+## GIT INFORMATION
+##################
 
 if(NOT IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
   message_color(ERROR "Source directory is not a git repository")
@@ -90,6 +92,34 @@ if(GIT_FOUND)
 
 else()
   message_color(ERROR "GIT not found")
+endif()
+
+#################################
+### Singularity recipe and images
+##################################
+
+if (SINGULARITY_FOUND)
+
+
+	add_custom_target(singularity_recipes
+		COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
+		COMMAND ${SINGULARITY_EXECUTABLE} --version
+		)
+
+	add_custom_command(TARGET singularity_recipes
+    PRE_BUILD
+    COMMAND echo -e "\texecuting a PRE_BUILD command"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path} ${CMAKE_BINARY_DIR}/singularity_recipes
+    #COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf/templates ${CMAKE_BINARY_DIR}/singularity_recipes
+     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/conf/templates/base.config.in ${CMAKE_BINARY_DIR}/singularity_recipes/conf/base.config
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/nextflow.config ${CMAKE_BINARY_DIR}/singularity_recipes/
+
+     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/singularity-recipes.nf ${CMAKE_BINARY_DIR}/singularity_recipes
+
+
+    COMMENT "This command will be executed before building bar"
+    VERBATIM # to support \t for example
+)
 endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_PREFIX} USE_SOURCE_PERMISSIONS PATTERN "conf/templates" EXCLUDE PATTERN ".git*" EXCLUDE PATTERN "CMakeLists.txt" EXCLUDE PATTERN "*.example" EXCLUDE PATTERN "utils/" EXCLUDE)
