@@ -102,8 +102,6 @@ endif()
 if (SINGULARITY_FOUND)
 
 
-	#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/singularity_recipes)
-
 	
 	add_custom_target(singularity
 		COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
@@ -116,18 +114,15 @@ if (SINGULARITY_FOUND)
 	add_custom_command(#TARGET singularity    
 		#PRE_BUILD
 		OUTPUT singularity_recipes
-    COMMAND echo -e "\texecuting a PRE_BUILD command"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path} ${CMAKE_BINARY_DIR}/singularity_recipes
-    #COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf/templates ${CMAKE_BINARY_DIR}/singularity_recipes
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflow_conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf/
-      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/nextflow.config ${CMAKE_BINARY_DIR}/singularity_recipes/
-COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf
-
-     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/singularity-recipes.nf ${CMAKE_BINARY_DIR}/singularity_recipes
-
-
-    COMMENT "This command will be executed before building singularity"
-    VERBATIM # to support \t for example
+		COMMAND echo -e "\texecuting a PRE_BUILD command"
+    		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path} ${CMAKE_BINARY_DIR}/singularity_recipes/singularityRecipes
+    		#COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf/templates ${CMAKE_BINARY_DIR}/singularity_recipes
+    		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflow_conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf/
+      		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/nextflow.config ${CMAKE_BINARY_DIR}/singularity_recipes/
+		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/singularity-recipes.nf ${CMAKE_BINARY_DIR}/singularity_recipes
+    		COMMENT "This command will be executed before building singularity"
+    		VERBATIM # to support \t for example
 )
 endif()
 
