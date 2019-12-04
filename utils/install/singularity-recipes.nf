@@ -93,7 +93,10 @@ Channel
 /**
  * CONDA RECIPES
 **/
-condaRecipes = file("${baseDir}/recipes/conda/*")
+
+Channel
+    .fromPath("${baseDir}/recipes/conda/*.yml")
+    .set{ condaRecipes }
 
 
 /**
@@ -228,7 +231,7 @@ process buildImages {
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4)
-    file condaYml from condaRecipes
+    file condaYml from condaRecipes.collect()
 
     output:
     file("${key.toLowerCase()}.simg")
