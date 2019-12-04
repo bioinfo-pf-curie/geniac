@@ -20,6 +20,7 @@ include("utils/cmake/utils.cmake")
 #option(ap_use_toolspath "Allow the usage of tools installed in existing directories (profile toolsPath)" OFF)
 #option(ap_docker_recipes "Generate Dockerfiles" OFF)
 #option(ap_singularity_recipes "Generate Singularity def files" OFF)
+set(ap_build_singularity_images "false" CACHE STRING "Generate Singularity def files and images")
 
 
 set(ap_conda_recipes_path "recipes/conda")
@@ -101,23 +102,31 @@ endif()
 if (SINGULARITY_FOUND)
 
 
-	add_custom_target(singularity_recipes
+	#file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/singularity_recipes)
+
+	
+	add_custom_target(singularity
 		COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-		COMMAND ${SINGULARITY_EXECUTABLE} --version
+		COMMAND ${NEXTFLOW_EXECUTABLE} run singularity-recipes.nf --buildSingularityImages ${ap_build_singularity_images}
+		#	COMMAND ${CMAKE_COMMAND} -E file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/singularity_recipes)
+		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/singularity_recipes"
+		DEPENDS singularity_recipes
 		)
 
-	add_custom_command(TARGET singularity_recipes
-    PRE_BUILD
+	add_custom_command(#TARGET singularity    
+		#PRE_BUILD
+		OUTPUT singularity_recipes
     COMMAND echo -e "\texecuting a PRE_BUILD command"
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path} ${CMAKE_BINARY_DIR}/singularity_recipes
     #COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf/templates ${CMAKE_BINARY_DIR}/singularity_recipes
-     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/conf/templates/base.config.in ${CMAKE_BINARY_DIR}/singularity_recipes/conf/base.config
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflow_conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf/
       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/nextflow.config ${CMAKE_BINARY_DIR}/singularity_recipes/
+COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf
 
      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/singularity-recipes.nf ${CMAKE_BINARY_DIR}/singularity_recipes
 
 
-    COMMENT "This command will be executed before building bar"
+    COMMENT "This command will be executed before building singularity"
     VERBATIM # to support \t for example
 )
 endif()
