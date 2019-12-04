@@ -69,8 +69,8 @@ if(GIT_FOUND)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-  string(REGEX REPLACE ".*/" ""  _git_repo_name ${_git_repo_name})
-  string(REGEX REPLACE ".git$" ""  _git_repo_name ${_git_repo_name})
+#  string(REGEX REPLACE ".*/" ""  _git_repo_name ${_git_repo_name})
+#  string(REGEX REPLACE ".git$" ""  _git_repo_name ${_git_repo_name})
 
   message( STATUS "GIT repository name: ${_git_repo_name}")
 
@@ -115,12 +115,12 @@ if (SINGULARITY_FOUND)
 		#PRE_BUILD
 		OUTPUT singularity_recipes
 		COMMAND echo -e "\texecuting a PRE_BUILD command"
-    		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path} ${CMAKE_BINARY_DIR}/singularity_recipes/singularityRecipes
+    		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path} ${CMAKE_BINARY_DIR}/singularity_recipes/recipes/conda
     		#COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf/templates ${CMAKE_BINARY_DIR}/singularity_recipes
     		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflow_conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf/
       		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/nextflow.config ${CMAKE_BINARY_DIR}/singularity_recipes/
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf ${CMAKE_BINARY_DIR}/singularity_recipes/conf
-		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/singularity-recipes.nf ${CMAKE_BINARY_DIR}/singularity_recipes
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/utils/install/singularity-recipes.nf ${CMAKE_BINARY_DIR}/singularity_recipes
     		COMMENT "This command will be executed before building singularity"
     		VERBATIM # to support \t for example
 )

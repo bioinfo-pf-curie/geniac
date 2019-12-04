@@ -90,13 +90,19 @@ Channel
     .set{ singularityRecipeCh1 }
 
 
+/**
+ * CONDA RECIPES
+**/
+condaRecipes = file("${baseDir}/recipes/conda/*")
+
 
 /**
  * PROCESSES
 **/
 
 process buildDefaultSingularityRecipe {
-    publishDir params.containers.singularityRecipes, overwrite: true
+    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+
 
     output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
@@ -122,7 +128,8 @@ process buildDefaultSingularityRecipe {
 
 process buildSingularityRecipeFromCondaFile {
     tag "${key}"
-    publishDir params.containers.singularityRecipes, overwrite: true
+    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+
 
     input:
     set val(key), val(condaFile), val(yum), val(git) from condaFilesCh
@@ -168,7 +175,8 @@ process buildSingularityRecipeFromCondaFile {
 
 process buildSingularityRecipeFromCondaPackages {
     tag "${key}"
-    publishDir params.containers.singularityRecipes, overwrite: true
+    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+
 
     input:
     set val(key), val(tools), val(yum), val(git) from condaPackagesCh
@@ -220,6 +228,7 @@ process buildImages {
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4)
+    file condaYml from condaRecipes
 
     output:
     file("${key.toLowerCase()}.simg")
