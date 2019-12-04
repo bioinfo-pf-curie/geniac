@@ -104,7 +104,7 @@ Channel
 **/
 
 process buildDefaultSingularityRecipe {
-    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
 
 
     output:
@@ -131,7 +131,7 @@ process buildDefaultSingularityRecipe {
 
 process buildSingularityRecipeFromCondaFile {
     tag "${key}"
-    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
 
 
     input:
@@ -178,7 +178,7 @@ process buildSingularityRecipeFromCondaFile {
 
 process buildSingularityRecipeFromCondaPackages {
     tag "${key}"
-    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
 
 
     input:
@@ -224,7 +224,7 @@ process buildSingularityRecipeFromCondaPackages {
 
 process buildImages {
     tag "${key}"
-    publishDir params.containers.singularityRecipes, overwrite: true, mode: 'copy'
+    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityImages
