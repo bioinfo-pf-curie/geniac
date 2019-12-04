@@ -25,7 +25,7 @@ set(ap_build_singularity_images "false" CACHE STRING "Generate Singularity def f
 
 set(ap_conda_recipes_path "recipes/conda")
 
-find_package(Git 1.8)
+find_package(Git 2.0)
 find_package(Nextflow)
 
 
@@ -69,10 +69,10 @@ if(GIT_FOUND)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-#  string(REGEX REPLACE ".*/" ""  _git_repo_name ${_git_repo_name})
-#  string(REGEX REPLACE ".git$" ""  _git_repo_name ${_git_repo_name})
-
   message( STATUS "GIT repository name: ${_git_repo_name}")
+  string(REGEX REPLACE ".*/" ""  _git_repo_name ${_git_repo_name})
+  string(REGEX REPLACE ".git$" ""  _git_repo_name ${_git_repo_name})
+
 
   execute_process(
     COMMAND ${GIT_EXECUTABLE} branch release --contains ${_build_version}
