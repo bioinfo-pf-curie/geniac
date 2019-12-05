@@ -60,7 +60,6 @@ params {
     singularityImagePath = "@ap_singularity_image_path@"
     root = "${baseDir}"
     dockerfiles = "${params.containers.root}/dockerfiles"
-    deffiles = "${params.containers.root}/deffiles"
 
     yum {
             fastqc = 'fontconfig dejavu*'
