@@ -121,24 +121,24 @@ if(GIT_FOUND)
 
                 message_color(
                         WARNING
-                        "GIT hash does not exist in release branch: this is a development version"
+                        "GIT hash does not exist in release branch:\n\t===> this is a development version"
                 )
 
         else()
                 message_color(INFO "GIT hash exists in release branch")
 
-		if("${_release_has_tag}" STREQUAL "")
+                if("${_release_has_tag}" STREQUAL "")
 
                         message_color(
                                 WARNING
-                                "GIT hash exists in branch release but does not have tag with pattern 'version-*': this is a development version"
+				"GIT hash exists in branch release but does not have tag with pattern 'version-*':\n\t===> this is a development version"
                         )
 
-		endif()
+                else()
+			message_color(OK "GIT hash has a 'version-*' tag:\n\t===> this is a production version")
+                endif()
 
         endif()
-
-        message_color(INFO "GIT repository on master: ${_commit_in_release}")
 
 else()
         message_color(ERROR "GIT not found")
