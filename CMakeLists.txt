@@ -156,13 +156,7 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
         add_custom_target(
                 build_singularity_recipes
                 COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-                COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWorkdir
-                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf -with-report
-                        --buildSingularityImages false
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
-                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/)
+                DEPENDS  ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
 
         # generate singularity recipes and images
         add_custom_command(
@@ -184,13 +178,7 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                 build_singularity_images
                 COMMAND ${CMAKE_COMMAND} -E echo
                         "Build singularity recipes and images"
-                COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWorkdir
-                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
-                        --buildSingularityImages true -with-report
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
-                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/)
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done)
 
 
         if(ap_install_singularity_recipes)
