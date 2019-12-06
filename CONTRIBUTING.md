@@ -87,18 +87,18 @@ TO BE COMPLETED
 
 ### The software is available in conda but a tricky yml recipe is needed
 
-* add the custom recipe in the directory `pipeline/recipes/conda`, for example add the file `trickySoftware.yml`.
+* add the custom recipe in the directory `pipeline/recipes/conda`, for example add the file `trickysoftware.yml`.
 
 * edit `pipeline/conf/template/base.in.config`
 
-* in the section `params.tools` add  `trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"` as follows:
+* in the section `params.tools` add  `trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"` as follows:
 
 
 ```
 params {
   
   tools {
-    trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+    trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"
   }
 }
 ```
@@ -106,7 +106,7 @@ params {
 * edit the file `pipeline/conf/multiconda.config` and add
 
 process {
-    withLabel: trickySoftware { conda = params.tools.trickySoftware}
+    withLabel: trickysoftware { conda = params.tools.trickysoftware}
 }
 
 
