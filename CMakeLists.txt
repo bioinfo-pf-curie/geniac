@@ -120,103 +120,112 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
 
         # working directory to build the container recipes and images
         add_custom_command(
-                OUTPUT ${CMAKE_BINARY_DIR}/containerWordir
+                OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir.done
+		COMMAND ${CMAKE_COMMAND} -E echo "create containerWorkdir/"
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path}
-                        ${CMAKE_BINARY_DIR}/containerWordir/recipes/conda
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/recipes/conda
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_BINARY_DIR}/nextflow_conf
-                        ${CMAKE_BINARY_DIR}/containerWordir/conf/
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/conf/
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/nextflow.config
-                        ${CMAKE_BINARY_DIR}/containerWordir/
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_SOURCE_DIR}/conf
-                        ${CMAKE_BINARY_DIR}/containerWordir/conf
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/conf
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWordir)
+                        ${CMAKE_BINARY_DIR}/containerWorkdir
+		COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/containerWorkdir.done")
 
         # generate singularity recipes
         add_custom_command(
-                OUTPUT ${CMAKE_BINARY_DIR}/containerWordir/deffiles
+                OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done
                 COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWordir
+                        ${CMAKE_BINARY_DIR}/containerWorkdir
                 COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
-                        --buildSingularityImages false
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWordir"
-                DEPENDS containerWordir)
-        
-	# allows the build of the recipes with "make build_singularity_recipes"
-	add_custom_target(
+                        --buildSingularityImages false -with-report
+		COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
+
+        # allows the build of the recipes with "make build_singularity_recipes"
+        add_custom_target(
                 build_singularity_recipes
-		COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-                COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWordir
-                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
-                        --buildSingularityImages false
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWordir"
-                DEPENDS containerWordir)
-
-	# generate singularity recipes and images
-        add_custom_command(
-                OUTPUT ${CMAKE_BINARY_DIR}/containerWordir/singularityImages
                 COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWordir
-                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
-                        --buildSingularityImages true
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWordir"
-                DEPENDS containerWordir)
+                        ${CMAKE_BINARY_DIR}/containerWorkdir
+                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf -with-report
+                        --buildSingularityImages false
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/)
 
-	# allows the build of the recipes and images with "make build_singularity_images"
-	add_custom_target(
-                build_singularity_images
-		COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
+        # generate singularity recipes and images
+        add_custom_command(
+                OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done
+                COMMAND ${CMAKE_COMMAND} -E echo
+                        "Build singularity recipes and images"
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-                        ${CMAKE_BINARY_DIR}/containerWordir
+                        ${CMAKE_BINARY_DIR}/containerWorkdir
                 COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
-                        --buildSingularityImages true
-                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWordir"
-                DEPENDS containerWordir)
+                        --buildSingularityImages true -with-report
+		COMMAND ${CMAKE_COMMAND} -E touch "singularityImages.done"
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
+
+        # allows the build of the recipes and images with "make
+        # build_singularity_images"
+        add_custom_target(
+                build_singularity_images
+                COMMAND ${CMAKE_COMMAND} -E echo
+                        "Build singularity recipes and images"
+                COMMAND ${CMAKE_COMMAND} -E copy
+                        ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
+                        ${CMAKE_BINARY_DIR}/containerWorkdir
+                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
+                        --buildSingularityImages true -with-report
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/)
+
 
         if(ap_install_singularity_recipes)
                 message_color(INFO "Singularity recipes will be installed")
 
                 add_custom_target(
                         install_singularity_recipes ALL
-                        DEPENDS ${CMAKE_BINARY_DIR}/containerWordir/deffiles)
+			DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
 
                 install(
                         DIRECTORY
-                                "${CMAKE_BINARY_DIR}/containerWordir/deffiles/"
+                                "${CMAKE_BINARY_DIR}/containerWorkdir/deffiles/"
                         DESTINATION
                                 "${CMAKE_INSTALL_PREFIX}/containers/deffiles")
         endif()
 
         if(ap_install_singularity_images)
-                message_color(INFO "Singularity images will be installed")
+                message_color(
+                        INFO "Singularity recipes and images will be installed")
 
                 add_custom_target(
                         install_singularity_images ALL
                         DEPENDS
-                                ${CMAKE_BINARY_DIR}/containerWordir/singularityImages
+                                ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done
                 )
 
                 install(
                         DIRECTORY
-                                "${CMAKE_BINARY_DIR}/containerWordir/deffiles/"
+                                "${CMAKE_BINARY_DIR}/containerWorkdir/deffiles/"
                         DESTINATION
                                 "${CMAKE_INSTALL_PREFIX}/containers/deffiles")
 
                 install(
                         DIRECTORY
-                                "${CMAKE_BINARY_DIR}/containerWordir/singularityImages/"
+                                "${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages/"
                         DESTINATION
                                 "${CMAKE_INSTALL_PREFIX}/containers/singularityImages"
                 )
