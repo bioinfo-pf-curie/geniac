@@ -288,8 +288,8 @@ process fastqc {
  */
 
 
-process trickySoftware {
-  label 'trickySoftware'
+process trickysoftware {
+  label 'trickysoftware'
   
   script:
   """

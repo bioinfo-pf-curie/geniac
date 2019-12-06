@@ -96,13 +96,31 @@ if(GIT_FOUND)
                 OUTPUT_VARIABLE _devel_version
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+        execute_process(
+                COMMAND ${GIT_EXECUTABLE} tag --list 'version-*' --contains
+                        ${_build_version}
+                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+                OUTPUT_VARIABLE _release_tag
+                ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
         if(${_devel_version})
                 message_color(INFO "GIT hash exists in release branch")
+
+                if(NOT ${_release_tag})
+
+                        message_color(
+                                WARNING
+                                "GIT hash exists in branch release but does not have tag with pattern 'version-*': this is a development version"
+                        )
+
+                endif()
+
         else()
                 message_color(
                         WARNING
                         "GIT hash does not exist in release branch: this is a development version"
                 )
+
         endif()
         # string(REGEX REPLACE ".*/" ""  _devel_version ${_devel_version})
 
@@ -121,12 +139,12 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
         # working directory to build the container recipes and images
         add_custom_command(
                 OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir.done
-		COMMAND ${CMAKE_COMMAND} -E echo "create containerWorkdir/"
+                COMMAND ${CMAKE_COMMAND} -E echo "create containerWorkdir/"
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path}
                         ${CMAKE_BINARY_DIR}/containerWorkdir/recipes/conda
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
-                        ${CMAKE_BINARY_DIR}/nextflow_conf
+                        ${CMAKE_BINARY_DIR}/nextflowConf
                         ${CMAKE_BINARY_DIR}/containerWorkdir/conf/
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/nextflow.config
@@ -137,7 +155,8 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
                         ${CMAKE_BINARY_DIR}/containerWorkdir
-		COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/containerWorkdir.done")
+                COMMAND ${CMAKE_COMMAND} -E touch
+                        "${CMAKE_BINARY_DIR}/containerWorkdir.done")
 
         # generate singularity recipes
         add_custom_command(
@@ -148,7 +167,7 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                         ${CMAKE_BINARY_DIR}/containerWorkdir
                 COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
                         --buildSingularityImages false -with-report
-		COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
+                COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
                 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
                 DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
 
@@ -156,11 +175,12 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
         add_custom_target(
                 build_singularity_recipes
                 COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-                DEPENDS  ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
 
         # generate singularity recipes and images
         add_custom_command(
-                OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done
+                OUTPUT
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done
                 COMMAND ${CMAKE_COMMAND} -E echo
                         "Build singularity recipes and images"
                 COMMAND ${CMAKE_COMMAND} -E copy
@@ -168,7 +188,7 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                         ${CMAKE_BINARY_DIR}/containerWorkdir
                 COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
                         --buildSingularityImages true -with-report
-		COMMAND ${CMAKE_COMMAND} -E touch "singularityImages.done"
+                COMMAND ${CMAKE_COMMAND} -E touch "singularityImages.done"
                 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
                 DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
 
@@ -178,15 +198,18 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                 build_singularity_images
                 COMMAND ${CMAKE_COMMAND} -E echo
                         "Build singularity recipes and images"
-                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done)
-
+                DEPENDS
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done
+        )
 
         if(ap_install_singularity_recipes)
                 message_color(INFO "Singularity recipes will be installed")
 
                 add_custom_target(
                         install_singularity_recipes ALL
-			DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
+                        DEPENDS
+                                ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done
+                )
 
                 install(
                         DIRECTORY

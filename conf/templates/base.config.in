@@ -48,16 +48,12 @@ params {
   tools {
     fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
     rmarkdown = "conda-forge::r-markdown=0.8"
-    trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+    trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"
   }
-
-   // Options: Tool versions
-  fastqc_version = '0.11.8'
-  rmarkdown_version = '0.8'
 
 
   containers {
-    singularityImagePath = "@ap_singularity_image_path@"
+    singularityImagePath = "${baseDir}/containers/singularityImages"
     root = "${baseDir}"
     dockerfiles = "${params.containers.root}/dockerfiles"
     deffiles = "${params.containers.root}/deffiles"

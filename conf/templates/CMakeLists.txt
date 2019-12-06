@@ -37,8 +37,8 @@ foreach(file ${ap_conf_template_file_list})
   string(REGEX REPLACE ".in$" "" file_output ${file})
   message_color(INFO "configure: ${file} into ${file_output}")
 
-  configure_file(${file} ${CMAKE_BINARY_DIR}/nextflow_conf/${file_output} @ONLY)
-  install(FILES ${CMAKE_BINARY_DIR}/nextflow_conf/${file_output} DESTINATION ${CMAKE_INSTALL_PREFIX}/conf)
+  configure_file(${file} ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} @ONLY)
+  install(FILES ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} DESTINATION ${CMAKE_INSTALL_PREFIX}/conf)
 
 endforeach(file ${ap_conf_template_file_list})
 
