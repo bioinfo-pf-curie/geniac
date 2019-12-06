@@ -70,14 +70,20 @@ endif()
 
 if(GIT_FOUND)
 
+        # extract the commid id
         execute_process(
-                COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+                COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-                OUTPUT_VARIABLE _build_version
+                OUTPUT_VARIABLE _commit_sha1
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        message(STATUS "GIT hash: ${_build_version}")
+        if("${_commit_sha1}" STREQUAL "")
+                message_color(ERROR "git commit sha1 is empty")
+        else()
+                message(STATUS "GIT hash: ${_commit_sha1}")
+        endif()
 
+        # extract the remothe URL of the git repository and extract its name
         execute_process(
                 COMMAND ${GIT_EXECUTABLE} remote get-url origin
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -89,42 +95,50 @@ if(GIT_FOUND)
 
         message(STATUS "GIT repository name: ${_git_repo_name}")
 
+        # check whether the commit sha1 exists on the release branch
         execute_process(
                 COMMAND ${GIT_EXECUTABLE} branch release --contains
-                        ${_build_version}
+                        ${_commit_sha1}
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-                OUTPUT_VARIABLE _devel_version
+                OUTPUT_VARIABLE _commit_in_release
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+        message(
+                STATUS
+                        "GIT repository name devel version: ${_commit_in_release}"
+        )
+
+        # check wether a production tag exists on the release branch for the
+        # commit sha1
         execute_process(
                 COMMAND ${GIT_EXECUTABLE} tag --list 'version-*' --contains
-                        ${_build_version}
+                        ${_commit_sha1}
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-                OUTPUT_VARIABLE _release_tag
+                OUTPUT_VARIABLE _release_has_tag
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        if(${_devel_version})
+        if("${_commit_in_release}" STREQUAL "")
+
+                message_color(
+                        WARNING
+                        "GIT hash does not exist in release branch: this is a development version"
+                )
+
+        else()
                 message_color(INFO "GIT hash exists in release branch")
 
-                if(NOT ${_release_tag})
+		if("${_release_has_tag}" STREQUAL "")
 
                         message_color(
                                 WARNING
                                 "GIT hash exists in branch release but does not have tag with pattern 'version-*': this is a development version"
                         )
 
-                endif()
-
-        else()
-                message_color(
-                        WARNING
-                        "GIT hash does not exist in release branch: this is a development version"
-                )
+		endif()
 
         endif()
-        # string(REGEX REPLACE ".*/" ""  _devel_version ${_devel_version})
 
-        message_color(INFO "GIT repository on master: ${_devel_version}")
+        message_color(INFO "GIT repository on master: ${_commit_in_release}")
 
 else()
         message_color(ERROR "GIT not found")
