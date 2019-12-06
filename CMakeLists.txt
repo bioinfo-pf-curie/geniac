@@ -103,11 +103,6 @@ if(GIT_FOUND)
                 OUTPUT_VARIABLE _commit_in_release
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        message(
-                STATUS
-                        "GIT repository name devel version: ${_commit_in_release}"
-        )
-
         # check wether a production tag exists on the release branch for the
         # commit sha1
         execute_process(
