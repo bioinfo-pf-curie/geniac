@@ -3,6 +3,23 @@
 
 **WARNING this document in WIP mode**
 
+
+## Build and install singularity images
+
+
+* either edit `utils/install/cmake-init.cmake` and check that you have `set(ap_install_singularity_images "ON" CACHE BOOL "")`
+* or invoke `cmake` with the option `-Dap_install_singularity_images=ON`
+
+* to build singularity images, root credentials are required
+	* either type `make` if you have `fakeroot` singularity credentials
+	* or `sudo make` if you have sudo privileges
+	
+* then `make install`
+
+If you want to build the recipes without installing them type  `make build_singularity_recipes`. Recipes will be generated in `build/containerWorkdir/deffiles`.
+
+If you want to build the images without installing them type `make build_singularity_images`. Images will be generated in  `build/containerWorkdir/singularityImages`.
+
 We also provide a `cmake` interface to build the configuration files and install the pipeline according to your needs as described below.
 
 ### Advanced installation
