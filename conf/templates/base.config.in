@@ -9,42 +9,15 @@
  * run on the logged in environment.
  */
 
-process {
 
-  container = params.container
-
-  cpus = { check_max( 2, 'cpus' ) }
-  memory = { check_max( 4.GB * task.attempt, 'memory' ) }
-  time = { check_max( 2.h * task.attempt, 'time' ) }
-
-  //errorStrategy = { task.exitStatus in [143,137,104,134,139] ? 'retry' : 'finish' }
-  errorStrategy = 'retry' 
-  maxRetries = 1
-  maxErrors = '-1'
-  
-  withName:output_documentation {
-    memory = { check_max( 100.MB, 'memory' ) }
-  }
-  withName:workflow_summary_mqc {
-    cpus = { check_max (1, 'cpus') }
-    memory = { check_max( 10.MB, 'memory' ) }
-    executor = 'local'
-  }
-
-}
-
-trace { // Turning on trace tracking by default
-  enabled = true
-  raw = true
-  fields = 'process,task_id,hash,native_id,module,container,tag,name,status,exit,submit,start,complete,duration,realtime,%cpu,%mem,rss,vmem,peak_rss,peak_vmem,rchar,wchar,syscr,syscw,read_bytes,write_bytes,attempt,workdir,scratch,queue,cpus,memory,disk,time,env'
-}
+// trace { // Turning on trace tracking by default
+//   enabled = true
+//   raw = true
+//   fields = 'process,task_id,hash,native_id,module,container,tag,name,status,exit,submit,start,complete,duration,realtime,%cpu,%mem,rss,vmem,peak_rss,peak_vmem,rchar,wchar,syscr,syscw,read_bytes,write_bytes,attempt,workdir,scratch,queue,cpus,memory,disk,time,env'
+// }
 
 params {
-  // Defaults only, expecting to be overwritten
-  max_memory = 128.GB
-  max_cpus = 16
-  max_time = 240.h
-
+ 
   tools {
     fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
     rmarkdown = "conda-forge::r-markdown=0.8"
@@ -59,6 +32,9 @@ params {
     deffiles = "${params.containers.root}/deffiles"
     singularityImages = "${params.containers.root}/singularityImages"
 
+    // containers are based on CentOS linux
+    // some tools require dependcies to be installed with 'yum install'
+    // specific dependencies are listed below
     yum {
             fastqc = 'fontconfig dejavu*'
             hgvs = 'python-biopython postgresql bind-utils'
@@ -70,7 +46,8 @@ params {
         }
   }
 
-  // option to build the singularity images
+  // option to build the container images
   buildSingularityImages = false
+  buildDockerImages = false
 
 }
