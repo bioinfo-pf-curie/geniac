@@ -72,7 +72,7 @@ Channel
     }
 
 Channel
-    .fromPath("${baseDir}/singularity/*.def")
+    .fromPath("${baseDir}/recipes/singularity/*.def")
     .map{
         String optionalFile = null
         if (it.simpleName == 'r') {
@@ -237,7 +237,6 @@ process buildImages {
     file("${key.toLowerCase()}.simg")
 
     script:
-    String contextDir = optionalPath == 'EMPTY' ? '.' : "\$(dirname \$(realpath ${optionalPath}))"
 
     """
     singularity build ${key.toLowerCase()}.simg ${singularityRecipe}

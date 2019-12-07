@@ -281,6 +281,27 @@ process fastqc {
   """
 }
 
+/*
+ * lolcow 
+ */
+
+oneToFive =Channel.of(1..5)
+process lolcow {
+  label 'lolcow'
+  publishDir "${params.outdir}/lolcow", mode: 'copy'
+
+  input:
+  val x from oneToFive
+
+  output:
+  file "lolcow_*"
+
+  script:
+  """
+  fortune | cowsay | lolcat > lolcow_${x}.txt
+  """
+}
+
 
 /*
  * Some process with a software that has to be

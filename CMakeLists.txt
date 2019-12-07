@@ -150,8 +150,8 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                 OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir.done
                 COMMAND ${CMAKE_COMMAND} -E echo "create containerWorkdir/"
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
-                        ${CMAKE_SOURCE_DIR}/${ap_conda_recipes_path}
-                        ${CMAKE_BINARY_DIR}/containerWorkdir/recipes/conda
+                        ${CMAKE_SOURCE_DIR}/recipes
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/recipes
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_BINARY_DIR}/nextflowConf
                         ${CMAKE_BINARY_DIR}/containerWorkdir/conf/
