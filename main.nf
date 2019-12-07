@@ -1,5 +1,6 @@
 #!/usr/bin/env nextflow
 
+
 /*
 Copyright Institut Curie 2019
 This software is a computer program whose purpose is to analyze high-throughput sequencing data.
@@ -302,6 +303,24 @@ process lolcow {
   """
 }
 
+
+/*
+ * process with notools (invoke script from bin) 
+ */
+
+process execbinscript {
+  label 'notools'
+  publishDir "${params.outdir}/execbinscript", mode: 'copy'
+
+  output:
+  file "execbinscriptResults_*"
+
+  script:
+  """
+  apMyscript.sh > execbinscriptResults_1.txt
+  somescript.sh > execbinscriptResults_2.txt
+  """
+}
 
 /*
  * Some process with a software that has to be
