@@ -189,7 +189,7 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                         ${CMAKE_BINARY_DIR}/nextflowConf
                         ${CMAKE_BINARY_DIR}/containerWorkdir/conf/
                 COMMAND ${CMAKE_COMMAND} -E copy
-                        ${CMAKE_SOURCE_DIR}/nextflow.config
+                        ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
                         ${CMAKE_BINARY_DIR}/containerWorkdir/
                 COMMAND ${CMAKE_COMMAND} -E copy_directory
                         ${CMAKE_SOURCE_DIR}/conf

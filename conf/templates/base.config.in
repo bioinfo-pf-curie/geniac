@@ -46,8 +46,4 @@ params {
         }
   }
 
-  // option to build the container images
-  buildSingularityImages = false
-  buildDockerImages = false
-
 }
