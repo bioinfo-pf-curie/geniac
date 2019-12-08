@@ -285,7 +285,7 @@ process fastqc {
 /*
  * alpine 
  */
-
+// example with local variable
 oneToFive =Channel.of(1..5)
 process alpine {
   label 'alpine'
@@ -297,9 +297,11 @@ process alpine {
   output:
   file "alpine_*"
 
+
   script:
   """
-  echo "Hello from alpine: \$(date)" > alpine_${x}.txt
+  source ${baseDir}/env/alpine.env
+  echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
   """
 }
 
@@ -319,6 +321,7 @@ process helloworld {
   script:
   """
   helloworld > helloworld.txt
+  echo "MY_GLOBAL_VAR: ${MY_GOBAL_VAR}" >> helloworld.txt
   """
 }
 
