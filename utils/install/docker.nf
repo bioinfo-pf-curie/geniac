@@ -102,7 +102,7 @@ process buildDefaultDockerfile {
     set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerfileCh2
 
     script:
-    key = 'notools'
+    key = 'onlylinux'
 
     """
     cat << EOF > ${key}.Dockerfile

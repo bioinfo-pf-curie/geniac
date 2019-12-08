@@ -305,11 +305,11 @@ process lolcow {
 
 
 /*
- * process with notools (invoke script from bin) 
+ * process with onlylinux (invoke script from bin) 
  */
 
 process execbinscript {
-  label 'notools'
+  label 'onlylinux'
   publishDir "${params.outdir}/execbinscript", mode: 'copy'
 
   output:
