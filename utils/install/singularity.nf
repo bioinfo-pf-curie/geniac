@@ -100,6 +100,14 @@ Channel
 
 
 /**
+ * SOURCE CODE
+**/
+
+Channel
+    .fromPath("${baseDir}/*.sh")
+    .set{ sourceCodeCh }
+
+/**
  * PROCESSES
 **/
 
@@ -219,6 +227,22 @@ process buildSingularityRecipeFromCondaPackages {
         && conda clean -a
 
     EOF
+    """
+}
+
+process buildSingularityRecipeFromSourceCode {
+    tag "${key}"
+    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
+
+
+    input:
+    file installScript from sourceCodeCh.collect() 
+
+    output:
+    file "res_*"
+
+    """
+    cat ${installScript} > res_${installScript} 
     """
 }
 

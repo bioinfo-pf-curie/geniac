@@ -19,7 +19,7 @@ set(ap_install_docker_images
     CACHE BOOL "Generate and install Dockerfiles and images")
 
 find_package(Git 2.0)
-find_package(Nextflow 19.0)
+find_package(Nextflow 19.10)
 find_package(Singularity 3.0)
 find_package(Docker 18.0)
 

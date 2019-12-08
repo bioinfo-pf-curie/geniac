@@ -299,8 +299,26 @@ process alpine {
 
   script:
   """
-  echo "Hello from alpine" > alpine_${x}.txt
-  date >> alpine_${x}.txt
+  echo "Hello from alpine: \$(date)" > alpine_${x}.txt
+  """
+}
+
+
+/*
+ * helloword from source code 
+ */
+
+process helloworld {
+  label 'helloworld'
+  publishDir "${params.outdir}/helloworld", mode: 'copy'
+
+
+  output:
+  file "helloworld.txt"
+
+  script:
+  """
+  helloworld > helloworld.txt
   """
 }
 
