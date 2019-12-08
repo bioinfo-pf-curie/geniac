@@ -283,23 +283,23 @@ process fastqc {
 }
 
 /*
- * lolcow 
+ * alpine 
  */
 
 oneToFive =Channel.of(1..5)
-process lolcow {
-  label 'lolcow'
-  publishDir "${params.outdir}/lolcow", mode: 'copy'
+process alpine {
+  label 'alpine'
+  publishDir "${params.outdir}/alpine", mode: 'copy'
 
   input:
   val x from oneToFive
 
   output:
-  file "lolcow_*"
+  file "alpine_*"
 
   script:
   """
-  fortune | cowsay | lolcat > lolcow_${x}.txt
+  echo "Hello from alpine: ${date}" > alpine_${x}.txt
   """
 }
 

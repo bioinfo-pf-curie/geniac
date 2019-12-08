@@ -111,7 +111,7 @@ process buildDefaultSingularityRecipe {
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
 
     script:
-    key = 'notools'
+    key = 'onlylinux'
 
     """
     cat << EOF > ${key}.def

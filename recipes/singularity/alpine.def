@@ -1,0 +1,9 @@
+Bootstrap: docker
+From: alpine:3.7
+
+
+%environment
+    export LC_ALL=C
+    export PATH=/usr/games:$PATH
+
+
