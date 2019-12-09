@@ -1,2 +1,2 @@
-SRR1106775_1,sample_test1,test/data/SRR1106775-1M_1.fastq.gz,test/data/SRR1106775-1M_2.fastq.gz
-SRR1106776_1,sample_test2,test/data/SRR1106776-1M_1.fastq.gz,test/data/SRR1106776-1M_2.fastq.gz
+SRR1106775_1,sample_test1,test/data/SRR1106775-25K_1.fastq.gz,test/data/SRR1106775-25K_2.fastq.gz
+SRR1106776_1,sample_test2,test/data/SRR1106776-25K_1.fastq.gz,test/data/SRR1106776-25K_2.fastq.gz
