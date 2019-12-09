@@ -321,7 +321,6 @@ process helloworld {
   script:
   """
   helloworld > helloworld.txt
-  echo "MY_GLOBAL_VAR: ${MY_GOBAL_VAR}" >> helloworld.txt
   """
 }
 
