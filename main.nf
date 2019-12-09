@@ -263,6 +263,9 @@ process output_documentation {
  */
 process fastqc {
   label 'fastqc'
+  label 'smallMem'
+  label 'smallCpu'
+
   tag "${prefix}"
   publishDir "${params.outdir}/fastqc", mode: 'copy',
       saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
@@ -289,6 +292,8 @@ process fastqc {
 oneToFive =Channel.of(1..5)
 process alpine {
   label 'alpine'
+  label 'smallMem'
+  label 'smallCpu'
   publishDir "${params.outdir}/alpine", mode: 'copy'
 
   input:
@@ -312,6 +317,8 @@ process alpine {
 
 process helloworld {
   label 'helloworld'
+  label 'smallMem'
+  label 'smallCpu'
   publishDir "${params.outdir}/helloworld", mode: 'copy'
 
 
@@ -331,6 +338,8 @@ process helloworld {
 
 process execbinscript {
   label 'onlylinux'
+  label 'smallMem'
+  label 'smallCpu'
   publishDir "${params.outdir}/execbinscript", mode: 'copy'
 
   output:
@@ -351,6 +360,8 @@ process execbinscript {
 
 process trickysoftware {
   label 'trickysoftware'
+  label 'smallMem'
+  label 'smallCpu'
   
   script:
   """
