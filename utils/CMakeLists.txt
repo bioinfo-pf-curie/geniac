@@ -32,7 +32,7 @@ endif()
 if(NEXTFLOW_FOUND)
         message_color(OK "Nextflow found")
 else()
-        message_color(WARNING "Nextflow not found")
+	message_color(ERROR "Nextflow not found. It is required during the build step.")
 endif()
 
 if(SINGULARITY_FOUND)
@@ -51,8 +51,8 @@ endif()
 # Check that options match requirement
 # ##############################################################################
 if(ap_install_singularity_recipes OR ap_install_singularity_images)
-	
-	if(NOT NEXTFLOW_FOUND OR NOT SINGULARITY_FOUND)
+
+        if(NOT NEXTFLOW_FOUND OR NOT SINGULARITY_FOUND)
                 message_color(
                         ERROR
                         "Both singularity and nextflow are required with options ap_install_singularity_images
@@ -62,7 +62,7 @@ if(ap_install_singularity_recipes OR ap_install_singularity_images)
                 if(ap_install_singularity_images)
                         message_color(
                                 WARNING
-				"ap_install_singularity_images is ON: root privilege will be required during make step"
+                                "ap_install_singularity_images is ON: root privilege will be required during make step"
                         )
                 endif()
 
@@ -71,8 +71,8 @@ if(ap_install_singularity_recipes OR ap_install_singularity_images)
 endif()
 
 if(ap_install_docker_recipes OR ap_install_docker_images)
-	
-	if(NOT NEXTFLOW_FOUND OR NOT DOCKER_FOUND)
+
+        if(NOT NEXTFLOW_FOUND OR NOT DOCKER_FOUND)
                 message_color(
                         ERROR
                         "Both docker and nextflow are required with options ap_install_singularity_images
@@ -83,7 +83,7 @@ if(ap_install_docker_recipes OR ap_install_docker_images)
                 if(ap_install_docker_images)
                         message_color(
                                 WARNING
-				"ap_install_docker_images is ON: root privilege will be required during make step"
+                                "ap_install_docker_images is ON: root privilege will be required during make step"
                         )
                 endif()
         endif()
@@ -197,11 +197,25 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
                         ${CMAKE_BINARY_DIR}/containerWorkdir
-		COMMAND ${CMAKE_COMMAND} -E copy_directory
-			${CMAKE_SOURCE_DIR}/modules
-			${CMAKE_BINARY_DIR}/containerWorkdir/modules
+                COMMAND ${CMAKE_COMMAND} -E copy_directory
+                        ${CMAKE_SOURCE_DIR}/modules
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/modules
                 COMMAND ${CMAKE_COMMAND} -E touch
                         "${CMAKE_BINARY_DIR}/containerWorkdir.done")
+
+        # generate singularity.config
+        add_custom_command(
+                OUTPUT
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/singularityConfig.done
+                COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
+                COMMAND ${CMAKE_COMMAND} -E copy
+                        ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
+                        ${CMAKE_BINARY_DIR}/containerWorkdir
+                COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
+                        --buildSingularityConfig true -with-report
+                COMMAND ${CMAKE_COMMAND} -E touch "singularityConfig.done"
+                WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
+                DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
 
         # generate singularity recipes
         add_custom_command(
@@ -211,7 +225,7 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
                         ${CMAKE_BINARY_DIR}/containerWorkdir
                 COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf
-                        --buildSingularityImages false -with-report
+                        --buildSingularityRecipes true -with-report
                 COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
                 WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
                 DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
@@ -288,4 +302,16 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
 
         endif()
 
+        add_custom_target(
+                install_singularity_config ALL
+                DEPENDS
+                        ${CMAKE_BINARY_DIR}/containerWorkdir/singularityConfig.done
+        )
+
+        install(
+                DIRECTORY
+                        "${CMAKE_BINARY_DIR}/containerWorkdir/singularityConfig/singularity.config"
+                DESTINATION "${CMAKE_INSTALL_PREFIX}/conf")
+
 endif()
+

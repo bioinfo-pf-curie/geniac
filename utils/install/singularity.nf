@@ -123,7 +123,6 @@ Channel
 process buildDefaultSingularityRecipe {
     publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
 
-
     output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
 
@@ -149,7 +148,6 @@ process buildDefaultSingularityRecipe {
 process buildSingularityRecipeFromCondaFile {
     tag "${key}"
     publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
-
 
     input:
     set val(key), val(condaFile), val(yum), val(git) from condaFilesCh
@@ -285,6 +283,9 @@ process buildSingularityRecipeFromSourceCode {
     """
 }
 
+singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4).mix(singularityRecipeCh5)
+singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAllRecipe4buildConfigCh }
+
 process buildImages {
     tag "${key}"
     publishDir params.containers.singularityImages, overwrite: true, mode: 'copy'
@@ -293,7 +294,7 @@ process buildImages {
     params.buildSingularityImages
 
     input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4).mix(singularityRecipeCh5)
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh 
     file condaYml from condaRecipes.collect()
     file moduleDir from sourceCodeDirCh.collect()
 
@@ -304,6 +305,53 @@ process buildImages {
 
     """
     singularity build ${key.toLowerCase()}.simg ${singularityRecipe}
+    """
+}
+
+process buildConfig {
+    tag "${key}"
+    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildConfigCh 
+
+    output:
+    file("${key}Config.txt") into mergeConfigCh
+
+    script:
+
+    """
+    cat << EOF > "${key}Config.txt"
+        withLabel:${key} { container = "\\\${params.containers.singularityImagePath}/${key.toLowerCase()}.simg" } 
+    EOF
+    """
+}
+
+process mergeConfig {
+    tag "mergeConfig"
+    publishDir "${baseDir}/singularityConfig", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    file key from mergeConfigCh.collect() 
+
+    output:
+    file("singularity.config") into finalConfigCh
+
+    script:
+    """
+    echo "process {"  >> singularity.config
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> singularity.config
+    done
+    echo "}"  >> singularity.config
+    echo "includeConfig 'process.config'" >> singularity.config
     """
 }
 
