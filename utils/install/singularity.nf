@@ -254,6 +254,7 @@ process buildSingularityRecipeFromSourceCode {
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: centos:7
+    Stage: devel
    
     %setup
         mkdir -p \\\${SINGULARITY_ROOTFS}/opt/modules
@@ -266,9 +267,15 @@ process buildSingularityRecipeFromSourceCode {
         yum install -y epel-release which gcc gcc-c++ make \\\\
         && cd /opt/modules \\\\
         && bash ${installFile} \\\\
-        && rm -rf /opt/modules \\\\
-        && yum clean all \\\\
     
+    Bootstrap: docker
+    From: centos:7
+    Stage: final
+    
+    %files from devel
+        /usr/local/bin /usr/local/bin
+    
+
     %environment
         LC_ALL=en_US.utf-8
         LANG=en_US.utf-8
