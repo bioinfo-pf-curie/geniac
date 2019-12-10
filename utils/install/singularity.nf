@@ -103,8 +103,17 @@ Channel
  * SOURCE CODE
 **/
 
+
 Channel
-    .fromPath("${baseDir}/*.sh")
+    .fromPath("${baseDir}/modules", type: 'dir')
+    .set{ sourceCodeDirCh }
+
+
+Channel
+    .fromPath("${baseDir}/modules/*.sh")
+    .map{
+        return [it.simpleName, it]
+    }
     .set{ sourceCodeCh }
 
 /**
@@ -234,15 +243,38 @@ process buildSingularityRecipeFromSourceCode {
     tag "${key}"
     publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
 
-
     input:
-    file installScript from sourceCodeCh.collect() 
-
+    set val(key), file(installFile) from sourceCodeCh
+    
     output:
-    file "res_*"
+    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh5
 
+    script:
     """
-    cat ${installScript} > res_${installScript} 
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: centos:7
+   
+    %setup
+        mkdir -p \\\${SINGULARITY_ROOTFS}/opt/modules
+ 
+    %files
+        modules/${installFile} /opt/modules
+        modules/${key}/ /opt/modules
+      
+    %post
+        yum install -y epel-release which gcc gcc-c++ make \\\\
+        && cd /opt/modules \\\\
+        && bash ${installFile} \\\\
+        && rm -rf /opt/modules \\\\
+        && yum clean all \\\\
+    
+    %environment
+        LC_ALL=en_US.utf-8
+        LANG=en_US.utf-8
+        PATH=/usr/local/bin:\\\$PATH
+    
+    EOF
     """
 }
 
@@ -254,8 +286,9 @@ process buildImages {
     params.buildSingularityImages
 
     input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4)
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4).mix(singularityRecipeCh5)
     file condaYml from condaRecipes.collect()
+    file moduleDir from sourceCodeDirCh.collect()
 
     output:
     file("${key.toLowerCase()}.simg")

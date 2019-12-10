@@ -20,7 +20,7 @@ set(ap_install_docker_images
 
 find_package(Git 2.0)
 find_package(Nextflow 19.10)
-find_package(Singularity 3.0)
+find_package(Singularity 3.2)
 find_package(Docker 18.0)
 
 if(GIT_FOUND)
@@ -197,6 +197,9 @@ if(SINGULARITY_FOUND AND NEXTFLOW_FOUND)
                 COMMAND ${CMAKE_COMMAND} -E copy
                         ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
                         ${CMAKE_BINARY_DIR}/containerWorkdir
+		COMMAND ${CMAKE_COMMAND} -E copy_directory
+			${CMAKE_SOURCE_DIR}/modules
+			${CMAKE_BINARY_DIR}/containerWorkdir/modules
                 COMMAND ${CMAKE_COMMAND} -E touch
                         "${CMAKE_BINARY_DIR}/containerWorkdir.done")
 
