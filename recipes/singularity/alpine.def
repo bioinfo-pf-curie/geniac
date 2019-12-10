@@ -1,6 +1,9 @@
 Bootstrap: docker
 From: alpine:3.7
 
+%post
+    apk update
+    apk add bash
 
 %environment
     export LC_ALL=C
