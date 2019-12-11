@@ -32,7 +32,7 @@ endif()
 if(NEXTFLOW_FOUND)
         message_color(OK "Nextflow found")
 else()
-	message_color(ERROR "Nextflow not found. It is required during the build step.")
+	message_color(FATAL_ERROR "Nextflow not found. It is required during the build step.")
 endif()
 
 if(SINGULARITY_FOUND)
@@ -54,7 +54,7 @@ if(ap_install_singularity_recipes OR ap_install_singularity_images)
 
         if(NOT NEXTFLOW_FOUND OR NOT SINGULARITY_FOUND)
                 message_color(
-                        ERROR
+                        FATAL_ERROR
                         "Both singularity and nextflow are required with options ap_install_singularity_images
 			or ap_install_singularity_recipes set to ON ")
         else()
@@ -74,7 +74,7 @@ if(ap_install_docker_recipes OR ap_install_docker_images)
 
         if(NOT NEXTFLOW_FOUND OR NOT DOCKER_FOUND)
                 message_color(
-                        ERROR
+                        FATAL_ERROR
                         "Both docker and nextflow are required with options ap_install_singularity_images
 					or ap_install_singularity_recipes set to ON ")
 
@@ -95,7 +95,7 @@ endif()
 # ##############################################################################
 
 if(NOT IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
-        message_color(ERROR "Source directory is not a git repository")
+        message_color(FATAL_ERROR "Source directory is not a git repository")
 endif()
 
 if(GIT_FOUND)
@@ -108,7 +108,7 @@ if(GIT_FOUND)
                 ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
         if("${_commit_sha1}" STREQUAL "")
-                message_color(ERROR "git commit sha1 is empty")
+                message_color(FATAL_ERROR "git commit sha1 is empty")
         else()
                 message(STATUS "GIT hash: ${_commit_sha1}")
         endif()
@@ -169,7 +169,7 @@ if(GIT_FOUND)
         endif()
 
 else()
-        message_color(ERROR "GIT not found")
+        message_color(FATAL_ERROR "GIT not found")
 endif()
 
 # ##############################################################################
