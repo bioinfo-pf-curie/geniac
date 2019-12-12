@@ -100,6 +100,14 @@ Channel
 
 
 /**
+ * DEPENDENCIES
+**/
+
+Channel
+    .fromPath("${baseDir}/recipes/dependencies/*")
+    .set{ fileDependencies }
+
+/**
  * SOURCE CODE
 **/
 
@@ -300,6 +308,7 @@ process buildImages {
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh 
     file condaYml from condaRecipes.collect()
+    file fileDep from fileDependencies.collect()
     file moduleDir from sourceCodeDirCh.collect()
 
     output:
