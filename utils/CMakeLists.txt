@@ -105,30 +105,30 @@ if(GIT_FOUND)
     execute_process(
         COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        OUTPUT_VARIABLE _commit_sha1
+        OUTPUT_VARIABLE git_commit
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    if("${_commit_sha1}" STREQUAL "")
+    if("${git_commit}" STREQUAL "")
         message_color(FATAL_ERROR "git commit sha1 is empty")
     else()
-        message(STATUS "GIT hash: ${_commit_sha1}")
+        message(STATUS "GIT hash: ${git_commit}")
     endif()
 
     # extract the remothe URL of the git repository and extract its name
     execute_process(
         COMMAND ${GIT_EXECUTABLE} remote get-url origin
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        OUTPUT_VARIABLE _git_repo_name
+        OUTPUT_VARIABLE git_url
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    string(REGEX REPLACE ".*/" "" _git_repo_name ${_git_repo_name})
-    string(REGEX REPLACE ".git$" "" _git_repo_name ${_git_repo_name})
+    string(REGEX REPLACE ".*/" "" git_repo_name ${git_url})
+    string(REGEX REPLACE ".git$" "" git_repo_name ${git_repo_name})
 
-    message(STATUS "GIT repository name: ${_git_repo_name}")
+    message(STATUS "GIT repository name: ${git_repo_name}")
 
     # check whether the commit sha1 exists on the release branch
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} branch release --contains ${_commit_sha1}
+        COMMAND ${GIT_EXECUTABLE} branch release --contains ${git_commit}
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         OUTPUT_VARIABLE _commit_in_release
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -137,7 +137,7 @@ if(GIT_FOUND)
     # sha1
     execute_process(
         COMMAND ${GIT_EXECUTABLE} tag --list 'version-*' --contains
-                ${_commit_sha1}
+                ${git_commit}
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         OUTPUT_VARIABLE _release_has_tag
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -204,8 +204,9 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
             ${CMAKE_BINARY_DIR}/containerWorkdir
-    COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig
-            true -with-report
+    COMMAND
+        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMAND ${CMAKE_COMMAND} -E touch "outputConfig.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
@@ -217,8 +218,9 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
             ${CMAKE_BINARY_DIR}/containerWorkdir
-    COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes
-            true -with-report
+    COMMAND
+        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
@@ -236,8 +238,9 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
             ${CMAKE_BINARY_DIR}/containerWorkdir
-    COMMAND ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages
-            true -with-report
+    COMMAND
+        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMAND ${CMAKE_COMMAND} -E touch "singularityImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
@@ -275,11 +278,12 @@ if(ap_install_singularity_images)
 
 endif()
 
-add_custom_target(install_singularity_config ALL
-                  DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig.done)
+add_custom_target(
+    install_singularity_config ALL
+    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig.done)
 
 install(
-    DIRECTORY
-        "${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig/"
+    DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/conf"
-    FILES_MATCHING PATTERN "*.config")
+    FILES_MATCHING
+    PATTERN "*.config")

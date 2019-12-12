@@ -142,6 +142,10 @@ process buildDefaultSingularityRecipe {
     Bootstrap: docker
     From: conda/miniconda3-centos7
 
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
     %post
         yum install -y which \\\\
         && yum clean all
@@ -179,6 +183,10 @@ process buildSingularityRecipeFromCondaFile {
     Bootstrap: docker
     From: conda/miniconda3-centos7
     
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
     %environment
         PATH=/usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
         LC_ALL=en_US.utf-8
@@ -229,6 +237,10 @@ process buildSingularityRecipeFromCondaPackages {
     Bootstrap: docker
     From: conda/miniconda3-centos7
     
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
     %environment
         PATH=/usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
         LC_ALL=en_US.utf-8
@@ -279,6 +291,10 @@ process buildSingularityRecipeFromSourceCode {
     From: centos:7
     Stage: final
     
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
     %files from devel
         /usr/local/bin /usr/local/bin
     
