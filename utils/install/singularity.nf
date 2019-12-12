@@ -237,6 +237,7 @@ process buildSingularityRecipeFromCondaPackages {
     """
 }
 
+
 process buildSingularityRecipeFromSourceCode {
     tag "${key}"
     publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
@@ -283,8 +284,11 @@ process buildSingularityRecipeFromSourceCode {
     """
 }
 
-singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(singularityRecipeCh3).mix(singularityRecipeCh4).mix(singularityRecipeCh5)
-singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAllRecipe4buildConfigCh }
+onlyCondaRecipeCh = singularityRecipeCh3.mix(singularityRecipeCh4)
+onlyCondaRecipeCh.into { onlyCondaRecipe4buildCondaCh ; onlyCondaRecipe4buildMulticondaCh ; onlyCondaRecipe4buildImagesCh }
+
+singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(onlyCondaRecipe4buildImagesCh).mix(singularityRecipeCh5)
+singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAllRecipe4buildSingularityCh ; singularityAllRecipe4buildPathCh}
 
 process buildImages {
     tag "${key}"
@@ -308,7 +312,12 @@ process buildImages {
     """
 }
 
-process buildConfig {
+
+/**
+ * Generate singularity.config
+**/
+
+process buildSingularityConfig {
     tag "${key}"
     publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
 
@@ -316,42 +325,228 @@ process buildConfig {
     params.buildSingularityConfig
 
     input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildConfigCh 
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh 
 
     output:
-    file("${key}Config.txt") into mergeConfigCh
+    file("${key}SingularityConfig.txt") into mergeSingularityConfigCh
 
     script:
 
     """
-    cat << EOF > "${key}Config.txt"
+    cat << EOF > "${key}SingularityConfig.txt"
         withLabel:${key} { container = "\\\${params.containers.singularityImagePath}/${key.toLowerCase()}.simg" } 
     EOF
     """
 }
 
-process mergeConfig {
-    tag "mergeConfig"
-    publishDir "${baseDir}/singularityConfig", overwrite: true, mode: 'copy'
+process mergeSingularityConfig {
+    tag "mergeSingularityConfig"
+    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
 
     input:
-    file key from mergeConfigCh.collect() 
+    file key from mergeSingularityConfigCh.collect() 
 
     output:
-    file("singularity.config") into finalConfigCh
+    file("singularity.config") into finalSingularityConfigCh
 
     script:
     """
-    echo "process {"  >> singularity.config
+    echo "process {"  > singularity.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> singularity.config
     done
     echo "}"  >> singularity.config
     echo "includeConfig 'process.config'" >> singularity.config
+    """
+}
+
+/**
+ * Generate conda.config
+**/
+
+process buildCondaConfig {
+    tag "${key}"
+    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildCondaCh
+
+    output:
+    file("${key}CondaConfig.txt") into mergeCondaConfigCh
+
+    script:
+
+    """
+    cat << EOF > "${key}CondaConfig.txt"
+        withLabel:${key} { conda = "\\\${baseDir}/environment.yml" }
+    EOF
+    """
+}
+
+process mergeCondaConfig {
+    tag "mergeCondaConfig"
+    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    file key from mergeCondaConfigCh.collect() 
+
+    output:
+    file("conda.config") into finalCondaConfigCh
+
+    script:
+    """
+    echo "process {"  > conda.config
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> conda.config
+    done
+    echo "}"  >> conda.config
+    echo "conda { cacheDir = \\\"\\\${params.condaPrefix}\\\" }" >> conda.config
+    echo "includeConfig 'process.config'" >> conda.config
+    """
+}
+
+/**
+ * Generate multiconda.config
+**/
+
+process buildMulticondaConfig {
+    tag "${key}"
+    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildMulticondaCh
+
+    output:
+    file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
+
+    script:
+
+    """
+    cat << EOF > "${key}MulticondaConfig.txt"
+        withLabel:${key} { conda = "\\\${params.tools.${key}}" }
+    EOF
+    """
+}
+
+process mergeMulticondaConfig {
+    tag "mergeMulticondaConfig"
+    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    file key from mergeMulticondaConfigCh.collect() 
+
+    output:
+    file("multiconda.config") into finalMulticondaConfigCh
+
+    script:
+    """
+    echo "process {"  > multiconda.config
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> multiconda.config
+    done
+    echo "}"  >> multiconda.config
+    echo "conda { cacheDir = \\\"\\\${params.condaPrefix}\\\" }" >> multiconda.config
+    echo "includeConfig 'process.config'" >> multiconda.config
+    """
+}
+
+/**
+ * Generate path.config
+**/
+
+process buildPathConfig {
+    tag "${key}"
+    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildPathCh
+
+    output:
+    file("${key}PathConfig.txt") into mergePathConfigCh
+    file("${key}PathLink.txt") into mergePathLinkCh
+
+    script:
+
+    """
+    cat << EOF > "${key}PathConfig.txt"
+        withLabel:${key} { beforeScript = "export PATH=\\\${baseDir}/../path/${key}/bin:\\\$PATH" } 
+    EOF
+    cat << EOF > "${key}PathLink.txt"
+    ${key}/bin
+    EOF
+    """
+}
+
+process mergePathConfig {
+    tag "mergePathConfig"
+    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    file key from mergePathConfigCh.collect() 
+
+    output:
+    file("path.config") into finalPathConfigCh
+
+    script:
+    """
+    echo "singularity {" > path.config
+    echo "  enable = false"
+    echo -e "}\n"
+    echo "process {"  > path.config
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> path.config
+    done
+    echo "}"  >> path.config
+    echo "includeConfig 'process.config'" >> path.config
+    """
+}
+
+process mergePathLink {
+    tag "mergePathLink"
+    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    file key from mergePathLinkCh.collect()
+
+    output:
+    file("pathLink.txt") into finalPathLinkCh
+
+    script:
+    """
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> pathLink.txt
+    done
+    grep -v onlylinux pathLink.txt > pathLink.txt.tmp
+    mv pathLink.txt.tmp pathLink.txt
     """
 }
 
