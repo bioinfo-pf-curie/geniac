@@ -196,11 +196,12 @@ add_custom_command(
             ${CMAKE_BINARY_DIR}/containerWorkdir/modules
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/containerWorkdir.done"
-            #DEPENDS ${CMAKE_SOURCE_DIR}/recipes
+    DEPENDS ${CMAKE_SOURCE_DIR}/recipes/*
+    DEPENDS ${CMAKE_SOURCE_DIR}/conf/*
+    DEPENDS ${CMAKE_SOURCE_DIR}/modules/*
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/docker.nf)
-    #DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/conf/)
 
 # generate config (singularity, conda,multiconda, etc.)
 add_custom_command(
