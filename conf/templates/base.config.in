@@ -21,7 +21,7 @@ params {
   tools {
     fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
     rmarkdown = "conda-forge::r-markdown=0.8"
-    trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"
+    trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
   }
 
 

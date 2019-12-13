@@ -214,6 +214,8 @@ add_custom_command(
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMAND ${CMAKE_COMMAND} -E touch "outputConfig.done"
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
 
@@ -227,6 +229,8 @@ add_custom_command(
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
@@ -247,6 +251,8 @@ add_custom_command(
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch "singularityImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)

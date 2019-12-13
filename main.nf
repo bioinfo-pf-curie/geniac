@@ -279,7 +279,7 @@ process fastqc {
   script:
   pbase = reads[0].toString() - ~/(\.fq)?(\.fastq)?(\.gz)?$/
   """
-  fastqc ${params.fastqc_opts} $reads
+  fastqc ${params.fastqcOpts} $reads
   mv ${pbase}_fastqc.html ${prefix}_fastqc.html
   mv ${pbase}_fastqc.zip ${prefix}_fastqc.zip
   """
@@ -315,19 +315,19 @@ process alpine {
  * helloword from source code 
  */
 
-process helloworld {
-  label 'helloworld'
+process helloWorld {
+  label 'helloWorld'
   label 'smallMem'
   label 'smallCpu'
-  publishDir "${params.outdir}/helloworld", mode: 'copy'
+  publishDir "${params.outdir}/helloWorld", mode: 'copy'
 
 
   output:
-  file "helloworld.txt"
+  file "helloWorld.txt"
 
   script:
   """
-  helloworld > helloworld.txt
+  helloWorld > helloWorld.txt
   """
 }
 
@@ -336,19 +336,19 @@ process helloworld {
  * process with onlylinux (invoke script from bin) 
  */
 
-process execbinscript {
-  label 'onlylinux'
+process execBinScript {
+  label 'onlyLinux'
   label 'smallMem'
   label 'smallCpu'
-  publishDir "${params.outdir}/execbinscript", mode: 'copy'
+  publishDir "${params.outdir}/execBinScript", mode: 'copy'
 
   output:
-  file "execbinscriptResults_*"
+  file "execBinScriptResults_*"
 
   script:
   """
-  apMyscript.sh > execbinscriptResults_1.txt
-  somescript.sh > execbinscriptResults_2.txt
+  apMyscript.sh > execBinScriptResults_1.txt
+  someScript.sh > execBinScriptResults_2.txt
   """
 }
 
@@ -358,8 +358,8 @@ process execbinscript {
  */
 
 
-process trickysoftware {
-  label 'trickysoftware'
+process trickySoftware {
+  label 'trickySoftware'
   label 'smallMem'
   label 'smallCpu'
   

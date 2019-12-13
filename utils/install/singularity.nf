@@ -135,7 +135,7 @@ process buildDefaultSingularityRecipe {
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
 
     script:
-    key = 'onlylinux'
+    key = 'onlyLinux'
 
     """
     cat << EOF > ${key}.def
@@ -570,7 +570,7 @@ process mergePathLink {
     do
         cat \${keyFile} >> pathLink.txt
     done
-    grep -v onlylinux pathLink.txt > pathLink.txt.tmp
+    grep -v onlyLinux pathLink.txt > pathLink.txt.tmp
     mv pathLink.txt.tmp pathLink.txt
     """
 }
