@@ -195,7 +195,12 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/modules
             ${CMAKE_BINARY_DIR}/containerWorkdir/modules
     COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/containerWorkdir.done")
+            "${CMAKE_BINARY_DIR}/containerWorkdir.done"
+            #DEPENDS ${CMAKE_SOURCE_DIR}/recipes
+    DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
+    DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
+    DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/docker.nf)
+    #DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/conf/)
 
 # generate config (singularity, conda,multiconda, etc.)
 add_custom_command(
@@ -287,3 +292,18 @@ install(
     DESTINATION "${CMAKE_INSTALL_PREFIX}/conf"
     FILES_MATCHING
     PATTERN "*.config")
+
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/pathDirectories.done
+    COMMAND
+        ${CMAKE_COMMAND}
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig/pathLink.txt
+        -Dpath_link_dir=${CMAKE_BINARY_DIR}/pathDirectories -P
+        ${CMAKE_SOURCE_DIR}/utils/cmake/createPathDirectories.cmake
+    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig.done)
+
+add_custom_target(install_path_directories ALL
+                  DEPENDS ${CMAKE_BINARY_DIR}/pathDirectories.done)
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/pathDirectories/
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/path)
