@@ -45,5 +45,7 @@ params {
             some_tools = 'https://github.com/some_user/some_tools::commit_hash'
         }
   }
+    // cluster
+    queue = null
 
 }

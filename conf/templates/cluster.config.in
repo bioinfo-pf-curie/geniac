@@ -6,7 +6,5 @@
 
 process {
   executor = '@ap_nf_executor@'
-  if (params.queue){
-     queue = params.queue
-  }
+  queue = params.queue ?: null
 }
