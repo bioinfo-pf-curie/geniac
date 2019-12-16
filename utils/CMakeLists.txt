@@ -19,7 +19,7 @@ set(ap_annotation_path
     "/to/be/replaced by your path"
     CACHE
     STRING
-        "Path to the annotations. If the variable ap_use_annotation_link is ON, a symlink annotation with the given target will be created."
+        "Path to the annotations. If the variable ap_use_annotation_link is ON, a symlink annotations with the given target will be created."
 )
 
 set(ap_use_singularity_image_link
@@ -299,24 +299,24 @@ endforeach(file ${ap_conf_template_file_list})
 
 # working directory to build the container recipes and images
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir.done
-    COMMAND ${CMAKE_COMMAND} -E echo "create containerWorkdir/"
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir.done
+    COMMAND ${CMAKE_COMMAND} -E echo "create workDir/"
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/recipes
-            ${CMAKE_BINARY_DIR}/containerWorkdir/recipes
+            ${CMAKE_BINARY_DIR}/workDir/recipes
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflowConf
-            ${CMAKE_BINARY_DIR}/containerWorkdir/conf/
+            ${CMAKE_BINARY_DIR}/workDir/conf/
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
-            ${CMAKE_BINARY_DIR}/containerWorkdir/
+            ${CMAKE_BINARY_DIR}/workDir/
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf
-            ${CMAKE_BINARY_DIR}/containerWorkdir/conf
+            ${CMAKE_BINARY_DIR}/workDir/conf
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/containerWorkdir
+            ${CMAKE_BINARY_DIR}/workDir
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/modules
-            ${CMAKE_BINARY_DIR}/containerWorkdir/modules
+            ${CMAKE_BINARY_DIR}/workDir/modules
     COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/containerWorkdir.done"
+            "${CMAKE_BINARY_DIR}/workDir.done"
     DEPENDS ${CMAKE_SOURCE_DIR}/recipes/*
     DEPENDS ${CMAKE_SOURCE_DIR}/conf/*
     DEPENDS ${CMAKE_SOURCE_DIR}/modules/*
@@ -326,29 +326,29 @@ add_custom_command(
 
 # generate config (singularity, conda, multiconda, etc.)
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/conf.done
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/containerWorkdir
+            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/containerWorkdir/conf.done"
+            "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # generate singularity recipes
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/containerWorkdir
+            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -356,23 +356,23 @@ add_custom_command(
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
+            "${CMAKE_BINARY_DIR}/workDir/deffiles.done"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # allows the build of the recipes with "make build_singularity_recipes"
 add_custom_target(
     build_singularity_recipes
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
 
 # generate singularity recipes and images
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/containerWorkdir
+            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -380,27 +380,27 @@ add_custom_command(
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done"
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
+            "${CMAKE_BINARY_DIR}/workDir/singularityImages.done"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # allows the build of the recipes and images with "make
 # build_singularity_images"
 add_custom_target(
     build_singularity_images
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done)
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/singularityImages.done)
 
 if(ap_install_singularity_recipes)
     message_color(INFO "Singularity recipes will be installed")
 
     add_custom_target(
         install_singularity_recipes ALL
-        DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
+        DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
 
     install(
         DIRECTORY
-            "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_deffiles}/"
+            "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
         DESTINATION
             "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/singularity")
 endif()
@@ -410,26 +410,26 @@ if(ap_install_singularity_images)
 
     add_custom_target(
         install_singularity_images ALL
-        DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done)
+        DEPENDS ${CMAKE_BINARY_DIR}/workDir/singularityImages.done)
 
     install(
         DIRECTORY
-            "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_deffiles}/"
+            "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
         DESTINATION
             "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/singularity")
 
     install(
         DIRECTORY
-            "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_singularity_images}/"
+            "${CMAKE_BINARY_DIR}/workDir/${publish_dir_singularity_images}/"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/${singularity_image_dir}")
 
 endif()
 
 add_custom_target(install_singularity_config ALL
-                  DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/conf.done)
+                  DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 
 install(
-    DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_conf}/"
+    DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/conf"
     FILES_MATCHING
     PATTERN "*.config")
@@ -438,11 +438,11 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/pathDirectories.done
     COMMAND
         ${CMAKE_COMMAND}
-        -Dpath_link_file=${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_conf}/pathLink.txt
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/pathLink.txt
         -Dpath_link_dir=${CMAKE_BINARY_DIR}/pathDirectories -P
         ${CMAKE_SOURCE_DIR}/utils/cmake/createPathDirectories.cmake
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectories.done"
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/conf.done)
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 
 add_custom_target(install_path_directories ALL
                   DEPENDS ${CMAKE_BINARY_DIR}/pathDirectories.done)

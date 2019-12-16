@@ -10,8 +10,12 @@ Welcome to Philippe's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
-
+   intro
+   install
+   contrib
+   process
+   admin
+   
 Indices and tables
 ==================
 
