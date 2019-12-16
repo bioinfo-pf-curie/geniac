@@ -17,12 +17,12 @@ endif()
 # name of subdirectories where will be installed
 # the pipeline and its dependencies
 
-set(ap_pipeline_dir "pipeline")
-set(ap_singularity_images_dir "containers/singularity")
+set(pipeline_dir "pipeline")
+set(singularity_image_dir "containers/singularity")
 
 install(
         DIRECTORY ${CMAKE_SOURCE_DIR}/
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/${ap_pipeline_dir}
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}
         USE_SOURCE_PERMISSIONS
         PATTERN "conf/templates" EXCLUDE
         PATTERN ".git*" EXCLUDE
@@ -32,7 +32,7 @@ install(
 
 include("utils/cmake/utils.cmake")
 add_subdirectory(utils)
-add_subdirectory(conf/templates)
+#add_subdirectory(conf/templates)
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/modules/CMakeLists.txt)
 	add_subdirectory(modules)
