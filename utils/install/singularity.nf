@@ -129,7 +129,7 @@ Channel
 **/
 
 process buildDefaultSingularityRecipe {
-    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
     output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
@@ -159,7 +159,7 @@ process buildDefaultSingularityRecipe {
 
 process buildSingularityRecipeFromCondaFile {
     tag "${key}"
-    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
     input:
     set val(key), val(condaFile), val(yum), val(git) from condaFilesCh
@@ -209,7 +209,7 @@ process buildSingularityRecipeFromCondaFile {
 
 process buildSingularityRecipeFromCondaPackages {
     tag "${key}"
-    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
 
     input:
@@ -260,7 +260,7 @@ process buildSingularityRecipeFromCondaPackages {
 
 process buildSingularityRecipeFromSourceCode {
     tag "${key}"
-    publishDir params.containers.deffiles, overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
     input:
     set val(key), file(installFile) from sourceCodeCh
@@ -316,7 +316,7 @@ singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAl
 
 process buildImages {
     tag "${key}"
-    publishDir params.containers.singularityImages, overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityImages
@@ -344,7 +344,7 @@ process buildImages {
 
 process buildSingularityConfig {
     tag "${key}"
-    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -366,7 +366,7 @@ process buildSingularityConfig {
 
 process mergeSingularityConfig {
     tag "mergeSingularityConfig"
-    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -395,7 +395,7 @@ process mergeSingularityConfig {
 
 process buildCondaConfig {
     tag "${key}"
-    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -417,7 +417,7 @@ process buildCondaConfig {
 
 process mergeCondaConfig {
     tag "mergeCondaConfig"
-    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -447,7 +447,7 @@ process mergeCondaConfig {
 
 process buildMulticondaConfig {
     tag "${key}"
-    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -469,7 +469,7 @@ process buildMulticondaConfig {
 
 process mergeMulticondaConfig {
     tag "mergeMulticondaConfig"
-    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -499,7 +499,7 @@ process mergeMulticondaConfig {
 
 process buildPathConfig {
     tag "${key}"
-    publishDir "${baseDir}/nextflowConf", overwrite: true, mode: 'copy'
+    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -525,7 +525,7 @@ process buildPathConfig {
 
 process mergePathConfig {
     tag "mergePathConfig"
-    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -553,7 +553,7 @@ process mergePathConfig {
 
 process mergePathLink {
     tag "mergePathLink"
-    publishDir "${baseDir}/${params.buildOutputConfigDir}", overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig

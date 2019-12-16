@@ -38,7 +38,7 @@ foreach(file ${ap_conf_template_file_list})
   message_color(INFO "configure: ${file} into ${file_output}")
 
   configure_file(${file} ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} @ONLY)
-  install(FILES ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} DESTINATION ${CMAKE_INSTALL_PREFIX}/conf)
+  install(FILES ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} DESTINATION ${CMAKE_INSTALL_PREFIX}/${ap_pipeline_dir}/conf)
 
 endforeach(file ${ap_conf_template_file_list})
 

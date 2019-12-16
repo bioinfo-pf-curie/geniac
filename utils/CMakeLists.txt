@@ -1,3 +1,8 @@
+# Directory names where nextflow will write its results
+set(publish_dir_singularity_images "results/singularity/images")
+set(publish_dir_conf "results/conf")
+set(publish_dir_deffiles "results/singularity/deffiles")
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/utils/cmake;${CMAKE_MODULE_PATH}")
 
 include("cmake/utils.cmake")
@@ -203,9 +208,9 @@ add_custom_command(
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/docker.nf)
 
-# generate config (singularity, conda,multiconda, etc.)
+# generate config (singularity, conda, multiconda, etc.)
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig.done
+    OUTPUT ${CMAKE_BINARY_DIR}/containerWorkdir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
@@ -213,7 +218,7 @@ add_custom_command(
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMAND ${CMAKE_COMMAND} -E touch "outputConfig.done"
+        COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/containerWorkdir/conf.done"
     COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
@@ -231,7 +236,7 @@ add_custom_command(
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
-    COMMAND ${CMAKE_COMMAND} -E touch "deffiles.done"
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
 
@@ -253,7 +258,7 @@ add_custom_command(
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
-    COMMAND ${CMAKE_COMMAND} -E touch "singularityImages.done"
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir"
     DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir.done)
 
@@ -271,8 +276,8 @@ if(ap_install_singularity_recipes)
         install_singularity_recipes ALL
         DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/deffiles.done)
 
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/deffiles/"
-            DESTINATION "${CMAKE_INSTALL_PREFIX}/containers/deffiles")
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_deffiles}/"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/${ap_pipeline_dir}/recipes/singularity")
 endif()
 
 if(ap_install_singularity_images)
@@ -282,21 +287,21 @@ if(ap_install_singularity_images)
         install_singularity_images ALL
         DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages.done)
 
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/deffiles/"
-            DESTINATION "${CMAKE_INSTALL_PREFIX}/containers/deffiles")
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_deffiles}/"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/${ap_pipeline_dir}/recipes/singularity")
 
-    install(DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/singularityImages/"
-            DESTINATION "${CMAKE_INSTALL_PREFIX}/containers/singularityImages")
+    install(DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_singularity_images}/"
+            DESTINATION "${CMAKE_INSTALL_PREFIX}/${ap_singularity_images_dir}")
 
 endif()
 
 add_custom_target(
     install_singularity_config ALL
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig.done)
+    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/conf.done)
 
 install(
-    DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig/"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/conf"
+    DIRECTORY "${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_conf}/"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/${ap_pipeline_dir}/conf"
     FILES_MATCHING
     PATTERN "*.config")
 
@@ -304,13 +309,15 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/pathDirectories.done
     COMMAND
         ${CMAKE_COMMAND}
-        -Dpath_link_file=${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig/pathLink.txt
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/containerWorkdir/${publish_dir_conf}/pathLink.txt
         -Dpath_link_dir=${CMAKE_BINARY_DIR}/pathDirectories -P
         ${CMAKE_SOURCE_DIR}/utils/cmake/createPathDirectories.cmake
-    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/outputConfig.done)
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectories.done"
+    DEPENDS ${CMAKE_BINARY_DIR}/containerWorkdir/conf.done)
 
 add_custom_target(install_path_directories ALL
                   DEPENDS ${CMAKE_BINARY_DIR}/pathDirectories.done)
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/pathDirectories/
         DESTINATION ${CMAKE_INSTALL_PREFIX}/path)
+

@@ -26,11 +26,9 @@ params {
 
 
   containers {
-    singularityImagePath = "${baseDir}/containers/singularityImages"
+    singularityImagePath = "${baseDir}/../containers/singularity"
     root = "${baseDir}"
-    dockerfiles = "${params.containers.root}/dockerfiles"
-    deffiles = "${params.containers.root}/deffiles"
-    singularityImages = "${params.containers.root}/singularityImages"
+    //singularityImages = "${params.containers.root}/singularityImages"
 
     // containers are based on CentOS linux
     // some tools require dependcies to be installed with 'yum install'

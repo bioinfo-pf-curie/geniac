@@ -13,9 +13,16 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 		You may need to remove CMakeCache.txt.")
 endif()
 
+
+# name of subdirectories where will be installed
+# the pipeline and its dependencies
+
+set(ap_pipeline_dir "pipeline")
+set(ap_singularity_images_dir "containers/singularity")
+
 install(
         DIRECTORY ${CMAKE_SOURCE_DIR}/
-        DESTINATION ${CMAKE_INSTALL_PREFIX}
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${ap_pipeline_dir}
         USE_SOURCE_PERMISSIONS
         PATTERN "conf/templates" EXCLUDE
         PATTERN ".git*" EXCLUDE
