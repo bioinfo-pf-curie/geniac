@@ -14,6 +14,7 @@ Welcome to Philippe's documentation!
    install
    contrib
    process
+   run
    admin
    
 Indices and tables
