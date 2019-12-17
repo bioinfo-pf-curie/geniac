@@ -172,7 +172,9 @@ Install and run with conda
 
    mkdir build
    cd build
-   cmake -C ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
+   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
+   make
+   make install
 
    cd $HOME/myPipeline/pipeline
 
@@ -190,7 +192,9 @@ Install and run with singularity
 
    mkdir build
    cd build
-   cmake -C ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   make ### must be done with the root credentials
+   make install
 
    cd $HOME/myPipeline/pipeline
 
