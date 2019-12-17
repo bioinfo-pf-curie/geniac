@@ -83,7 +83,7 @@ if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
 
 // Stage config files
 ch_multiqc_config = Channel.fromPath(params.multiqc_config)
-ch_output_docs = Channel.fromPath("$baseDir/docs/output.md")
+chOutputDocs = Channel.fromPath("$baseDir/docs/output.md")
 ch_pca_header = Channel.fromPath("$baseDir/assets/pca_header.txt")
 ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
 
@@ -217,14 +217,14 @@ log.info "========================================="
 
 
 
-process workflow_summary_mqc {
+process workflowSummaryMqc {
 
   output:
-  file 'workflow_summary_mqc.yaml' into workflow_summary_yaml
+  file 'workflowSummaryMqc.yaml' into workflowSummaryYaml
 
   exec:
-  def yaml_file = task.workDir.resolve('workflow_summary_mqc.yaml')
-  yaml_file.text  = """
+  def yamlFile = task.workDir.resolve('workflowSummaryMqc.yaml')
+  yamlFile.text  = """
   id: 'summary'
   description: " - this information is collected when the pipeline is started."
   section_name: 'Workflow Summary'
@@ -241,19 +241,19 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 /*
  * Sub-routine
  */
-process output_documentation {
+process outputDocumentation {
     label 'rmarkdown'
     publishDir "${params.outdir}/pipeline_info", mode: 'copy'
 
     input:
-    file output_docs from ch_output_docs
+    file outputDocs from chOutputDocs
 
     output:
-    file "results_description.html"
+    file "resultsDescription.html"
 
     script:
     """
-    markdown_to_html.r $output_docs results_description.html
+    markdownToHtml.r $outputDocs resultsDescription.html
     """
 }
 
@@ -312,7 +312,7 @@ process alpine {
 
 
 /*
- * helloword from source code 
+ * helloWord from source code 
  */
 
 process helloWorld {
