@@ -18,7 +18,7 @@ set(ap_use_annotation_link
 set(ap_annotation_path
     "/to/be/replaced by your path"
     CACHE
-    STRING
+        STRING
         "Path to the annotations. If the variable ap_use_annotation_link is ON, a symlink annotations with the given target will be created."
 )
 
@@ -33,7 +33,7 @@ set(ap_use_singularity_image_link
 set(ap_singularity_image_path
     "/to/be/replaced by your path"
     CACHE
-    STRING
+        STRING
         "Path to the singularity images. If the variable ap_use_singularity_image_link is ON, a symlink containers/singularity with the given target will be created."
 )
 
@@ -154,43 +154,47 @@ if(ap_use_singularity_image_link)
         message_color(FATAL_ERROR
                       "ap_singularity_image_path must be an absolute path.")
     endif()
-endif()
 
-
-if(ap_use_annotation_link)
-    if(NOT IS_ABSOLUTE "${ap_annotation_path}")
-        message_color(FATAL_ERROR "ap_annotation_path must be an absolute path. ${ap_annotation_path}")
+    if(IS_DIRECTORY ${ap_singularity_image_path})
+        message_color(
+            OK "ap_singularity_image_path ${ap_singularity_image_path} exists")
+    else()
+        message_color(
+            WARNING
+            "ap_singularity_image_path ${ap_singularity_image_path} does not exist"
+        )
     endif()
-else()
-    install(
-        CODE "execute_process(
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/annotations)"
-    )
-endif()
-
-if(IS_DIRECTORY ${ap_annotation_path})
-    message_color(OK "ap_annotation_path ${ap_annotation_path} exists")
-else()
-    message_color(WARNING
-                  "ap_annotation_path ${ap_annotation_path} does not exist")
-    install(
-        CODE "execute_process(
-        COMMAND ${CMAKE_COMMAND} -E create_symlink ${ap_annotation_path} ${CMAKE_INSTALL_PREFIX}/annotations)"
-    )
-endif()
-
-if(IS_DIRECTORY ${ap_singularity_image_path})
-    message_color(
-        OK "ap_singularity_image_path ${ap_singularity_image_path} exists")
     install(
         CODE "execute_process(
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/containers
         COMMAND ${CMAKE_COMMAND} -E create_symlink ${ap_singularity_image_path} ${CMAKE_INSTALL_PREFIX}/${singularity_image_dir})"
     )
+endif()
+
+if(ap_use_annotation_link)
+    if(NOT IS_ABSOLUTE "${ap_annotation_path}")
+        message_color(
+            FATAL_ERROR
+            "ap_annotation_path must be an absolute path. ${ap_annotation_path}"
+        )
+    endif()
+
+    if(IS_DIRECTORY ${ap_annotation_path})
+        message_color(OK "ap_annotation_path ${ap_annotation_path} exists")
+    else()
+        message_color(WARNING
+                      "ap_annotation_path ${ap_annotation_path} does not exist")
+    endif()
+
+    install(
+        CODE "execute_process(
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ${ap_annotation_path} ${CMAKE_INSTALL_PREFIX}/annotations)"
+    )
 else()
-    message_color(
-        WARNING
-        "ap_singularity_image_path ${ap_singularity_image_path} does not exist")
+    install(
+        CODE "execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/annotations)"
+    )
 endif()
 
 # ##############################################################################
@@ -278,20 +282,19 @@ endif()
 # Fill template for config files
 # ##############################################################################
 
-message("source dir is: ${CMAKE_SOURCE_DIR}")
-file (GLOB ap_conf_template_file_list "${CMAKE_SOURCE_DIR}/conf/templates/*.in")
+file(GLOB ap_conf_template_file_list "${CMAKE_SOURCE_DIR}/conf/templates/*.in")
 
 foreach(file ${ap_conf_template_file_list})
-  get_filename_component(file ${file} NAME)
-  string(REGEX REPLACE ".in$" "" file_output ${file})
-  message_color(INFO "configure: ${file} into ${file_output}")
+    get_filename_component(file ${file} NAME)
+    string(REGEX REPLACE ".in$" "" file_output ${file})
+    message_color(INFO "configure: ${file} into ${file_output}")
 
-  configure_file(${CMAKE_SOURCE_DIR}/conf/templates/${file} ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} @ONLY)
-  install(FILES ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/conf)
+    configure_file(${CMAKE_SOURCE_DIR}/conf/templates/${file}
+                   ${CMAKE_BINARY_DIR}/nextflowConf/${file_output} @ONLY)
+    install(FILES ${CMAKE_BINARY_DIR}/nextflowConf/${file_output}
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/conf)
 
 endforeach(file ${ap_conf_template_file_list})
-
-
 
 # ##############################################################################
 # Singularity recipes and images
@@ -315,8 +318,7 @@ add_custom_command(
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/modules
             ${CMAKE_BINARY_DIR}/workDir/modules
-    COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/workDir.done"
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
     DEPENDS ${CMAKE_SOURCE_DIR}/recipes/*
     DEPENDS ${CMAKE_SOURCE_DIR}/conf/*
     DEPENDS ${CMAKE_SOURCE_DIR}/modules/*
@@ -334,8 +336,7 @@ add_custom_command(
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMAND ${CMAKE_COMMAND} -E touch
-            "${CMAKE_BINARY_DIR}/workDir/conf.done"
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
@@ -394,13 +395,11 @@ add_custom_target(
 if(ap_install_singularity_recipes)
     message_color(INFO "Singularity recipes will be installed")
 
-    add_custom_target(
-        install_singularity_recipes ALL
-        DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
+    add_custom_target(install_singularity_recipes ALL
+                      DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
 
     install(
-        DIRECTORY
-            "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
+        DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
         DESTINATION
             "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/singularity")
 endif()
@@ -413,8 +412,7 @@ if(ap_install_singularity_images)
         DEPENDS ${CMAKE_BINARY_DIR}/workDir/singularityImages.done)
 
     install(
-        DIRECTORY
-            "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
+        DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
         DESTINATION
             "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/singularity")
 
