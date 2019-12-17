@@ -207,7 +207,7 @@ summary['Current home']   = "$HOME"
 summary['Current user']   = "$USER"
 summary['Current path']   = "$PWD"
 summary['Working dir']    = workflow.workDir
-summary['Output dir']     = params.outdir
+summary['Output dir']     = params.outputDir
 summary['Config Profile'] = workflow.profile
 
 if(params.email) summary['E-mail Address'] = params.email
@@ -243,7 +243,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  */
 process outputDocumentation {
     label 'rmarkdown'
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
+    publishDir "${params.summaryDir}", mode: 'copy'
 
     input:
     file outputDocs from chOutputDocs
@@ -267,7 +267,7 @@ process fastqc {
   label 'smallCpu'
 
   tag "${prefix}"
-  publishDir "${params.outdir}/fastqc", mode: 'copy',
+  publishDir "${params.outputDir}/fastqc", mode: 'copy',
       saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
 
   input:
@@ -294,7 +294,7 @@ process alpine {
   label 'alpine'
   label 'smallMem'
   label 'smallCpu'
-  publishDir "${params.outdir}/alpine", mode: 'copy'
+  publishDir "${params.outputDir}/alpine", mode: 'copy'
 
   input:
   val x from oneToFive
@@ -319,7 +319,7 @@ process helloWorld {
   label 'helloWorld'
   label 'smallMem'
   label 'smallCpu'
-  publishDir "${params.outdir}/helloWorld", mode: 'copy'
+  publishDir "${params.outputDir}/helloWorld", mode: 'copy'
 
 
   output:
@@ -340,7 +340,7 @@ process execBinScript {
   label 'onlyLinux'
   label 'smallMem'
   label 'smallCpu'
-  publishDir "${params.outdir}/execBinScript", mode: 'copy'
+  publishDir "${params.outputDir}/execBinScript", mode: 'copy'
 
   output:
   file "execBinScriptResults_*"
@@ -406,7 +406,7 @@ workflow.onComplete {
     def report_html = html_template.toString()
 
     // Write summary e-mail HTML to a file
-    def output_d = new File( "${params.outdir}/pipeline_info/" )
+    def output_d = new File( "${params.summaryDir}/" )
     if( !output_d.exists() ) {
       output_d.mkdirs()
     }
@@ -417,7 +417,7 @@ workflow.onComplete {
 
     /*oncomplete file*/
 
-    File woc = new File("${params.outdir}/workflow.oncomplete.txt")
+    File woc = new File("${params.outputDir}/workflow.oncomplete.txt")
     Map endSummary = [:]
     endSummary['Completed on'] = workflow.complete
     endSummary['Duration']     = workflow.duration

@@ -71,7 +71,7 @@ References:                     If not specified in the configuration file or yo
 
 Other options:
   --metadata                    Add metadata file for multiQC report
-  --outdir                      The output directory where the results will be saved
+  --outputDir                      The output directory where the results will be saved
   -w/--work-dir                 The temporary directory where intermediate data will be saved
   --email                       Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
   -name                         Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic.
@@ -113,14 +113,14 @@ nextflow run main.nf -profile test,conda
 #### Run the pipeline from a sample plan
 
 ```
-nextflow run main.nf --samplePlan MY_SAMPLE_PLAN --genome 'hg19' --outdir MY_OUTPUT_DIR -profile conda
+nextflow run main.nf --samplePlan MY_SAMPLE_PLAN --genome 'hg19' --outputDir MY_OUTPUT_DIR -profile conda
 
 ```
 
 #### Run the pipeline on a computational cluster
 
 ```
-echo "nextflow run main.nf --reads '*.R{1,2}.fastq.gz' --genome 'hg19' --outdir MY_OUTPUT_DIR -profile singularity,cluster" | qsub -N rnaseq-2.0
+echo "nextflow run main.nf --reads '*.R{1,2}.fastq.gz' --genome 'hg19' --outputDir MY_OUTPUT_DIR -profile singularity,cluster" | qsub -N rnaseq-2.0
 
 ```
 

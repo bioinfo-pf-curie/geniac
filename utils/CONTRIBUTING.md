@@ -25,7 +25,7 @@ Then add the process in the `main.nf`, the process can take any name but as to r
 ```
 process output_documentation {
     label 'rmarkdown'
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
+    publishDir "${params.outputDir}/pipeline_info", mode: 'copy'
 
     input:
     file output_docs from ch_output_docs
@@ -45,7 +45,7 @@ This way, the software `rmarkdown` can be used in any other process provided tha
 ```
 process something_else_with_rmarkdown {
     label 'rmarkdown'
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy'
+    publishDir "${params.outputDir}/pipeline_info", mode: 'copy'
 
     script:
     """
