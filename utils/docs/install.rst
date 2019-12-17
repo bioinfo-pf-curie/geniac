@@ -157,4 +157,42 @@ If you want to build the recipes without installing them type  `make build_singu
 If you want to build the images without installing them type `make build_singularity_images`. Images will be generated in ``build/workDir/results/singularity/images``.
 
 
+Examples
+========
 
+
+Install and run with conda
+--------------------------
+
+::
+   git_repo="myGitRepo"
+   git_repo_url="http://myGitReporUrl"
+
+   git clone ${git_repo_url}
+
+   mkdir build
+   cd build
+   cmake -C ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
+
+   cd $HOME/myPipeline/pipeline
+
+   nextflow -c conf/test.config run main.nf -profile conda
+   
+
+Install and run with singularity
+--------------------------------
+
+::
+   git_repo="myGitRepo"
+   git_repo_url="http://myGitReporUrl"
+
+   git clone ${git_repo_url}
+
+   mkdir build
+   cd build
+   cmake -C ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+
+   cd $HOME/myPipeline/pipeline
+
+   nextflow -c conf/test.config run main.nf -profile singularity
+   
