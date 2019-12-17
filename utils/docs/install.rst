@@ -164,7 +164,21 @@ Examples
 Install and run with conda
 --------------------------
 
+Prerequisites:
+
+You must have `conda <https://docs.conda.io/>`_ installed locally, if not, proceed as follows:
+
 ::
+
+   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   bash Miniconda3-latest-Linux-x86_64.sh
+
+   
+Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the install directory you set) in your PATH.
+
+
+::
+
    git_repo="myGitRepo"
    git_repo_url="http://myGitReporUrl"
 
@@ -181,10 +195,15 @@ Install and run with conda
    nextflow -c conf/test.config run main.nf -profile conda
    
 
+.. note::
+
+   If you use both the conda and cluster profile, check that your master job that launches nextflow has been submitted with enough memory, otherwise the creation of the conda environment may fail.
+
 Install and run with singularity
 --------------------------------
 
 ::
+
    git_repo="myGitRepo"
    git_repo_url="http://myGitReporUrl"
 
