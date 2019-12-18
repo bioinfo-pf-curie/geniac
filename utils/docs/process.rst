@@ -23,7 +23,7 @@ Answer these questions first
 
 * Is my tool just a standard unix command (grep, sed, cat, etc.)?
 
-    * Yes: see LINKWWW (-> onlylinux = notools)
+    * Yes: :ref:`process-unix` see LINKWWW (-> onlylinux = notools)
 
 * Is my tool available in conda?
 
@@ -50,9 +50,53 @@ Answer these questions first
 Guidelines
 ==========
 
+.. _process-unix:
+
 Standard unix command
 ---------------------
 
+This is an easy one.
+
+`label`
++++++++
+
+Use always ``label 'onlyLinux'``
+
+`example`
++++++++++
+
+::
+
+   /*
+    * process with onlylinux (standard unix command)
+    */
+   
+   process standardUnixCommand {
+     label 'onlyLinux'
+     label 'smallMem'
+     label 'smallCpu'
+     publishDir "${params.outputDir}/standardUnixCommand", mode: 'copy'
+   
+     input:
+     file hello from helloWorldOutputCh
+   
+     output:
+     file "bonjourMonde.txt"
+   
+     script:
+     """
+     sed -e 's/Hello World/Bonjour Monde/g' ${hello} > bonjourMonde.txt
+     """
+   }
+
+`container`
++++++++++++
+
+You have nothing to do, the install process will do the recipes for you.
+
+.. note::
+
+   Container are built using CentOS 7 distribution.
 
 Easy install with conda
 -----------------------

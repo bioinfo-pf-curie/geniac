@@ -323,7 +323,7 @@ process helloWorld {
 
 
   output:
-  file "helloWorld.txt"
+  file "helloWorld.txt" into helloWorldOutputCh
 
   script:
   """
@@ -331,6 +331,28 @@ process helloWorld {
   """
 }
 
+
+/*
+ * process with onlylinux (standard unix command)
+ */
+
+process standardUnixCommand {
+  label 'onlyLinux'
+  label 'smallMem'
+  label 'smallCpu'
+  publishDir "${params.outputDir}/standardUnixCommand", mode: 'copy'
+
+  input:
+  file hello from helloWorldOutputCh
+
+  output:
+  file "bonjourMonde.txt"
+
+  script:
+  """
+  sed -e 's/Hello World/Bonjour Monde/g' ${hello} > bonjourMonde.txt
+  """
+}
 
 /*
  * process with onlylinux (invoke script from bin) 

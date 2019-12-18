@@ -12,7 +12,6 @@ Welcome to Philippe's documentation!
 
    intro
    install
-   contrib
    process
    run
    admin
