@@ -151,7 +151,7 @@ else if(params.readPaths){
  */
 
 if (params.samplePlan){
-  ch_splan = Channel.fromPath(params.samplePlan)
+  samplePlanCh = Channel.fromPath(params.samplePlan)
 }else if(params.readPaths){
   if (params.singleEnd){
     Channel
@@ -159,14 +159,14 @@ if (params.samplePlan){
        .collectFile() {
          item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + '\n']
         }
-       .set{ ch_splan }
+       .set{ samplePlanCh }
   }else{
      Channel
        .from(params.readPaths)
        .collectFile() {
          item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + ',' + item[1][1] + '\n']
         }
-       .set{ ch_splan }
+       .set{ samplePlanCh }
   }
 }else{
   if (params.singleEnd){
@@ -175,14 +175,14 @@ if (params.samplePlan){
        .collectFile() {
           item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + '\n']
        }     
-       .set { ch_splan }
+       .set { samplePlanCh }
   }else{
     Channel
        .fromFilePairs( params.reads, size: 2 )
        .collectFile() {
           item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + ',' + item[1][1] + '\n']
        }     
-       .set { ch_splan }
+       .set { samplePlanCh }
    }
 }
 
@@ -199,9 +199,9 @@ log.info """=======================================================
 ======================================================="""
 def summary = [:]
 
-summary['Max Memory']     = params.max_memory
-summary['Max CPUs']       = params.max_cpus
-summary['Max Time']       = params.max_time
+summary['Max Memory']     = params.maxMemory
+summary['Max CPUs']       = params.maxCpus
+summary['Max Time']       = params.maxTime
 summary['Container Engine'] = workflow.containerEngine
 summary['Current home']   = "$HOME"
 summary['Current user']   = "$USER"
@@ -289,7 +289,7 @@ process fastqc {
  * alpine 
  */
 // example with local variable
-oneToFive =Channel.of(1..5)
+oneToFiveCh = Channel.of(1..5)
 process alpine {
   label 'alpine'
   label 'smallMem'
@@ -297,7 +297,7 @@ process alpine {
   publishDir "${params.outputDir}/alpine", mode: 'copy'
 
   input:
-  val x from oneToFive
+  val x from oneToFiveCh
 
   output:
   file "alpine_*"
