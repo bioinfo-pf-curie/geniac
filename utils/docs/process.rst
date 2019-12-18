@@ -77,9 +77,6 @@ Use always ``label 'onlyLinux'``
 
 ::
 
-   /*
-    * process with onlylinux (standard unix command)
-    */
    
    process standardUnixCommand {
      label 'onlyLinux'
@@ -147,12 +144,43 @@ The ``label`` directive must have the exact same name as given in the ``params.t
 `example`
 +++++++++
 
-Add your process in the `main.nf`, it can take any name provided in follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software will be called in command line) provided it follows the :ref:`naming-page`.
 
-Note that the name of the software provided in `params.tools` can be anyname (is it not necessarly the same name as the software will be called in command line).
+::
+
+   process outputDocumentation {
+     label 'rmarkdown'
+     publishDir "${params.summaryDir}", mode: 'copy'
+   
+     input:
+     file outputDocs from chOutputDocs
+   
+     output:
+     file "resultsDescription.html"
+   
+     script:
+     """
+     markdownToHtml.r $outputDocs resultsDescription.html
+     """
+   }
+
 
 `container`
 +++++++++++
+
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the CentOS distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be install with `yum` (which is the package management utility for CentOS)
+
+::
+
+   containers {
+     yum {
+             fastqc = 'fontconfig dejavu*'
+         }
+   }
+
+.. warning::
+
+   Be careful that you use the exact same name in ``containers.yum``, ``params.tools`` otherwise, the container will not work.
 
 Custom install with conda
 -------------------------
@@ -168,6 +196,20 @@ Custom install with conda
 
 `container`
 +++++++++++
+
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the CentOS distribution we use to build the container. For example, if ``myFavouriteTool`` requires some maths librarie `gsl` and `blas`, then add the list of packages that will have to be install with `yum` (which is the package management utility for CentOS)
+
+::
+
+   containers {
+     yum {
+             myFavouriteTool = 'gsl blas'
+         }
+   }
+
+.. warning::
+
+   Be careful that you use the exact same name in ``containers.yum``,  ``params.tools`` and ``label``, otherwise, the container will not work.
 
 Binary or executable script
 ---------------------------
@@ -188,10 +230,6 @@ Use always ``label 'onlyLinux'``.
 
 ::
 
-   /*
-    * process with onlyLinux (invoke scripts from bin/ directory) 
-    */
-   
    process execBinScript {
      label 'onlyLinux'
      label 'smallMem'
