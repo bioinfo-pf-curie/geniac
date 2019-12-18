@@ -39,7 +39,42 @@ Answer these questions first
 
    * Yes: see LINKAAA (-> put the source in modules/)
 
+* Does my tool require some environment variables to be set?
 
-My tools is in conda
---------------------
+  * Yes: see LINK
+
+* Does my tool require the cpu and memory resource to be customized?
+
+  * Yes: see LINK
+
+Guidelines
+==========
+
+Standard unix command
+---------------------
+
+
+Easy install with conda
+-----------------------
+
+
+Custom install with conda
+-------------------------
+
+
+Binary or executable script
+---------------------------
+
+Install from source code
+------------------------
+
+
+Environment variables
+---------------------
+
+
+Resource tuning
+---------------
+
+
 
