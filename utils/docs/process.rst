@@ -25,31 +25,56 @@ Having a label is essential such that it makes it possible to automatically gene
 Answer these questions first
 ============================
 
-* Is my tool just a standard unix command (grep, sed, cat, etc.)?
+Where the tool is available?
+----------------------------
 
-    * Yes: :ref:`process-unix` see LINKWWW (-> onlylinux = notools)
 
-* Is my tool available in conda?
+`Is it just a standard unix command?`
++++++++++++++++++++++++++++++++++++++
 
-    * Yes: my tool is available in conda and can be easily installed from bioconda, conda-force channels: see LINKXXX (-> add the tool in params.tools in conf/base.config)
 
-    * Yes: but it cannot be easily installed as the order of the channels matters or it requires the ``dependencies`` or the ``pip`` directives in the conda recipe: see LINKYYY (-> create a yml file with the conda recipe in recipes/conda/)
+* `Yes`, it is something like `grep`, `sed`, `cat`, `etc.`, then see :ref:`process-unix`.
 
-* Is my tools available only as a binary (but without source code available) or as an executable script (shell, python, perl) 
+`Is it available in conda?`
++++++++++++++++++++++++++++
 
-   * Yes: see LINKZZZ (-> put the binary or executable script in bin/)
+* `Yes`, the tool is available in conda and can be easily installed from bioconda, conda-forge channels, then :ref:`process-easy-conda`.
 
-* Is my the source code of my tool available?
+    
+* `Yes`, but it cannot be easily installed as the order of the channels matters or it requires ``dependencies`` and/or ``pip`` directives in the conda recipe, then :ref:`process-custom-conda`.
 
-   * Yes: see LINKAAA (-> put the source in modules/)
 
-* Does my tool require some environment variables to be set?
+`Is it available only as a binary or as an executable script?`
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  * Yes: see LINK
+* `Yes`, it is available as a binary (but without source code available) or as an executable script (shell, python, perl), then see :ref:`process-exec`
 
-* Does my tool require the cpu and memory resource to be customized?
+`Is the source code available?`
++++++++++++++++++++++++++++++++
 
-  * Yes: see LINK
+* `Yes`, then see :ref:`process-source-code`.
+
+`Do you have still not answered yes?`
++++++++++++++++++++++++++++++++++++++
+
+Probably not otherwise, you would not be reading this. This means that the tool can fall in any of these categories:
+
+* it is provided as deb, rpm packages or any executable installer
+* it is a windows executable that needs mono to be run
+* no matter what it is whatever, it needs a custom installation procedure
+
+Then see :ref:`process-custom-install`.
+
+Does my tool require some environment variables to be set?
+----------------------------------------------------------
+  
+If `Yes`, see :ref:`process-env-var`.
+
+How many cpu and memory resources does the tool require?
+--------------------------------------------------------
+
+`See` :ref:`process-resource` to define the informatics resources necessary to run your process.
+
 
 Guidelines
 ==========
@@ -105,11 +130,15 @@ You have nothing to do, the install process will build the recipes and images fo
 
    Container are built using CentOS 7 distribution.
 
+.. _process-easy-conda:
+
 Easy install with conda
 -----------------------
 
 `prerequisite`
 ++++++++++++++
+
+Of course, the tool has to be available in a conda channel.
 
 Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8"`` in the section ``params.tools`` as follows:
 
@@ -144,7 +173,7 @@ The ``label`` directive must have the exact same name as given in the ``params.t
 `example`
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software will be called in command line) provided it follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software will be called on command line) provided it follows the :ref:`naming-page`.
 
 ::
 
@@ -182,17 +211,66 @@ In most of the case, you will have nothing to do. However, some tools depend on 
 
    Be careful that you use the exact same name in ``containers.yum``, ``params.tools`` otherwise, the container will not work.
 
+.. _process-custom-conda:
+
 Custom install with conda
 -------------------------
 
 `prerequisite`
 ++++++++++++++
 
+Of course, the tool has to be available in a conda channel.
+
+Write the custom conda recipe in the directory ``pipeline/recipes/conda``, for example add the file ``trickySoftware.yml``:
+
+::
+
+   name: trickySoftware_env
+   channels:
+       - bioconda
+       - conda-forge
+       - defaults
+   dependencies:
+       - python=2.7.13=1
+       - pip:
+           - pysam==0.11.2.2
+           - numpy==1.13.1
+   
+
+Edit the file ``conf/base.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.tools`` as follows:
+
+::
+
+   tools {
+     trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+   }
+
 `label`
 +++++++
 
+The ``label`` directive must have the exact same name as given in the ``params.tools`` section.
+
 `example`
 +++++++++
+
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`naming-page`.
+
+::
+
+   process trickySoftware {
+     label 'trickySoftware'
+     label 'smallMem'
+     label 'smallCpu'
+     publishDir "${params.outputDir}/trickySoftware", mode: 'copy'
+   
+     output:
+     file "trickySoftwareResults.txt"
+   
+     script:
+     """
+     python ${params.trickySoftwareOpts} > trickySoftwareResults.txt 2>&1
+     """
+   }
 
 `container`
 +++++++++++
@@ -210,6 +288,8 @@ In most of the case, you will have nothing to do. However, some tools depend on 
 .. warning::
 
    Be careful that you use the exact same name in ``containers.yum``,  ``params.tools`` and ``label``, otherwise, the container will not work.
+
+.. _process-exec:
 
 Binary or executable script
 ---------------------------
@@ -255,6 +335,8 @@ Use always ``label 'onlyLinux'``.
 
 You have nothing to do, the install process will build the recipes and images for you.
 
+.. _process-source-code:
+
 Install from source code
 ------------------------
 
@@ -270,13 +352,32 @@ Install from source code
 `container`
 +++++++++++
 
+.. _process-custom-install:
+
+Custom install
+--------------
+
+`prerequisite`
+++++++++++++++
+
+`label`
++++++++
+
+`example`
++++++++++
+
+`container`
++++++++++++
 
 Tool options
 ------------
 
+.. _process-env-var:
 
 Environment variables
 ---------------------
+
+.. _process-resource:
 
 
 Resource tuning

@@ -1,4 +1,4 @@
-name: trickysoftware_env
+name: trickySoftware_env
 channels:
     - bioconda
     - conda-forge

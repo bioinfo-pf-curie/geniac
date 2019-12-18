@@ -384,10 +384,14 @@ process trickySoftware {
   label 'trickySoftware'
   label 'smallMem'
   label 'smallCpu'
-  
+  publishDir "${params.outputDir}/trickySoftware", mode: 'copy'
+
+  output:
+  file "trickySoftwareResults.txt"
+
   script:
   """
-  python --version
+  python ${params.trickySoftwareOpts} > trickySoftwareResults.txt 2>&1
   """
 }
 
