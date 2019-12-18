@@ -333,7 +333,7 @@ process helloWorld {
 
 
 /*
- * process with onlylinux (standard unix command)
+ * process with onlyLinux (standard unix command)
  */
 
 process standardUnixCommand {
@@ -355,7 +355,7 @@ process standardUnixCommand {
 }
 
 /*
- * process with onlylinux (invoke script from bin) 
+ * process with onlylinux (invoke script from bin/ directory) 
  */
 
 process execBinScript {
