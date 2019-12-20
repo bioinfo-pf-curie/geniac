@@ -36,7 +36,7 @@ Configure
 List of options
 ---------------
 
-The configure options for the **a**nalysis **p**ipeline start with the prefix **ap** and are in lower case. Options in upper case are cmake variables.
+The configure options for the **a**\nalysis **p**\ipeline start with the prefix **ap** and are in lower case. Options in upper case are cmake variables.
 
 CMAKE_INSTALL_PREFIX
 ++++++++++++++++++++
@@ -167,6 +167,18 @@ Install and run with conda
 Prerequisites:
 
 You must have `conda <https://docs.conda.io/>`_ installed locally, if not, proceed as follows:
+
+You must have git lfs.
+
+
+-> en fait, cmake ne va modifier que les variables que tu lui demandes. Comme tu a utilisé en premier
+'-Dap_install_singularity_images=ON", et que ensuite tu ne lui passe que 
+
+"-DCMAKE_INSTALL_PREFIX=/data/tmp/nservant/myPipeline", il ne modifie pas -Dap_install_singularity_images.
+
+Il faudrait lui dire "-Dap_install_singularity_images=ON". Bon, ce sont des petites subtilités qu'il faut que je documente.
+
+
 
 ::
 

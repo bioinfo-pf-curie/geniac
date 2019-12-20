@@ -8,6 +8,7 @@ if(${ap_module_number} EQUAL 0)
     message_color(INFO "There is no module from source code to install")
 else()
     message_color(INFO "Modules from source code will be installed")
+
     ExternalProject_Add(
         helloWorld
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/modules/helloWorld

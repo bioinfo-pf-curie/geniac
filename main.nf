@@ -83,7 +83,7 @@ if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
 
 // Stage config files
 ch_multiqc_config = Channel.fromPath(params.multiqc_config)
-chOutputDocs = Channel.fromPath("$baseDir/docs/output.md")
+OutputDocsCh = Channel.fromPath("$baseDir/docs/output.md")
 ch_pca_header = Channel.fromPath("$baseDir/assets/pca_header.txt")
 ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
 
@@ -246,7 +246,7 @@ process outputDocumentation {
   publishDir "${params.summaryDir}", mode: 'copy'
 
   input:
-  file outputDocs from chOutputDocs
+  file outputDocs from OutputDocsCh
 
   output:
   file "resultsDescription.html"
@@ -306,7 +306,7 @@ process alpine {
   script:
   """
   source ${baseDir}/env/alpine.env
-  echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
+  echo "Hello from alpine: \$(date). This is very high here: \${peak_height}!" > alpine_${x}.txt
   """
 }
 
