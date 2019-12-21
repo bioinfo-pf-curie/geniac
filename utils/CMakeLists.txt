@@ -307,7 +307,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/recipes
             ${CMAKE_BINARY_DIR}/workDir/recipes
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflowConf
-            ${CMAKE_BINARY_DIR}/workDir/conf/
+            ${CMAKE_BINARY_DIR}/workDir/conf/base.config
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
             ${CMAKE_BINARY_DIR}/workDir/
@@ -447,3 +447,37 @@ add_custom_target(install_path_directories ALL
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/pathDirectories/
         DESTINATION ${CMAKE_INSTALL_PREFIX}/path)
+
+# ##############################################################################
+# TESTS
+# ##############################################################################
+
+set(profile_list "standard" "conda" "multiconda" "singularity" "docker" "path")
+
+add_custom_target(
+    myinstall
+    COMMAND ${CMAKE_COMMAND} -E echo "Install"
+    COMMAND ${CMAKE_COMMAND} --build . --target install
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+foreach(profile_i ${profile_list})
+
+    add_custom_target(
+        test-${profile_i}
+        COMMAND ${CMAKE_COMMAND} -E echo "Start test profile ${profile_i}"
+        COMMAND
+            ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
+            ${profile_i}
+        WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/pipeline
+        DEPENDS myinstall)
+
+    add_custom_target(
+        test-${profile_i}-cluster
+        COMMAND ${CMAKE_COMMAND} -E echo "Start test profile ${profile_i}"
+        COMMAND
+            ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
+            ${profile_i},cluster
+        WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/pipeline
+        DEPENDS myinstall)
+
+endforeach()
