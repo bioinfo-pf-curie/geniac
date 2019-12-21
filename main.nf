@@ -302,7 +302,6 @@ process alpine {
   output:
   file "alpine_*"
 
-
   script:
   """
   source ${baseDir}/env/alpine.env
@@ -320,7 +319,6 @@ process helloWorld {
   label 'smallMem'
   label 'smallCpu'
   publishDir "${params.outputDir}/helloWorld", mode: 'copy'
-
 
   output:
   file "helloWorld.txt" into helloWorldOutputCh
