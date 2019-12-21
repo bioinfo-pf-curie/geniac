@@ -307,7 +307,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/recipes
             ${CMAKE_BINARY_DIR}/workDir/recipes
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflowConf
-            ${CMAKE_BINARY_DIR}/workDir/conf/base.config
+            ${CMAKE_BINARY_DIR}/workDir/conf/
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
             ${CMAKE_BINARY_DIR}/workDir/
@@ -320,7 +320,7 @@ add_custom_command(
             ${CMAKE_BINARY_DIR}/workDir/modules
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
     DEPENDS ${CMAKE_SOURCE_DIR}/recipes/*
-    DEPENDS ${CMAKE_SOURCE_DIR}/conf/*
+    DEPENDS ${CMAKE_SOURCE_DIR}/conf/base.config
     DEPENDS ${CMAKE_SOURCE_DIR}/modules/*
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
