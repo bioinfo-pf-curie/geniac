@@ -436,7 +436,7 @@ process mergeCondaConfig {
         cat \${keyFile} >> conda.config
     done
     echo "}"  >> conda.config
-    echo "conda { cacheDir = \\\"\\\${params.condaPrefix}\\\" }" >> conda.config
+    echo "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }" >> conda.config
     echo "includeConfig 'process.config'" >> conda.config
     """
 }
@@ -488,7 +488,7 @@ process mergeMulticondaConfig {
         cat \${keyFile} >> multiconda.config
     done
     echo "}"  >> multiconda.config
-    echo "conda { cacheDir = \\\"\\\${params.condaPrefix}\\\" }" >> multiconda.config
+    echo "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }" >> multiconda.config
     echo "includeConfig 'process.config'" >> multiconda.config
     """
 }

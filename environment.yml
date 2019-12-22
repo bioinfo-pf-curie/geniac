@@ -1,6 +1,6 @@
 # You can use this file to create a conda environment for this pipeline:
 #   conda env create -f environment.yml
-name: rnaseq-2.0
+name: pipeline_env
 channels:
   - bioconda
   - conda-forge

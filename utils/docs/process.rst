@@ -561,47 +561,6 @@ Defining a variable in the ``params`` scope offers the possibility to set custom
 Environment variables
 ---------------------
 
-Process specific
-++++++++++++++++
-
-*prerequisite*
-
-Add a file with the name of your process and the extention ``.env`` in the folder ``env/``. For example, add ``env/alpine.env``:
-
-::
-
-   #!/bin/bash
-   
-   # required environment variables for alpine
-   peak_height="4810m" 
-   
-   export peak_height
-
-*example*
-
-In your process, source the ``env/alpine.env`` and then use the variable you defined:
-
-
-::
-
-   process alpine {
-     label 'alpine'
-     label 'smallMem'
-     label 'smallCpu'
-     publishDir "${params.outputDir}/alpine", mode: 'copy'
-   
-     input:
-     val x from oneToFiveCh
-   
-     output:
-     file "alpine_*"
-   
-     script:
-     """
-     source ${baseDir}/env/alpine.env
-     echo "Hello from alpine: \$(date). This is very high here: \${peak_height}!" > alpine_${x}.txt
-     """
-   }
 
 Shared between processes
 ++++++++++++++++++++++++
@@ -649,13 +608,96 @@ This script is called in the following process:
    }
 
 
-.. _process-resource:
+Process specific
+++++++++++++++++
 
+*prerequisite*
+
+Add a file with the name of your process and the extention ``.env`` in the folder ``env/``. For example, add ``env/alpine.env``:
+
+::
+
+   #!/bin/bash
+   
+   # required environment variables for alpine
+   peak_height="4810m" 
+   
+   export peak_height
+
+*example*
+
+In your process, source the ``env/alpine.env`` and then use the variable you defined:
+
+
+::
+
+   process alpine {
+     label 'alpine'
+     label 'smallMem'
+     label 'smallCpu'
+     publishDir "${params.outputDir}/alpine", mode: 'copy'
+   
+     input:
+     val x from oneToFiveCh
+   
+     output:
+     file "alpine_*"
+   
+     script:
+     """
+     source ${baseDir}/env/alpine.env
+     echo "Hello from alpine: \$(date). This is very high here: \${peak_height}!" > alpine_${x}.txt
+     """
+   }
+
+.. _process-resource:
 
 Resource tuning
 ---------------
 
-Anything related to process are defined in ``conf/process.config``
+Anything related to process are defined in ``conf/process.config``. 
+
+
+Shared between processes
+++++++++++++++++++++++++
+
+You can define generic labels for both cpus and memory (as you wish) in the file ``conf/process.config``. For example:
+
+::
+
+  withLabel: smallCpu { cpus = 1 }
+  withLabel: medCpu { cpus = 4 }
+  withLabel: bigCpu { cpus = 8 }
+  withLabel: smallMem { memory = '2 GB' }
+  withLabel: medMem { memory = '15 GB' }
+  withLabel: bigMem { memory = '40 GB' }
+
+
+Then, in any process, you can just set any label you need. For example:
+
+::
+
+   process execBinScript {
+     label 'onlyLinux'
+     label 'smallMem'
+     label 'smallCpu'
+     publishDir "${params.outputDir}/execBinScript", mode: 'copy'
+   
+     output:
+     file "execBinScriptResults_*"
+   
+     script:
+     """
+     apMyscript.sh > execBinScriptResults_1.txt
+     someScript.sh > execBinScriptResults_2.txt
+     """
+   }
+
+
+Process specific
+++++++++++++++++
+
+To optimize the resources used in a computing cluster, you may want to finely tune the cpu and memory asked by the process. Do do so, define the process selector ``withName`` in the file ``conf/process.config`` for your process of interest. For example:
 
 ::
 
@@ -665,9 +707,7 @@ Anything related to process are defined in ``conf/process.config``
     executor = 'local'
   }
 
-  withLabel: smallCpu { cpus = 1 }
-  withLabel: medCpu { cpus = 4 }
-  withLabel: bigCpu { cpus = 8 }
-  withLabel: smallMem { memory = '2 GB' }
-  withLabel: medMem { memory = '15 GB' }
-  withLabel: bigMem { memory = '40 GB' }
+.. tip::
+
+   To assess what are the amount of resources used by you process refers to `Metrics documentation <https://www.nextflow.io/docs/latest/metrics.html>`_.
+
