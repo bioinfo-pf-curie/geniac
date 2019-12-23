@@ -5,7 +5,7 @@ Installation
 *********************
 
 
-We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (ADD A LINK HERE).
+We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (see :ref:`basic-source-tree`).
 
 Installation require cmake (version 3.0 or above) and consists of the following sequence.
 
@@ -28,7 +28,7 @@ Installation require cmake (version 3.0 or above) and consists of the following 
 
 Different options can be passed to cmake for the configuration step. They are described in the following section.
 
-.. _install-options:
+.. _install-configure:
 
 Configure
 =========
@@ -147,33 +147,58 @@ The file ``utils/install/cmake-init-default.cmake`` provides a script to set all
 Containers
 ==========
 
-In order to build singularity images, root credentials are required
-* either type `make` if you have `fakeroot` singularity credentials
-* or `sudo make` if you have sudo privileges
-* then `make install`
+.. warning::
 
-If you want to build the recipes without installing them type  `make build_singularity_recipes`. Recipes will be generated in ``build/workDir/results/singularity/deffiles``.
+   In order to build singularity images, **root** credentials are required:
+   
+   * either type `make` if you have `fakeroot` singularity credentials
+   * or `sudo make` if you have sudo privileges
+   * then `make install`
 
-If you want to build the images without installing them type `make build_singularity_images`. Images will be generated in ``build/workDir/results/singularity/images``.
-
+In order to build the containers, you can either pass the required options during the configure stage (see :ref:`install-configure`) or use custom targets (see :ref:`install-target-containers`).
 
 Custom targets
 ==============
+
+.. _install-target-containers:
 
 Build recipes and containers
 ----------------------------
 
 Assume you are in the ``build`` directory. The following custom targets allows you to build recipes and containers even you did not ask for them during the configure stage:
 
-* `make build_singularity_recipes`
-* `make build_singularity_images`
-* `make build_docker_recipes`
-* `make build_dockker_images`
+* ``make build_singularity_recipes``
+* ``make build_singularity_images``
+* ``make build_docker_recipes``
+* ``make build_docker_images``
 
-Results will be available in ``workDir/results`` (ADD MORE DETAILS).
+
+
+Recipes will be generated in ``build/workDir/results/singularity/deffiles``.
+
+Images will be generated in ``build/workDir/results/singularity/images``.
+
+ADD DETAILS FOR DOCKER.
+
+.. _install-test:
 
 Install and test with different profiles
 ----------------------------------------
+
+
+* ``make test_conda``
+* ``make test_docker``
+* ``make test_multiconda``
+* ``make test_path``
+* ``make test_singularity``
+* ``make test_standard``
+* ``make test_conda_cluster``
+* ``make test_docker_cluster``
+* ``make test_multiconda_cluster``
+* ``make test_path_cluster``
+* ``make test_singularity_cluster``
+* ``make test_standard_cluster``
+
 
 Examples
 ========

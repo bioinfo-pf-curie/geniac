@@ -192,7 +192,7 @@ The `*label*` directive must have the exact same name as given in the ``params.t
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
 
 ::
 
@@ -272,7 +272,7 @@ The `*label*` directive must have the exact same name as given in the ``params.t
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
 
 ::
 
@@ -328,7 +328,7 @@ Use always ``label 'onlyLinux'``.
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
 
 ::
 
@@ -350,7 +350,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
 .. note::
 
-   ``apMyscript.sh`` is so named with `ap` prefix since it has been developed for the pipeline while ``someScript.sh`` does not have this prefix as it is a third-party script (see :ref:`naming-page`).
+   ``apMyscript.sh`` is so named with `ap` prefix since it has been developed for the pipeline while ``someScript.sh`` does not have this prefix as it is a third-party script (see :ref:`basic-naming`).
 
 *container*
 +++++++++++
@@ -395,7 +395,7 @@ The label will be the same name as the directory you added the source code, for 
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
 
 ::
 
@@ -456,7 +456,7 @@ Add your installer file (`deb`, `rpm` or whatever) in the ``recipes/dependencies
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`naming-page`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
 
 ::
 

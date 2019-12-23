@@ -1,10 +1,10 @@
-.. _naming-page:
+.. _basic-page:
 
 ******
 Basics
 ******
 
-
+.. _basic-source-tree:
 
 Structure of the source code directory tree
 ===========================================
@@ -33,6 +33,8 @@ Structure of the source code directory tree
        │   └── _themes
        │       └── sphinx_rtd_theme
        └── install
+
+.. _basic-naming:
 
 Naming convention
 =================

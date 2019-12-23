@@ -463,7 +463,7 @@ add_custom_target(
 foreach(profile_i ${profile_list})
 
     add_custom_target(
-        test-${profile_i}
+        test_${profile_i}
         COMMAND ${CMAKE_COMMAND} -E echo "Start test profile ${profile_i}"
         COMMAND
             ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
@@ -472,7 +472,7 @@ foreach(profile_i ${profile_list})
         DEPENDS myinstall)
 
     add_custom_target(
-        test-${profile_i}-cluster
+        test_${profile_i}_cluster
         COMMAND ${CMAKE_COMMAND} -E echo "Start test profile ${profile_i}"
         COMMAND
             ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
