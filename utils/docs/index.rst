@@ -11,9 +11,9 @@ Welcome to Philippe's documentation!
    :caption: Contents:
 
    intro
-   naming
-   install
+   basic
    process
+   install
    run
    admin
    

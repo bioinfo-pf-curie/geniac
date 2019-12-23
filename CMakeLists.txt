@@ -28,11 +28,10 @@ install(
         PATTERN ".git*" EXCLUDE
         PATTERN "CMakeLists.txt" EXCLUDE
         PATTERN "*.example" EXCLUDE
-        PATTERN "utils/" EXCLUDE)
+        PATTERN "utils" EXCLUDE)
 
 include("utils/cmake/utils.cmake")
 add_subdirectory(utils)
-#add_subdirectory(conf/templates)
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/modules/CMakeLists.txt)
 	add_subdirectory(modules)

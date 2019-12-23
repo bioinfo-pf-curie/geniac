@@ -157,6 +157,24 @@ If you want to build the recipes without installing them type  `make build_singu
 If you want to build the images without installing them type `make build_singularity_images`. Images will be generated in ``build/workDir/results/singularity/images``.
 
 
+Custom targets
+==============
+
+Build recipes and containers
+----------------------------
+
+Assume you are in the ``build`` directory. The following custom targets allows you to build recipes and containers even you did not ask for them during the configure stage:
+
+* `make build_singularity_recipes`
+* `make build_singularity_images`
+* `make build_docker_recipes`
+* `make build_dockker_images`
+
+Results will be available in ``workDir/results`` (ADD MORE DETAILS).
+
+Install and test with different profiles
+----------------------------------------
+
 Examples
 ========
 
@@ -230,4 +248,39 @@ Install and run with singularity
    cd $HOME/myPipeline/pipeline
 
    nextflow -c conf/test.config run main.nf -profile singularity
-   
+
+Structure of the installation directory tree
+============================================
+
+::
+
+   ├── annotations
+   ├── containers
+   │   └── singularity
+   ├── path
+   │   ├── alpine
+   │   │   └── bin
+   │   ├── fastqc
+   │   │   └── bin
+   │   ├── helloWorld
+   │   │   └── bin
+   │   ├── rmarkdown
+   │   │   └── bin
+   │   └── trickySoftware
+   │       └── bin
+   └── pipeline
+       ├── assets
+       ├── bin
+       ├── conf
+       ├── docs
+       ├── env
+       ├── modules
+       │   └── helloWorld
+       ├── recipes
+       │   ├── conda
+       │   ├── dependencies
+       │   ├── docker
+       │   └── singularity
+       └── test
+           └── data
+
