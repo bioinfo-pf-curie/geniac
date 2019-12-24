@@ -34,4 +34,5 @@ To do so, we expect that the bioinformaticians and statisticians capitalize on t
 
    The containers are boostraped using `CentOS <https://www.centos.org/>`_ 7 distribution.
 
-
+TODO:
+ * explain what is the git branching model and tag policy
