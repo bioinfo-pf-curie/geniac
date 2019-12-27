@@ -213,7 +213,7 @@ We see from the :ref:`run-process-profile-table` table that, if you use the :ref
 
    nextflow -c conf/test.config run main.nf -profile multiconda
 
-Off course, it works.
+Of course, it works.
 
 Then, make the ``helloWorld`` tool unavaible: 
 
@@ -224,7 +224,7 @@ Then, make the ``helloWorld`` tool unavaible:
    cd -
    nextflow -c conf/test.config run main.nf -profile multiconda
 
-Off course, it fails: ``.command.sh: line 2: helloWorld: command not found``.
+Of course, it fails: ``.command.sh: line 2: helloWorld: command not found``.
 
 Thus try:
 
@@ -232,7 +232,7 @@ Thus try:
 
    nextflow -c conf/test.config run main.nf -profile multiconda,path
 
-Off course, it works!
+Of course, it works!
 
 .. note::
 
