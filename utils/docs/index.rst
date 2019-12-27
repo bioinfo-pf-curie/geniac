@@ -14,6 +14,7 @@ Welcome to Philippe's documentation!
    basic
    process
    install
+   devcycle
    run
    admin
    
