@@ -216,7 +216,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the CentOS distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for CentOS). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.containers`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.containers`` as follows:
 
 ::
 
@@ -294,7 +294,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the CentOS distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for CentOS). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.containers`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.containers`` as follows:
 
 
 ::
@@ -433,7 +433,7 @@ In order to have the container automatically built, you have to add an additiona
 
    * Consider that this shell script will be executed in the ``modules`` directory,
    * Use only relative path
-   * This script will be executed in CentOS distribution, thus install any required packages with ``yum``,
+   * This script will be executed in `CentOS <https://www.centos.org/>`_ distribution, thus install any required packages with ``yum``,
    * Set always the install directory to ``/usr/local/bin``.
 
 Any suggestion to avoid having both in the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_ function and this shell script is very welcome.

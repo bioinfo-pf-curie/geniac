@@ -23,7 +23,7 @@ Offering the portability of the pipeline with containers can be achieved in two 
 
 * most of the pipelines share tools in common meaning that, once a container is built for one tool, it can be easily reused in other pipelines,
 
-* sometimes, different tools that migth be incompatible with each other are required and that just makes impossible to build a single container includinfg all the tools for the pipeline,
+* sometimes, different tools that migth be incompatible with each other are required and that just makes impossible to build a single container including all the tools for the pipeline,
 
 * building a container with all the tools can be very long and possibly tedious especially when there is a single container. Each time the pipeline changes, the single container has to be rebuilt. With the *one container per tool* strategy, you only have to update the container whose tool has changed (that is faster). Moreover, you can also parallelise the building of the containers such that it reduces the time to have the containers available, 
 
@@ -34,10 +34,3 @@ To do so, we expect that the bioinformaticians and statisticians capitalize on t
 All the guidelines are detailed in the next sections.
 
 
-
-.. note::
-
-   The containers are boostraped using `CentOS <https://www.centos.org/>`_ 7 distribution.
-
-TODO:
- * explain what is the git branching model and tag policy

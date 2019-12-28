@@ -4,6 +4,16 @@
 Basics
 ******
 
+Prerequisites
+=============
+
+* `nextflow <https://www.nextflow.io/>`_ >= 19.10.0
+* `git <https://git-scm.com/>`_  >= 2.0
+* `git lfs <https://git-lfs.github.com/>`_
+* `cmake <https://cmake.org/>`_ >= 3.0
+* `singularity <https://sylabs.io/singularity/>`_ >= 3.2
+* `docker <https://www.docker.com/>`_ >= 18.0
+
 .. _basic-source-tree:
 
 Structure of the source code directory tree
@@ -33,6 +43,7 @@ Structure of the source code directory tree
        │   └── _themes
        │       └── sphinx_rtd_theme
        └── install
+
 
 .. _basic-naming:
 
@@ -66,4 +77,10 @@ Environment variables
 ---------------------
 
 Use snake_case and lower case.
+
+Git branch model
+================
+
+ADD DETAILS
+
 

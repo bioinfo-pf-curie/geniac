@@ -140,6 +140,8 @@ local
 
 This is the default.
 
+.. _run-profile-cluster:
+
 cluster
 +++++++
 

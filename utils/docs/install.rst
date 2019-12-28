@@ -126,6 +126,8 @@ All the options can be set on the command line interface. If your want to instal
 
    To have all the available options and help, run ``cmake -LAH ../${myGitRepo}`` in the ``build`` directory. The different options are displayed in the **Cache values** section:
 
+.. _install-configure-file:
+
 Set options with a file
 -----------------------
 
@@ -139,7 +141,7 @@ The file ``utils/install/cmake-init-default.cmake`` provides a script to set all
 
 
 .. note::
-   On CentOS, the syntax in ``cmake3 ../${myGitRepo} -C ../${myGitRepo}/utils/install/cmake-init.cmake``
+   On CentOS, the syntax is ``cmake3 ../${myGitRepo} -C ../${myGitRepo}/utils/install/cmake-init.cmake``
 
 
 
@@ -185,6 +187,9 @@ ADD DETAILS FOR DOCKER.
 Install and test with different profiles
 ----------------------------------------
 
+In order to make the deployement and testing of the pipeline easier, several custom targets are provided such that you only need twhen you type one of the following command, the pipeline is insta
+
+
 
 * ``make test_conda``
 * ``make test_docker``
@@ -192,6 +197,18 @@ Install and test with different profiles
 * ``make test_path``
 * ``make test_singularity``
 * ``make test_standard``
+
+Assuming that you configured the build directory such that ``CMAKE_INSTALL_PREFIX=$HOME/myPipeline``, typing ``make test_conda`` is similar to:
+
+::
+
+   make
+   make install
+   cd $HOME/myPipeline
+   nextflow -c conf/test.config run main.nf -profile conda
+
+If you want to add the :ref:`run-profile-cluster` profile, just type the following:
+
 * ``make test_conda_cluster``
 * ``make test_docker_cluster``
 * ``make test_multiconda_cluster``
@@ -200,79 +217,9 @@ Install and test with different profiles
 * ``make test_standard_cluster``
 
 
-Examples
-========
-
-
-Install and run with conda
---------------------------
-
-Prerequisites:
-
-You must have `conda <https://docs.conda.io/>`_ installed locally, if not, proceed as follows:
-
-You must have git lfs.
-
-
--> en fait, cmake ne va modifier que les variables que tu lui demandes. Comme tu a utilisé en premier
-'-Dap_install_singularity_images=ON", et que ensuite tu ne lui passe que 
-
-"-DCMAKE_INSTALL_PREFIX=/data/tmp/nservant/myPipeline", il ne modifie pas -Dap_install_singularity_images.
-
-Il faudrait lui dire "-Dap_install_singularity_images=ON". Bon, ce sont des petites subtilités qu'il faut que je documente.
-
-
-
-::
-
-   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-   bash Miniconda3-latest-Linux-x86_64.sh
-
-   
-Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the install directory you set) in your PATH.
-
-
-::
-
-   git_repo="myGitRepo"
-   git_repo_url="http://myGitReporUrl"
-
-   git clone ${git_repo_url}
-
-   mkdir build
-   cd build
-   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
-   make
-   make install
-
-   cd $HOME/myPipeline/pipeline
-
-   nextflow -c conf/test.config run main.nf -profile conda
-   
-
 .. note::
 
-   If you use both the conda and cluster profile, check that your master job that launches nextflow has been submitted with enough memory, otherwise the creation of the conda environment may fail.
-
-Install and run with singularity
---------------------------------
-
-::
-
-   git_repo="myGitRepo"
-   git_repo_url="http://myGitReporUrl"
-
-   git clone ${git_repo_url}
-
-   mkdir build
-   cd build
-   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
-   make ### must be done with the root credentials
-   make install
-
-   cd $HOME/myPipeline/pipeline
-
-   nextflow -c conf/test.config run main.nf -profile singularity
+   For these custom targets to be available, test data and ``conf/test.config`` file have to be provided in the repository.
 
 Structure of the installation directory tree
 ============================================
@@ -308,4 +255,73 @@ Structure of the installation directory tree
        │   └── singularity
        └── test
            └── data
+
+Examples
+========
+
+
+Install and run with conda
+--------------------------
+
+.. important::
+
+   You must have `conda <https://docs.conda.io/>`_ installed locally, if not, proceed as follows:
+
+
+::
+
+   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+   bash Miniconda3-latest-Linux-x86_64.sh
+
+   
+Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the install directory you set) in your PATH.
+
+
+::
+
+   git_repo="myGitRepo"
+   git_repo_url="http://myGitReporUrl"
+
+   git clone ${git_repo_url}
+
+   mkdir build
+   cd build
+   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
+   make
+   make install
+
+   cd $HOME/myPipeline/pipeline
+
+   nextflow -c conf/test.config run main.nf -profile conda
+   
+
+.. note::
+
+   If you use both the :ref:`run-profile-conda`
+   and :ref:`run-profile-cluster` profile, check that your master job that launches nextflow has been submitted with enough memory, otherwise the creation of the conda environment may fail.
+
+Install and run with singularity
+--------------------------------
+
+::
+
+   git_repo="myGitRepo"
+   git_repo_url="http://myGitReporUrl"
+
+   git clone ${git_repo_url}
+
+   mkdir build
+   cd build
+   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   make ### must be done with the root credentials
+   make install
+
+   cd $HOME/myPipeline/pipeline
+
+   nextflow -c conf/test.config run main.nf -profile singularity
+
+
+.. note::
+
+   Whenever you explicitely set an option on the command line such as ``-Dap_install_singularity_images=ON``, and then you want to reconfigure your build directory by specifying only another option on the command line such as ``-DCMAKE_INSTALL_PREFIX=$HOME/myPipelineNewDir``, the ``ap_install_singularity_images`` will remain ``ON`` unless you specify ``-Dap_install_singularity_images=ON``.
 
