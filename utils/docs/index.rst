@@ -11,7 +11,7 @@ Welcome to Philippe's documentation!
    :caption: Contents:
 
    intro
-   basic
+   overview
    process
    install
    devcycle

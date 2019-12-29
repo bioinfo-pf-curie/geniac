@@ -5,7 +5,7 @@ Installation
 *********************
 
 
-We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (see :ref:`basic-source-tree`).
+We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (see :ref:`overview-source-tree`).
 
 Installation require cmake (version 3.0 or above) and consists of the following sequence.
 

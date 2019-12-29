@@ -4,14 +4,17 @@
 Add a process
 *************
 
-This section provides the guidelines for adding a new process in the ``main.nf`` file.
+This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the `singularity <https://sylabs.io/singularity/>`_ and `docker <https://www.docker.com/>`_.
+
 
 Structure of a process
 ======================
 
-Its is important to consider that **one** process invokes only **one** tool.
+.. important::
 
-Each process must have a `*label*` directive. The `*label*` name may be different of the process name. For example:
+   Consider that **one** process invokes only **one** tool.
+
+Each process must have a *label* directive. The *label* name may be different of the process name. For example:
 
 ::
 
@@ -32,11 +35,11 @@ Each process must have a `*label*` directive. The `*label*` name may be differen
    }
 
 
-Having a label is essential such that it makes it possible to automatically generate the configuration files ``conda.config``, ``multiconda.config``, ``singularity.config``, ``docker.config`` and ``path.config``. This configuration files use the ``withLabel`` process selector. We will explain in the section :ref:`process-guidelines` that the name of the `*label*` must follow specific rules.
+Having a label is essential such that it makes it possible to automatically generate the configuration files ``conda.config``, ``multiconda.config``, ``singularity.config``, ``docker.config`` and ``path.config``. This configuration files use the ``withLabel`` process selector. We will explain in the section :ref:`process-guidelines` that the name of the *label* must follow specific rules.
 
 .. important::
 
-   Pay a lot of attention to declare the `*label*` for each process since automatic generation of configuration files mentionned above along with the singularity / docker recipes and containers relies on the label name by parsing the ``conf/base.config`` file from the source code.
+   Pay a lot of attention to declare the *label* for each process since automatic generation of configuration files mentionned above along with the singularity / docker recipes and containers relies on the label name by parsing the ``conf/base.config`` file from the source code.
 
 .. note:: 
 
@@ -192,7 +195,7 @@ The `*label*` directive must have the exact same name as given in the ``params.t
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -272,7 +275,7 @@ The `*label*` directive must have the exact same name as given in the ``params.t
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -328,7 +331,7 @@ Use always ``label 'onlyLinux'``.
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -350,7 +353,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
 .. note::
 
-   ``apMyscript.sh`` is so named with `ap` prefix since it has been developed for the pipeline while ``someScript.sh`` does not have this prefix as it is a third-party script (see :ref:`basic-naming`).
+   ``apMyscript.sh`` is so named with `ap` prefix since it has been developed for the pipeline while ``someScript.sh`` does not have this prefix as it is a third-party script (see :ref:`overview-naming`).
 
 *container*
 +++++++++++
@@ -395,7 +398,7 @@ The label will be the same name as the directory you added the source code, for 
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -456,7 +459,7 @@ Add your installer file (`deb`, `rpm` or whatever) in the ``recipes/dependencies
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`basic-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 

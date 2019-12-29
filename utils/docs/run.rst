@@ -205,6 +205,7 @@ If all the tools are available in your path, just launch:
 
    nextflow -c conf/test.config run main.nf -profile multiconda
 
+.. _run-combine-path-conda:
 
 Combine path profile with conda/multiconda
 ------------------------------------------
