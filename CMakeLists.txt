@@ -30,7 +30,7 @@ install(
         PATTERN "*.example" EXCLUDE
         PATTERN "utils" EXCLUDE)
 
-include("utils/cmake/utils.cmake")
+    include("utils/cmake/utilsColorMessage.cmake")
 add_subdirectory(utils)
 
 if (EXISTS ${CMAKE_SOURCE_DIR}/modules/CMakeLists.txt)
