@@ -72,7 +72,7 @@ Channel
     }
 
 Channel
-    .fromPath("${baseDir}/docker/*.Dockerfile")
+    .fromPath("${baseDir}/recipes/docker/*.Dockerfile")
     .map{
         String optionalFile = null
         if (it.simpleName == 'r') {
@@ -87,26 +87,62 @@ Channel
 
         return [it.simpleName, it, optionalFile]
     }
-    .set{ dockerfileCh1 }
+    .set{ dockerRecipeCh1 }
 
 
+/**
+ * CONDA RECIPES
+**/
+
+Channel
+    .fromPath("${baseDir}/recipes/conda/*.yml")
+    .set{ condaRecipes }
+
+
+/**
+ * DEPENDENCIES
+**/
+
+Channel
+    .fromPath("${baseDir}/recipes/dependencies/*")
+    .set{ fileDependencies }
+
+/**
+ * SOURCE CODE
+**/
+
+
+Channel
+    .fromPath("${baseDir}/modules", type: 'dir')
+    .set{ sourceCodeDirCh }
+
+
+Channel
+    .fromPath("${baseDir}/modules/*.sh")
+    .map{
+        return [it.simpleName, it]
+    }
+    .set{ sourceCodeCh }
 
 /**
  * PROCESSES
 **/
 
-process buildDefaultDockerfile {
-    publishDir params.containers.dockerfiles, overwrite: true
+process buildDefaultDockerRecipe {
+    publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
     output:
-    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerfileCh2
+    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh2
 
     script:
-    key = 'onlylinux'
+    key = 'onlyLinux'
 
     """
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda2-centos7
+    FROM conda/miniconda3-centos7
+
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
 
     RUN yum install -y which \\\\
     && yum clean all
@@ -114,12 +150,13 @@ process buildDefaultDockerfile {
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
     EOF
+
     """
 }
 
-process buildDockerfileFromCondaFile {
+process buildDockerRecipeFromCondaFile {
     tag "${key}"
-    publishDir params.containers.dockerfiles, overwrite: true
+    publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
     input:
     set val(key), val(condaFile), val(yum), val(git) from condaFilesCh
@@ -128,7 +165,7 @@ process buildDockerfileFromCondaFile {
         .map{ [it[0], it[1][0].join(), it[2], it[3]] }
 
     output:
-    set val(key), file("${key}.Dockerfile"), val(condaFile) into dockerfileCh3
+    set val(key), file("${key}.Dockerfile"), val(condaFile) into dockerRecipeCh3
 
     script:
     String cplmtGit = buildCplmtGit(git)
@@ -140,7 +177,10 @@ process buildDockerfileFromCondaFile {
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda2-centos7
+    FROM conda/miniconda3-centos7
+
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
 
     # real path from baseDir: ${condaFile}
     ADD \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
@@ -160,9 +200,10 @@ process buildDockerfileFromCondaFile {
     """
 }
 
-process buildDockerfileFromCondaPackages {
+process buildDockerRecipeFromCondaPackages {
     tag "${key}"
-    publishDir params.containers.dockerfiles, overwrite: true
+    publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+
 
     input:
     set val(key), val(tools), val(yum), val(git) from condaPackagesCh
@@ -170,7 +211,7 @@ process buildDockerfileFromCondaPackages {
         .map{ addYumAndGitToCondaCh(it) }
 
     output:
-    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerfileCh4
+    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh4
 
     script:
     String cplmtGit = buildCplmtGit(git)
@@ -186,7 +227,10 @@ process buildDockerfileFromCondaPackages {
 
     """
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda2-centos7
+    FROM conda/miniconda3-centos7
+
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
 
     RUN yum install -y which ${yumPkgs} ${cplmtGit} \\\\
     && yum clean all \\\\
@@ -203,53 +247,70 @@ process buildDockerfileFromCondaPackages {
     """
 }
 
-// process buildImages {
-//     maxForks 1
-//     tag "${key}"
+
+process buildDockerRecipeFromSourceCode {
+    tag "${key}"
+    publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+
+    input:
+    set val(key), file(installFile) from sourceCodeCh
+    
+    output:
+    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh5
+
+    script:
+    """
+    cat << EOF > ${key}.Dockerfile
+    FROM centos7
+    
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
+
+    RUN mkdir -p /opt/modules
+ 
+    ADD modules/${installFile} /opt/modules
+    ADD modules/${key}/ /opt/modules
+      
+    RUN yum install -y epel-release which gcc gcc-c++ make \\\\
+    && cd /opt/modules \\\\
+    && bash ${installFile} \\\\
+    && rm -r /opt/modules
+ 
+    ENV LC_ALL en_US.utf-8
+    ENV LANG en_US.utf-8
+    ENV PATH /usr/local/bin:\\\$PATH
+    
+    EOF
+    """
+}
+
+onlyCondaRecipeCh = dockerRecipeCh3.mix(dockerRecipeCh4)
+// onlyCondaRecipeCh.into { onlyCondaRecipe4buildCondaCh ; onlyCondaRecipe4buildMulticondaCh ; onlyCondaRecipe4buildImagesCh }
 // 
-//     input:
-//     set val(key), file(dockerfile), val(optionalPath) from dockerfileCh1.mix(dockerfileCh2).mix(dockerfileCh3).mix(dockerfileCh4)
-// 
-//     output:
-//     val("drg-${key.toLowerCase()}") into builtCh
-// 
-//     script:
-//     String contextDir = optionalPath == 'EMPTY' ? '.' : "\$(dirname \$(realpath ${optionalPath}))"
-// 
-//     """
-//     docker build -f ${dockerfile} -t drg-${key.toLowerCase()} ${contextDir}
-//     """
-// }
-// 
-// process registerImages {
-//     tag "${imgName}"
-// 
-//     input:
-//     val(imgName) from builtCh
-// 
-//     output:
-//     val(imgName) into registeredCh
-// 
-//     script:
-//     """
-//     docker tag ${imgName} localhost:5000/${imgName}
-//     docker push localhost:5000/${imgName}
-//     """
-// }
-// 
-// process convertToSingularity {
-//     maxForks 1
-//     tag "${imgName}"
-//     publishDir params.containers.images, overwrite: true
-// 
-//     input:
-//     val(imgName) from registeredCh
-// 
-//     output:
-//     file("${imgName}.simg")
-// 
-//     script:
-//     """
-//     SINGULARITY_NOHTTPS=1 singularity build ${imgName}.simg docker://localhost:5000/${imgName}
-//     """
-// }
+dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5)
+// dockerAllRecipeCh.into { dockerAllRecipe4buildImagesCh ; dockerAllRecipe4buildDockerCh ; dockerAllRecipe4buildPathCh}
+
+process buildImages {
+    tag "${key}"
+    // publishDir "${baseDir}/${params.publishDirDockerImages}", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildDockerImages
+
+    input:
+    set val(key), file(dockerRecipe), val(optionalPath) from dockerAllRecipeCh
+    file condaYml from condaRecipes.collect()
+    file fileDep from fileDependencies.collect()
+    file moduleDir from sourceCodeDirCh.collect()
+
+    output:
+    file("${key.toLowerCase()}.simg")
+
+    script:
+
+    """
+    docker build ${key.toLowerCase()}.simg ${dockerRecipe}
+    """
+}
+
+

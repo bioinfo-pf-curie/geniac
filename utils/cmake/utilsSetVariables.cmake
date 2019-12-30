@@ -59,4 +59,5 @@ set(ap_install_docker_images
 set(publish_dir_singularity_images "results/singularity/images")
 set(publish_dir_conf "results/conf")
 set(publish_dir_deffiles "results/singularity/deffiles")
+set(publish_dir_dockerfiles "results/docker/Dockerfiles")
 

@@ -4,7 +4,6 @@ include("cmake/utilsFindPackages.cmake")
 include("cmake/utilsCheckOptions.cmake")
 include("cmake/utilsGitInfo.cmake")
 
-
 # ##############################################################################
 # Fill template for config files
 # ##############################################################################
@@ -24,10 +23,11 @@ foreach(file ${ap_conf_template_file_list})
 endforeach(file ${ap_conf_template_file_list})
 
 # ##############################################################################
-# Singularity recipes and images
+# Container recipes and images
 # ##############################################################################
 
-# working directory to build the container recipes and images
+# working directory to build: - the container recipes and images - the nextflow
+# config files
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir.done
     COMMAND ${CMAKE_COMMAND} -E echo "create workDir/"
@@ -53,7 +53,8 @@ add_custom_command(
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/nextflow.config
     DEPENDS ${CMAKE_SOURCE_DIR}/utils/install/docker.nf)
 
-# generate config (singularity, conda, multiconda, etc.)
+# generate conf/*.config files (singularity, docker, conda, multiconda, path,
+# etc.)
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
@@ -88,11 +89,33 @@ add_custom_command(
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
+# generate Dockerfiles
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
+    COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/utils/install/docker.nf
+            ${CMAKE_BINARY_DIR}/workDir
+    COMMAND
+        ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerfiles true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
+    COMMAND ${CMAKE_COMMAND} -E touch
+            "${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
+
 # allows the build of the recipes with "make build_singularity_recipes"
 add_custom_target(
     build_singularity_recipes
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
+
+# allows the build of the recipes with "make build_singularity_recipes"
+add_custom_target(
+    build_dockerfiles
+    COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
 
 # generate singularity recipes and images
 add_custom_command(
@@ -119,6 +142,7 @@ add_custom_target(
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/singularityImages.done)
 
+# singularity
 if(ap_install_singularity_recipes)
     message_color(INFO "Singularity recipes will be installed")
 
@@ -129,6 +153,18 @@ if(ap_install_singularity_recipes)
         DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_deffiles}/"
         DESTINATION
             "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/singularity")
+endif()
+
+# docker
+if(ap_install_docker_recipes)
+    message_color(INFO "Dockerfiles will be installed")
+
+    add_custom_target(install_docker_recipes ALL
+                      DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
+
+    install(
+        DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_dockerfiles}/"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/docker")
 endif()
 
 if(ap_install_singularity_images)
@@ -150,7 +186,7 @@ if(ap_install_singularity_images)
 
 endif()
 
-add_custom_target(install_singularity_config ALL
+add_custom_target(install_nextflow_config ALL
                   DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 
 install(
@@ -158,6 +194,10 @@ install(
     DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/conf"
     FILES_MATCHING
     PATTERN "*.config")
+
+# ##############################################################################
+# Setup path directories
+# ##############################################################################
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/pathDirectories.done
