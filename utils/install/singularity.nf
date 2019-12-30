@@ -312,7 +312,7 @@ onlyCondaRecipeCh = singularityRecipeCh3.mix(singularityRecipeCh4)
 onlyCondaRecipeCh.into { onlyCondaRecipe4buildCondaCh ; onlyCondaRecipe4buildMulticondaCh ; onlyCondaRecipe4buildImagesCh }
 
 singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(onlyCondaRecipe4buildImagesCh).mix(singularityRecipeCh5)
-singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAllRecipe4buildSingularityCh ; singularityAllRecipe4buildPathCh}
+singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAllRecipe4buildSingularityCh ; singularityAllRecipe4buildDockerCh ; singularityAllRecipe4buildPathCh}
 
 process buildImages {
     tag "${key}"
@@ -344,7 +344,6 @@ process buildImages {
 
 process buildSingularityConfig {
     tag "${key}"
-    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
@@ -399,12 +398,68 @@ process mergeSingularityConfig {
 }
 
 /**
+ * Generate docker.config
+**/
+
+process buildDockerConfig {
+    tag "${key}"
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh 
+
+    output:
+    file("${key}DockerConfig.txt") into mergeDockerConfigCh
+
+    script:
+
+    """
+    cat << EOF > "${key}DockerConfig.txt"
+        withLabel:${key} { container = "${key.toLowerCase()}" }
+    EOF
+    """
+}
+
+process mergeDockerConfig {
+    tag "mergeDockerConfig"
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+    when:
+    params.buildSingularityConfig
+
+    input:
+    file key from mergeDockerConfigCh.collect() 
+
+    output:
+    file("docker.config") into finalDockerConfigCh
+
+    script:
+    """
+    cat << EOF > "docker.config"
+    includeConfig 'process.config'
+    
+    docker {
+        enabled = true
+        runOptions = "\\\${params.containers.dockerRunOptions}"
+    }
+
+    process {
+    EOF
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> docker.config
+    done
+    echo "}"  >> docker.config
+    """
+}
+/**
  * Generate conda.config
 **/
 
 process buildCondaConfig {
     tag "${key}"
-    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildSingularityConfig
