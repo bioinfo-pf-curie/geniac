@@ -192,6 +192,33 @@ Depending on the process type, the tool is not available with all the different 
 | |ko| the tool must in your ``$PATH``
 | |path| the tool must be in the ``path/`` of the install directory (see :ref:`run-profile-path` for details)
 
+Options
+=======
+
+General options
+---------------
+
+condaCacheDir
++++++++++++++
+
+queue
++++++
+
+singularityImagePath
+++++++++++++++++++++
+
+singularityRunOptions
++++++++++++++++++++++
+
+dockerRunOptions
+++++++++++++++++
+
+
+Analysis options
+----------------
+
+They are defined in the ``conf/tools.config`` file. Refer to the *README* of the pipeline for details.
+
 
 Examples
 ========
