@@ -140,7 +140,7 @@ process buildDefaultSingularityRecipe {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: conda/miniconda3-centos7
+    From: centos:7
 
     %labels
         gitUrl ${params.gitUrl}
