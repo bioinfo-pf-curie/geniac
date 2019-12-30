@@ -359,7 +359,7 @@ process buildSingularityConfig {
 
     """
     cat << EOF > "${key}SingularityConfig.txt"
-        withLabel:${key} { container = "\\\${params.containers.singularityImagePath}/${key.toLowerCase()}.simg" } 
+        withLabel:${key} { container = "\\\${params.containers.singularityImagePath}/${key.toLowerCase()}.simg" }
     EOF
     """
 }
@@ -379,13 +379,22 @@ process mergeSingularityConfig {
 
     script:
     """
-    echo "process {"  > singularity.config
+    cat << EOF > "singularity.config"
+    includeConfig 'process.config'
+    
+    singularity {
+        enabled = true
+        autoMounts = true
+        runOptions = "\\\${params.containers.singularityRunOptions}"
+    }
+
+    process {
+    EOF
     for keyFile in ${key}
     do
         cat \${keyFile} >> singularity.config
     done
     echo "}"  >> singularity.config
-    echo "includeConfig 'process.config'" >> singularity.config
     """
 }
 
