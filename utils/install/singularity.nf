@@ -346,7 +346,7 @@ process buildSingularityConfig {
     tag "${key}"
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh 
@@ -368,7 +368,7 @@ process mergeSingularityConfig {
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     file key from mergeSingularityConfigCh.collect() 
@@ -405,7 +405,7 @@ process buildDockerConfig {
     tag "${key}"
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh 
@@ -427,7 +427,7 @@ process mergeDockerConfig {
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     file key from mergeDockerConfigCh.collect() 
@@ -462,7 +462,7 @@ process buildCondaConfig {
     tag "${key}"
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildCondaCh
@@ -484,7 +484,7 @@ process mergeCondaConfig {
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     file key from mergeCondaConfigCh.collect() 
@@ -514,7 +514,7 @@ process buildMulticondaConfig {
     //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildMulticondaCh
@@ -536,7 +536,7 @@ process mergeMulticondaConfig {
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     file key from mergeMulticondaConfigCh.collect() 
@@ -566,7 +566,7 @@ process buildPathConfig {
     //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildPathCh
@@ -592,7 +592,7 @@ process mergePathConfig {
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     file key from mergePathConfigCh.collect() 
@@ -620,7 +620,7 @@ process mergePathLink {
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
-    params.buildSingularityConfig
+    params.buildConfigFiles
 
     input:
     file key from mergePathLinkCh.collect()

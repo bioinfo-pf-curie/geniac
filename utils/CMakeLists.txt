@@ -57,16 +57,16 @@ add_custom_command(
 # etc.)
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
-    COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
+    COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND ${CMAKE_COMMAND} -E copy
             ${CMAKE_SOURCE_DIR}/utils/install/singularity.nf
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
+    ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityConfig true
+    "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
