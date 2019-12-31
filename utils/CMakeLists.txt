@@ -105,15 +105,15 @@ add_custom_command(
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
-# allows the build of the recipes with "make build_singularity_recipes"
+# allows the build of the singularity recipes with "make build_singularity_recipes"
 add_custom_target(
     build_singularity_recipes
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
 
-# allows the build of the recipes with "make build_singularity_recipes"
+# allows the build of the docker recipes with "make build_docker_recipes"
 add_custom_target(
-    build_dockerfiles
+    build_docker_recipes
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
 
@@ -135,12 +135,37 @@ add_custom_command(
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
-# allows the build of the recipes and images with "make
+# generate singularity recipes and images
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
+    COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/utils/install/docker.nf
+            ${CMAKE_BINARY_DIR}/workDir
+    COMMAND
+    ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+    COMMENT
+    "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
+    COMMAND ${CMAKE_COMMAND} -E touch
+            "${CMAKE_BINARY_DIR}/workDir/dockerImages.done"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
+
+# allows the build of the singularity recipes and images with "make
 # build_singularity_images"
 add_custom_target(
     build_singularity_images
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/singularityImages.done)
+
+# allows the build of the singularity recipes and images with "make
+# build_singularity_images"
+add_custom_target(
+    build_docker_images
+    COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/dockerImages.done)
 
 # singularity
 if(ap_install_singularity_recipes)
@@ -167,6 +192,7 @@ if(ap_install_docker_recipes)
         DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/docker")
 endif()
 
+# singularity
 if(ap_install_singularity_images)
     message_color(INFO "Singularity recipes and images will be installed")
 
@@ -185,6 +211,23 @@ if(ap_install_singularity_images)
         DESTINATION "${CMAKE_INSTALL_PREFIX}/${singularity_image_dir}")
 
 endif()
+
+# docker
+if(ap_install_docker_images)
+    message_color(INFO "Docker recipes and images will be installed")
+
+    add_custom_target(
+        install_docker_images ALL
+        DEPENDS ${CMAKE_BINARY_DIR}/workDir/dockerImages.done)
+
+    install(
+        DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_dockerfiles}/"
+        DESTINATION
+            "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/docker")
+
+endif()
+
+# nextflow config
 
 add_custom_target(install_nextflow_config ALL
                   DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
