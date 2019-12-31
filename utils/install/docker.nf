@@ -269,7 +269,7 @@ process buildDockerRecipeFromSourceCode {
     RUN mkdir -p /opt/modules
  
     ADD modules/${installFile} /opt/modules
-    ADD modules/${key}/ /opt/modules
+    ADD modules/${key}/ /opt/modules/${key}
       
     RUN yum install -y epel-release which gcc gcc-c++ make \\\\
     && cd /opt/modules \\\\
@@ -300,13 +300,13 @@ process buildImages {
     file fileDep from fileDependencies.collect()
     file moduleDir from sourceCodeDirCh.collect()
 
-    output:
-    file("${key.toLowerCase()}.simg")
-
     script:
 
     """
-    docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} .
+    tar cvfh contextDir.tar *
+    mkdir contextDir
+    tar xvf contextDir.tar --directory contextDir
+    docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} contextDir
     """
 }
 
