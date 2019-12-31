@@ -285,10 +285,7 @@ process buildDockerRecipeFromSourceCode {
 }
 
 onlyCondaRecipeCh = dockerRecipeCh3.mix(dockerRecipeCh4)
-// onlyCondaRecipeCh.into { onlyCondaRecipe4buildCondaCh ; onlyCondaRecipe4buildMulticondaCh ; onlyCondaRecipe4buildImagesCh }
-// 
 dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5)
-// dockerAllRecipeCh.into { dockerAllRecipe4buildImagesCh ; dockerAllRecipe4buildDockerCh ; dockerAllRecipe4buildPathCh}
 
 process buildImages {
     tag "${key}"
@@ -309,8 +306,7 @@ process buildImages {
     script:
 
     """
-    docker build ${key.toLowerCase()}.simg ${dockerRecipe}
+    docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} .
     """
 }
-
 
