@@ -714,3 +714,12 @@ To optimize the resources used in a computing cluster, you may want to finely tu
 
    To assess what are the amount of resources used by you process refers to `Metrics documentation <https://www.nextflow.io/docs/latest/metrics.html>`_.
 
+Results
+=======
+
+Use the ``publishDir`` directive with the ``${params.outputDir}`` parameters and organise your results as you wish. For example:
+
+::
+
+   publishDir "${params.outputDir}/execBinScript", mode: 'copy'
+

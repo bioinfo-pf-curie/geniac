@@ -213,12 +213,22 @@ singularityRunOptions
 dockerRunOptions
 ++++++++++++++++
 
+outputDir
++++++++++
 
 Analysis options
 ----------------
 
 They are defined in the ``conf/tools.config`` file. Refer to the *README* of the pipeline for details.
 
+Results
+=======
+
+Analysis
+--------
+
+Trace
+-----
 
 Examples
 ========
