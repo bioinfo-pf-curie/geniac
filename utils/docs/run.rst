@@ -116,7 +116,7 @@ This directory tree follows the pattern ``path/labelOfTheTool/bin`` meaning that
 
 Therefore, this profile make it possible to tackle any configuration such as using the same tool but with different versions.
 
-If the tool require is alreadyinstalled on your system, you can just add a symlink. For example:
+If the tool require is already installed on your system, you can just add a symlink. For example:
 
 ::
 
@@ -255,7 +255,7 @@ We see from the :ref:`run-process-profile-table` table that, if you use the :ref
 
 Of course, it works.
 
-Then, make the ``helloWorld`` tool unavaible: 
+Then, make the ``helloWorld`` tool unavailable: 
 
 ::
 

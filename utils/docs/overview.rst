@@ -4,7 +4,7 @@
 Overview
 ********
 
-This section just provides a general overview of the guidelines for the structure of the source code directory and the naming conventions. The most important guidelines are detaildes in the :ref:`process-page` section.
+This section just provides a general overview of the guidelines for the structure of the source code directory and the naming conventions. The most important guidelines are detailed in the :ref:`process-page` section.
 
 Prerequisites
 =============
@@ -16,7 +16,7 @@ The following software are required:
 * `git lfs <https://git-lfs.github.com/>`_
 * `cmake <https://cmake.org/>`_ >= 3.0
 
-To use the containers, ate least one of the followinf software is required:
+To use the containers, ate least one of the following software is required:
 
 * `singularity <https://sylabs.io/singularity/>`_ >= 3.2
 * `docker <https://www.docker.com/>`_ >= 18.0
@@ -26,7 +26,7 @@ To use the containers, ate least one of the followinf software is required:
 Structure of the source code directory tree
 ===========================================
 
-The source code is organised as follows:
+The source code is organized as follows:
 
 ::
 
@@ -72,7 +72,7 @@ Channels
 --------
 
 
-Use camelCase and add the suffixe `Ch`, for example ``fastqFilesCh``.
+Use camelCase and add the suffix `Ch`, for example ``fastqFilesCh``.
 
 
 Files
@@ -81,7 +81,7 @@ Files
 
 Use camelCase.
 
-For the scripts you develop and that are accessible in the ``bin/`` use the prefix **ap** (**a**\nalysis **p**\ipeline). This prefix makes it possible to distinguish the scripts you personnally developed from those you retrieved from third parties.
+For the scripts you develop and that are accessible in the ``bin/`` use the prefix **ap** (**a**\nalysis **p**\ipeline). This prefix makes it possible to distinguish the scripts you personally developed from those you retrieved from third parties.
 
 
 Environment variables

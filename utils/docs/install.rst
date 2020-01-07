@@ -132,7 +132,7 @@ Set options with a file
 -----------------------
 
 
-The file ``utils/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommand that you copy this file into ``utils/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
+The file ``utils/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``utils/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
 
 ::
 
@@ -187,7 +187,7 @@ ADD DETAILS FOR DOCKER.
 Install and test with different profiles
 ----------------------------------------
 
-In order to make the deployement and testing of the pipeline easier, several custom targets are provided such that you only need twhen you type one of the following command, the pipeline is insta
+In order to make the deployment and testing of the pipeline easier, several custom targets are provided such that you only need to type one of the following command to install the pipeline:
 
 
 

@@ -39,7 +39,7 @@ Having a label is essential such that it makes it possible to automatically gene
 
 .. important::
 
-   Pay a lot of attention to declare the *label* for each process since automatic generation of configuration files mentionned above along with the singularity / docker recipes and containers relies on the label name by parsing the ``conf/base.config`` file from the source code.
+   Pay a lot of attention to declare the *label* for each process since the automatic generation of configuration files mentionned above along with the singularity / docker recipes and containers relies on the label name by parsing the ``conf/base.config`` file from the source code.
 
 .. note:: 
 
@@ -83,8 +83,8 @@ Where the tool is available?
 
 Probably not, otherwise, you would not be reading this. This means that the tool can fall in any of these categories:
 
-* it is provided as `deb`, `rpm` packages or any executable installer
-* it is a windows executable that needs mono to be run
+* it is provided as `deb`, `rpm` packages or any executable installer,
+* it is a windows executable that needs mono to be run,
 * it is whatever that needs a custom installation procedure
 
 Then see :ref:`process-custom-install`.
@@ -94,8 +94,8 @@ Does my tool require some environment variables to be set?
   
 If `Yes`, see :ref:`process-env-var`.
 
-How many cpu and memory resources does the tool require?
---------------------------------------------------------
+How many CPUs and memory resources does the tool require?
+---------------------------------------------------------
 
 See :ref:`process-resource` to define the informatics resources necessary to run your process.
 
@@ -106,7 +106,7 @@ Guidelines
 
 .. _process-unix:
 
-Standard unix command
+Standard UNIX command
 ---------------------
 
 
@@ -115,7 +115,7 @@ This is an easy one.
 *prerequisite*
 ++++++++++++++
 
-The command must work on standard unix system.
+The command must work on standard UNIX system.
 
 *label*
 +++++++
@@ -173,7 +173,7 @@ Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forg
    }
 
 
-The syntax follows the patterm ``softName = "condaChannelName::softName=version"``.
+The syntax follows the pattern ``softName = "condaChannelName::softName=version"``.
 
 Note that for some tools, other conda dependencies are required and can be added as follows:
 
@@ -190,12 +190,12 @@ Note that for some tools, other conda dependencies are required and can be added
 *label*
 +++++++
 
-The `*label*` directive must have the exact same name as given in the ``params.tools`` section.
+The *label* directive must have the exact same name as given in the ``params.tools`` section.
 
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarily the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -219,7 +219,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.containers`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.containers.yum`` as follows:
 
 ::
 
@@ -231,7 +231,7 @@ In most of the case, you will have nothing to do. However, some tools depend on 
 
 .. warning::
 
-   Be careful that you use the exact same name in ``containers.yum``, ``params.tools`` and `*label*` otherwise, the container will not work.
+   Be careful that you use the exact same name in ``params.containers.yum``, ``params.tools`` and *label* otherwise, the container will not work.
 
 .. _process-custom-conda:
 
@@ -270,12 +270,12 @@ Edit the file ``conf/base.config`` and add for example ``trickySoftware = "${bas
 *label*
 +++++++
 
-The `*label*` directive must have the exact same name as given in the ``params.tools`` section.
+The *label* directive must have the exact same name as given in the ``params.tools`` section.
 
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarily the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -297,7 +297,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.containers`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.containers.yum`` as follows:
 
 
 ::
@@ -310,7 +310,7 @@ In most of the case, you will have nothing to do. However, some tools depend on 
 
 .. warning::
 
-   Be careful that you use the exact same name in ``containers.yum``,  ``params.tools`` and `*label*`, otherwise, the container will not work.
+   Be careful that you use the exact same name in ``params.containers.yum``,  ``params.tools`` and *label*, otherwise, the container will not work.
 
 .. _process-exec:
 
@@ -321,7 +321,7 @@ Binary or executable script
 ++++++++++++++
 
 | The scripts or binaries must have been added in the ``bin/`` directory of the pipeline.
-| They must have ``read`` and ``execute`` unix permissions. It must work on a unix system.
+| They must have ``read`` and ``execute`` UNIX permissions. It must work on a UNIX system.
 
 *label*
 +++++++
@@ -331,7 +331,7 @@ Use always ``label 'onlyLinux'``.
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarily the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -384,11 +384,11 @@ Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the `Exte
 
 .. note::
 
-   Depending on the source code you added, the arguments of the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_  function may be different. Refer to the documentation for more details. 
+   Depending on the source code you added, the arguments of the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_  function may be different. Refer to the cmake documentation for more details.
 
 .. important::
 
-   Always install the binary in ``${CMAKE_BINARY_DIR}/externalProject/bin)``.
+   Always install the binary in ``${CMAKE_BINARY_DIR}/externalProject/bin)`` (note that CMAKE_BINARY_DIR is actually the build directory you have created to configure and build the pipeline, see :ref:`install-page`).
 
 *label*
 +++++++
@@ -398,7 +398,7 @@ The label will be the same name as the directory you added the source code, for 
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarily the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -420,7 +420,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In order to have the container automatically built, you have to add an additional shell script in the ``modules`` directory with the suffixe ``.sh`` (otherwise it will not work) and with the exact same name as the directory in which you added the source code. For example, you added the source code in ``helloWorld`` directory, thus the shell script must be named ``helloWorld.sh``, and write the code that has to be executed to compile and install the binary:
+In order to have the container automatically built, you have to add an additional shell script in the ``modules`` directory with the suffix ``.sh`` (otherwise it will not work) and with the exact same name as the directory in which you added the source code. For example, you added the source code in ``helloWorld`` directory, thus the shell script must be named ``helloWorld.sh``. Then,write the code that has to be executed to compile and install the binary:
 
 ::
 
@@ -439,7 +439,7 @@ In order to have the container automatically built, you have to add an additiona
    * This script will be executed in `CentOS <https://www.centos.org/>`_ distribution, thus install any required packages with ``yum``,
    * Set always the install directory to ``/usr/local/bin``.
 
-Any suggestion to avoid having both in the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_ function and this shell script is very welcome.
+Any suggestion to avoid having both the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_ function in the file ``modules/CMakeLists.txt`` and this shell script is very welcome.
    
    .. _process-custom-install:
    
@@ -459,7 +459,7 @@ Add your installer file (`deb`, `rpm` or whatever) in the ``recipes/dependencies
 *example*
 +++++++++
 
-Add your process in the ``main.nf``. It can take any name (which is not necessarly the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
+Add your process in the ``main.nf``. It can take any name (which is not necessarily the same name as the software that will be called on command line) provided it follows the :ref:`overview-naming`.
 
 ::
 
@@ -517,7 +517,7 @@ This is the only case you will have to write the recipe yourself. The recipe sho
 Tool options
 ------------
 
-Tool options are set in the scope ``params`` of the file ``conf/tools.config`` as follows.
+Tool options are set in the scope ``params`` of the file ``conf/tools.config`` as follows:
 
 ::
 
@@ -525,7 +525,7 @@ Tool options are set in the scope ``params`` of the file ``conf/tools.config`` a
   fastqcOpts = "-q"
 
 
-If the tool ``fastqc`` has to be called in sereral processes with different options, then define several variables. Then, invoke ``fastqc`` in the process as follows:
+If the tool ``fastqc`` has to be called in several processes with different options, then define several variables. Then, invoke ``fastqc`` in the process as follows:
 
 ::
 
@@ -553,7 +553,7 @@ If the tool ``fastqc`` has to be called in sereral processes with different opti
      """
    }
 
-Defining a variable in the ``params`` scope offers the possibility to set custom options in command line if the user does no want to use the dafaults:
+Defining a variable in the ``params`` scope offers the possibility to set custom options in command line if the user does no want to use the defaults:
 
 ::
 
@@ -616,7 +616,7 @@ Process specific
 
 *prerequisite*
 
-Add a file with the name of your process and the extention ``.env`` in the folder ``env/``. For example, add ``env/alpine.env``:
+Add a file with the name of your process and the extension ``.env`` in the folder ``env/``. For example, add ``env/alpine.env``:
 
 ::
 
@@ -664,7 +664,7 @@ Anything related to process are defined in ``conf/process.config``.
 Shared between processes
 ++++++++++++++++++++++++
 
-You can define generic labels for both cpus and memory (as you wish) in the file ``conf/process.config``. For example:
+You can define generic labels for both CPU and memory (as you wish) in the file ``conf/process.config``. For example:
 
 ::
 
@@ -700,7 +700,7 @@ Then, in any process, you can just set any label you need. For example:
 Process specific
 ++++++++++++++++
 
-To optimize the resources used in a computing cluster, you may want to finely tune the cpu and memory asked by the process. Do do so, define the process selector ``withName`` in the file ``conf/process.config`` for your process of interest. For example:
+To optimize the resources used in a computing cluster, you may want to finely tune the CPU and memory asked by the process. Do do so, define the process selector ``withName`` in the file ``conf/process.config`` for your process of interest. For example:
 
 ::
 
@@ -717,7 +717,7 @@ To optimize the resources used in a computing cluster, you may want to finely tu
 Results
 =======
 
-Use the ``publishDir`` directive with the ``${params.outputDir}`` parameters and organise your results as you wish. For example:
+Use the ``publishDir`` directive with the ``${params.outputDir}`` parameters and organize your results as you wish. For example:
 
 ::
 
