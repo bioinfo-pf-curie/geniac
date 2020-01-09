@@ -494,14 +494,14 @@ process mergeCondaConfig {
 
     script:
     """
-    echo "process {"  > conda.config
+    echo -e "includeConfig 'process.config'\n" > conda.config
+    echo -e "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }\n" >> conda.config
+    echo "process {"  >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config
     done
     echo "}"  >> conda.config
-    echo "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }" >> conda.config
-    echo "includeConfig 'process.config'" >> conda.config
     """
 }
 
@@ -546,14 +546,14 @@ process mergeMulticondaConfig {
 
     script:
     """
-    echo "process {"  > multiconda.config
+    echo -e "includeConfig 'process.config'\n" > multiconda.config
+    echo -e "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }\n" >> multiconda.config
+    echo "process {"  >> multiconda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multiconda.config
     done
     echo "}"  >> multiconda.config
-    echo "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }" >> multiconda.config
-    echo "includeConfig 'process.config'" >> multiconda.config
     """
 }
 
@@ -602,16 +602,21 @@ process mergePathConfig {
 
     script:
     """
-    echo "singularity {" > path.config
-    echo "  enable = false"
-    echo -e "}\n"
-    echo "process {"  > path.config
+    echo -e "includeConfig 'process.config'\n" >> path.config
+    echo "singularity {" >> path.config
+    echo "  enable = false" >> path.config
+    echo -e "}\n" >> path.config
+    echo "docker {" >> path.config
+    echo "  enable = false" >> path.config
+    echo -e "}\n" >> path.config
+    echo "process {"  >> path.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> path.config
     done
     echo "}"  >> path.config
-    echo "includeConfig 'process.config'" >> path.config
+    grep -v onlyLinux path.config > path.config.tmp
+    mv path.config.tmp path.config
     """
 }
 
