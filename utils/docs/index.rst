@@ -17,6 +17,7 @@ Welcome to Philippe's documentation!
    devcycle
    run
    admin
+   faq
    
 Indices and tables
 ==================

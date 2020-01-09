@@ -41,6 +41,10 @@ Whatever you use ``make test_multiconda`` (or any custom targets available in :r
    
    The deployement of the pipeline in a dedicated directory makes it possible to keep developing and modifying any file or to checkout any branch while a test is running especially when the test can take time. If you would launch a test from the source code directory the files could be modified while the test is running.
 
+.. note::
+
+   If you really prefer to launch your test in your source code directory (for good or bad reasons) you can still do it. In this case, you can either write and add the config files for the nextflow :ref:`run-profiles` as described in :ref:`profiles-page`  in the ``conf`` directory of copy them from config files automatically generated.
+
 Containerizing
 ==============
 

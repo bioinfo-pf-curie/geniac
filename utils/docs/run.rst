@@ -7,6 +7,8 @@ Run the pipeline
 
 For specific options of the analysis pipeline, use the `README`.
 
+.. _run-profiles:
+
 Profiles
 ========
 
