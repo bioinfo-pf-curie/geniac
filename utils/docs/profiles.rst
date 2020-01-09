@@ -114,3 +114,14 @@ All the tools but ``onlyLinux`` are listed in the ``path.config`` file.
        withLabel:helloWorld { beforeScript = "export PATH=${baseDir}/../path/helloWorld/bin:$PATH" } 
    }
 
+
+cluster
+=======
+
+::
+
+   process {
+     executor = 'pbs'
+     queue = params.queue ?: null
+   }
+
