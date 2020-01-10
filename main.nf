@@ -12,14 +12,13 @@ The fact that you are presently reading this means that you have had knowledge o
 This script is based on the nf-core guidelines. See https://nf-co.re/ for more information
 */
 
-
 /*
 ========================================================================================
-                         RNA-seq
+                         @git_repo_name@
 ========================================================================================
- RNA-seq Analysis Pipeline.
+ @git_repo_name@ analysis Pipeline.
  #### Homepage / Documentation
- https://gitlab.curie.fr/data-analysis/rnaseq
+ @git_url@
 ----------------------------------------------------------------------------------------
 */
 
@@ -32,7 +31,7 @@ def helpMessage() {
     }
 
     log.info """
-    rnaseq v${workflow.manifest.version}
+    @git_repo_name@ v${workflow.manifest.version}
     ======================================================================
 
     Usage:
@@ -195,7 +194,7 @@ if ("${workflow.manifest.version}" =~ /dev/ ){
 
 log.info """=======================================================
 
- rnaseq : RNA-Seq workflow v${workflow.manifest.version}
+ @git_repo_name@ workflow v${workflow.manifest.version}
 ======================================================="""
 def summary = [:]
 

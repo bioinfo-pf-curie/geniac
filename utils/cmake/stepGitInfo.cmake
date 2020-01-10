@@ -56,6 +56,8 @@ if(GIT_FOUND)
             "GIT hash does not exist in release branch:\n\t===> this is a development version"
         )
 
+        set(git_commit "${git_commit} / devel")
+
     else()
         message_color(INFO "GIT hash exists in release branch")
 
@@ -65,6 +67,8 @@ if(GIT_FOUND)
                 WARNING
                 "GIT hash exists in branch release but does not have tag with pattern 'version-*':\n\t===> this is a development version"
             )
+
+            set(git_commit "${git_commit} / devel")
 
         else()
             message_color(
@@ -79,3 +83,13 @@ else()
     message_color(FATAL_ERROR "GIT not found")
 endif()
 
+# fill the files with the git information
+configure_file(${CMAKE_SOURCE_DIR}/main.nf ${CMAKE_BINARY_DIR}/git/main.nf
+               @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/git/main.nf
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
+
+configure_file(${CMAKE_SOURCE_DIR}/nextflow.config
+               ${CMAKE_BINARY_DIR}/git/nextflow.config @ONLY)
+install(FILES ${CMAKE_BINARY_DIR}/git/nextflow.config
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
