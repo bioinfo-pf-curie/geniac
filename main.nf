@@ -395,53 +395,53 @@ process trickySoftware {
 
 workflow.onComplete {
 
-    /*pipeline_report.html*/
+    // pipeline_report.html
 
-    def report_fields = [:]
-    report_fields['version'] = workflow.manifest.version
-    report_fields['runName'] = custom_runName ?: workflow.runName
-    report_fields['success'] = workflow.success
-    report_fields['dateComplete'] = workflow.complete
-    report_fields['duration'] = workflow.duration
-    report_fields['exitStatus'] = workflow.exitStatus
-    report_fields['errorMessage'] = (workflow.errorMessage ?: 'None')
-    report_fields['errorReport'] = (workflow.errorReport ?: 'None')
-    report_fields['commandLine'] = workflow.commandLine
-    report_fields['projectDir'] = workflow.projectDir
-    report_fields['summary'] = summary
-    report_fields['summary']['Date Started'] = workflow.start
-    report_fields['summary']['Date Completed'] = workflow.complete
-    report_fields['summary']['Pipeline script file path'] = workflow.scriptFile
-    report_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
-    if(workflow.repository) report_fields['summary']['Pipeline repository Git URL'] = workflow.repository
-    if(workflow.commitId) report_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
-    if(workflow.revision) report_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
+    def reportFields = [:]
+    reportFields['version'] = workflow.manifest.version
+    reportFields['runName'] = custom_runName ?: workflow.runName
+    reportFields['success'] = workflow.success
+    reportFields['dateComplete'] = workflow.complete
+    reportFields['duration'] = workflow.duration
+    reportFields['exitStatus'] = workflow.exitStatus
+    reportFields['errorMessage'] = (workflow.errorMessage ?: 'None')
+    reportFields['errorReport'] = (workflow.errorReport ?: 'None')
+    reportFields['commandLine'] = workflow.commandLine
+    reportFields['projectDir'] = workflow.projectDir
+    reportFields['summary'] = summary
+    reportFields['summary']['Date Started'] = workflow.start
+    reportFields['summary']['Date Completed'] = workflow.complete
+    reportFields['summary']['Pipeline script file path'] = workflow.scriptFile
+    reportFields['summary']['Pipeline script hash ID'] = workflow.scriptId
+    if(workflow.repository) reportFields['summary']['Pipeline repository Git URL'] = workflow.repository
+    if(workflow.commitId) reportFields['summary']['Pipeline repository Git Commit'] = workflow.commitId
+    if(workflow.revision) reportFields['summary']['Pipeline Git branch/tag'] = workflow.revision
 
 
     // Render the TXT template
     def engine = new groovy.text.GStringTemplateEngine()
     def tf = new File("$baseDir/assets/oncomplete_template.txt")
-    def txt_template = engine.createTemplate(tf).make(report_fields)
-    def report_txt = txt_template.toString()
+    def txtTemplate = engine.createTemplate(tf).make(reportFields)
+    def reportTxt = txtTemplate.toString()
     
     // Render the HTML template
     def hf = new File("$baseDir/assets/oncomplete_template.html")
-    def html_template = engine.createTemplate(hf).make(report_fields)
-    def report_html = html_template.toString()
+    def htmlTemplate = engine.createTemplate(hf).make(reportFields)
+    def reportHtml = htmlTemplate.toString()
 
     // Write summary e-mail HTML to a file
-    def output_d = new File( "${params.summaryDir}/" )
-    if( !output_d.exists() ) {
-      output_d.mkdirs()
+    def outputSummaryDir = new File( "${params.summaryDir}/" )
+    if( !outputSummaryDir.exists() ) {
+      outputSummaryDir.mkdirs()
     }
-    def output_hf = new File( output_d, "pipeline_report.html" )
-    output_hf.withWriter { w -> w << report_html }
-    def output_tf = new File( output_d, "pipeline_report.txt" )
-    output_tf.withWriter { w -> w << report_txt }
+    def outputHtmlFile = new File( outputSummaryDir, "pipelineReport.html" )
+    outputHtmlFile.withWriter { w -> w << reportHtml }
+    def outputTxtFile = new File( outputSummaryDir, "pipelineReport.txt" )
+    outputTxtFile.withWriter { w -> w << reportTxt }
 
-    /*oncomplete file*/
+    // onComplete file
 
-    File woc = new File("${params.outputDir}/workflow.oncomplete.txt")
+    File woc = new File("${params.outputDir}/onComplete.txt")
     Map endSummary = [:]
     endSummary['Completed on'] = workflow.complete
     endSummary['Duration']     = workflow.duration
@@ -453,14 +453,12 @@ workflow.onComplete {
     String execInfo = "${fullSum}\nExecution summary\n${logSep}\n${endWfSummary}\n${logSep}\n"
     woc.write(execInfo)
 
-    /*final logs*/
-
-
+    // final logs
 
     if(workflow.success){
-        log.info "[rnaseq] Pipeline Complete"
+        log.info "Pipeline Complete"
     }else{
-        log.info "[rnaseq] FAILED: $workflow.runName"
+        log.info "FAILED: $workflow.runName"
         if( workflow.profile == 'test'){
             log.error "====================================================\n" +
                     "  WARNING! You are running with the profile 'test' only\n" +
