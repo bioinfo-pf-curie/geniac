@@ -23,11 +23,12 @@ This script is based on the nf-core guidelines. See https://nf-co.re/ for more i
 ----------------------------------------------------------------------------------------
 */
 
+// File with text to display when a developement version is used
+devMessageFile = file("$baseDir/assets/devMessage.txt")
 
 def helpMessage() {
     if ("${workflow.manifest.version}" =~ /dev/ ){
-       dev_mess = file("$baseDir/assets/dev_message.txt")
-       log.info dev_mess.text
+       log.info devMessageFile.text
     }
 
     log.info """
@@ -36,7 +37,7 @@ def helpMessage() {
 
     Usage:
     nextflow run rnaseq --reads '*_R{1,2}.fastq.gz' --genome hg19 -profile conda
-    nextflow run rnaseq --samplePlan sample_plan --genome hg19 -profile conda
+    nextflow run rnaseq --samplePlan samplePlan --genome hg19 -profile conda
 
 
     Mandatory arguments:
@@ -50,7 +51,7 @@ def helpMessage() {
 
       -profile test                Set up the test dataset
       -profile conda               Build a new conda environment before running the pipeline
-      -profile toolsPath           Use the paths defined in configuration for each tool
+      -profile path                Use the paths defined in configuration for each tool
       -profile singularity         Use the Singularity images for each process
       -profile cluster             Run the workflow on the cluster, instead of locally
 
@@ -76,16 +77,16 @@ if (params.genomes && params.genome && !params.genomes.containsKey(params.genome
 
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
-custom_runName = params.name
+customRunName = params.name
 if( !(workflow.runName ==~ /[a-z]+_[a-z]+/) ){
-  custom_runName = workflow.runName
+  customRunName = workflow.runName
 }
 
 // Stage config files
-ch_multiqc_config = Channel.fromPath(params.multiqc_config)
+multiqcConfigCh = Channel.fromPath(params.multiqcConfig)
 OutputDocsCh = Channel.fromPath("$baseDir/docs/output.md")
-ch_pca_header = Channel.fromPath("$baseDir/assets/pca_header.txt")
-ch_heatmap_header = Channel.fromPath("$baseDir/assets/heatmap_header.txt")
+pcaHeaderCh = Channel.fromPath("$baseDir/assets/pcaHeader.txt")
+heatmapHeaderCh = Channel.fromPath("$baseDir/assets/heatmapHeader.txt")
 
 /*
  * CHANNELS
@@ -102,7 +103,7 @@ if ( params.metadata ){
    Channel
        .fromPath( params.metadata )
        .ifEmpty { exit 1, "Metadata file not found: ${params.metadata}" }
-       .set { ch_metadata }
+       .set { metadataCh }
 }
 
 /*
@@ -157,14 +158,14 @@ if (params.samplePlan){
     Channel
        .from(params.readPaths)
        .collectFile() {
-         item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + '\n']
+         item -> ["samplePlan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + '\n']
         }
        .set{ samplePlanCh }
   }else{
      Channel
        .from(params.readPaths)
        .collectFile() {
-         item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + ',' + item[1][1] + '\n']
+         item -> ["samplePlan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + ',' + item[1][1] + '\n']
         }
        .set{ samplePlanCh }
   }
@@ -173,14 +174,14 @@ if (params.samplePlan){
     Channel
        .fromFilePairs( params.reads, size: 1 )
        .collectFile() {
-          item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + '\n']
+          item -> ["samplePlan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + '\n']
        }     
        .set { samplePlanCh }
   }else{
     Channel
        .fromFilePairs( params.reads, size: 2 )
        .collectFile() {
-          item -> ["sample_plan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + ',' + item[1][1] + '\n']
+          item -> ["samplePlan.csv", item[0] + ',' + item[0] + ',' + item[1][0] + ',' + item[1][1] + '\n']
        }     
        .set { samplePlanCh }
    }
@@ -189,8 +190,7 @@ if (params.samplePlan){
 
 // Header log info
 if ("${workflow.manifest.version}" =~ /dev/ ){
-   dev_mess = file("$baseDir/assets/dev_message.txt")
-   log.info dev_mess.text
+   log.info devMessageFile.text
 }
 
 log.info """=======================================================
@@ -399,7 +399,7 @@ workflow.onComplete {
 
     def reportFields = [:]
     reportFields['version'] = workflow.manifest.version
-    reportFields['runName'] = custom_runName ?: workflow.runName
+    reportFields['runName'] = customRunName ?: workflow.runName
     reportFields['success'] = workflow.success
     reportFields['dateComplete'] = workflow.complete
     reportFields['duration'] = workflow.duration
@@ -420,12 +420,12 @@ workflow.onComplete {
 
     // Render the TXT template
     def engine = new groovy.text.GStringTemplateEngine()
-    def tf = new File("$baseDir/assets/oncomplete_template.txt")
+    def tf = new File("$baseDir/assets/onCompleteTemplate.txt")
     def txtTemplate = engine.createTemplate(tf).make(reportFields)
     def reportTxt = txtTemplate.toString()
     
     // Render the HTML template
-    def hf = new File("$baseDir/assets/oncomplete_template.html")
+    def hf = new File("$baseDir/assets/onCompleteTemplate.html")
     def htmlTemplate = engine.createTemplate(hf).make(reportFields)
     def reportHtml = htmlTemplate.toString()
 
