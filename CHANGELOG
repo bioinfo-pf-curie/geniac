@@ -1,88 +1,9 @@
-*************************************
-CHANGES IN VERSION 3.1.1
+version-0.0.0
 
-BUG FIXES
-
-   o Fix bug in STAR counts publishdir (#108)
-
-   o Remove regexpr on run name (#109)
-
-   o Fix minor bugs in report (#104)
-
-*************************************
-CHANGES IN VERSION 3.1.0
-
-NEW FEATURES
-
-   o Bump stable version 3.1.0
-
-*************************************
-CHANGES IN VERSION 3.0.3
-
-NEW FEATURES
-
-   o Add cmake interface to configure / install the pipeline
-
-***********************************
-CHANGES IN VERSION 3.0.2
-
-NEW FEATURES
-
-   o Add Naumovozyma_castellii in genome indexes
-
-   o Strandness 'yes' is replaced by 'forward'
-
-   o Update MultiQC version to 1.7
-
-   o MultiQC : update RSeQC read distribution color (MultiQC v1.8) (#80)
-
-   o MultiQC : update rRNA barplot colors (MultiQC v1.8) (#78)
-
-   o MultiQC : add a new buton to switch from sample ID to sample name
-
-   o MultiQC : add condition formatting rules in the stats table
-
-   o Update columns/scale/name in general stats (#77)
-
-   o Add more steps in gene-base saturation for reads number <10M (#82)
-
-************************************
-CHANGES IN VERSION 3.0.1
-
-NEW FEATURES
-
-   o Add disclamer in log and mqc report for devel
-
-   o Update R output with counts and annotation
-
-   o Add gene body coverage tool (RSeQC)
-
-   o Add HiSat2 for hg19, hg19_base, hg38, mm9, mm10
-
-   o Add tools.config [#56]
-
-   o Support sample_plan and reads as input [#60]
-
-   o Update conda environment
-
-   o Remove picard from multiQC report
-
-   o Add gene-based saturation curves [#57]
-
-   o Add gene type expression (gencode) [#58]
-
-   o Add exploratory analysis in multiQC report [#44]
-
-BUG FIXES
-
-   o Fix minor bugs [#48, #62, #63]
-
-***********************************
-CHANGES IN VERSION 3.0.0dev
-
-NEW FEATURES
-
-   o Initialise release of RNA-seq pipeline
-
-
+    NEW FEATURES
+        - add description with related issue numbers
+    SIGNIFICANT USER-VISIBLE CHANGES
+        - add description with related issue numbers
+    BUG FIXES
+        - add description with related issue numbers
 
