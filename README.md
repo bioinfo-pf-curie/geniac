@@ -10,9 +10,6 @@
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. 
 It comes with conda / singularity containers making installation easier and results highly reproducible.
 
-The first version of this pipeline was modified from the [nf-core/rnaseq](https://github.com/nf-core/rnaseq) pipeline. 
-See the [nf-core](https://nf-co.re/) project for more details.
-
 ### Pipeline summary
 
 Describe here the main steps of the pipeline.
@@ -70,10 +67,7 @@ nextflow run main.nf --samplePlan mySamplePlan --genome 'hg19' --outputDir myOut
 
 #### Run the pipeline on a computational cluster
 
-```
-echo "nextflow run main.nf --reads '*.R{1,2}.fastq.gz' --genome 'hg19' --outputDir MY_OUTPUT_DIR -profile singularity,cluster" | qsub -N rnaseq-2.0
-
-```
+A compléter
 
 ### Defining the '-profile'
 
@@ -86,7 +80,6 @@ A compléter
 ## Run the pipeline on the cluster, building a new conda environment
 A compléter
 
-```
 
 ### Sample Plan
 
