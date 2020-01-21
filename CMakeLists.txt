@@ -52,7 +52,8 @@ install(
     PATTERN ".git*" EXCLUDE
     PATTERN "CMakeLists.txt" EXCLUDE
     PATTERN "*.example" EXCLUDE
-    PATTERN "utils" EXCLUDE)
+    PATTERN "utils" EXCLUDE
+    PATTERN "work" EXCLUDE)
 
 # ##############################################################################
 # STEP 3
