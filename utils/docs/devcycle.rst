@@ -58,3 +58,55 @@ Deployement
 
 Whoever you are, follow the guidelines describes in the :ref:`install-page` section.
 
+
+Git
+===
+
+Refer to the `git <https://git-scm.com/>`_ documentation for details.
+
+Branching strategy
+------------------
+Pour assurer la gestion de versions des développements, nous allons utiliser dans git différentes **branches**, chacune correspondant à une finalité bien précise. Le modèle que nous utilisons est le suivant:
+
+* le **dépôt central** contient 4 branches:
+
+	* **devel**: correspond à la version courante de développement. Notons que la version courante **n'est pas forcément** celle qui est installée dans l'environnement de **dev**.
+
+    * **release**: correspond à la version candidate qui a pour vocation à passer en production, une fois que les tests opérationnels et les tests d'acceptation sont concluants. Autrement dit, la branche **release** est la version de pré-production. La branche **release** provient de la branche **devel**.
+
+	* **hotfix**: en cas de survenue d'une anomalie critique dans l'environnement de production, cette branche sera utilisée pour développer les correctifs nécessaires.
+	
+    * **master**: correspond à **l'archivage** des versions qui ont été déployées en production. Aucun développement, donc aucun commit n'est fait sur cette branche.
+
+
+Parmi ces quatre branches, les branches **release**, **master** et **hotfix** sont des branches protégées, cela signifie que seuls les utilisateurs qui disposent du rôle **Master** dans gitlab pourront faire un push sur ces branches du dépôt distant. Les modifications sur ces branches par les autres utilisateurs passeront par un **Merge request**.
+
+* le **répertoire local de travail** contient:
+
+    * les 4 branches ci-dessus,
+
+    * des branches propres que le développeur a créées pour réaliser ses développements. Ces branches n'ont pas vocation à être connues par le dépôt central.  Ces branches propres de travail seront nommées **feature** (le terme feature pourra être remplacé par un nom plus explicite).
+	
+	* des branches que le développeur a créées pour des **Merge Request** sur les branches protégées.
+
+We recommend to use the following branches:
+
+* devel
+* release
+* hotfix (if needed)
+* master
+
+.. |gitworkflow| image:: images/git-workflow.png
+   :height: 400
+
+|gitworkflow|
+
+Tag strategy
+------------
+
+For official release that can be used in a production environnement, use a tag with the suffixe **version-**.
+
+.. warning::
+
+   This is essential that you use this naming convention. Indeed, this will allow the display of a message if a user runs a pipeline with a development version that can be unstable and thus providing results that are not reliable.
+
