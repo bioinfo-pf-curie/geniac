@@ -104,7 +104,7 @@ We recommend to use the following branches:
 Tag strategy
 ------------
 
-For official release that can be used in a production environnement, use a tag with the suffixe **version-**.
+For official release that can be used in a production environnement, use a tag with the prefix **version-**.
 
 .. warning::
 
