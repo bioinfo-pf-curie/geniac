@@ -5,12 +5,6 @@
 /conf/genomes.config
 /conf/cluster.config
 /conf/tools-path.config
-.idea/.gitignore
-.idea/code-comments.xml
-.idea/codeStyles/
-.idea/data-analysis_template.iml
-.idea/markdown-navigator-enh.xml
-.idea/markdown-navigator.xml
-.idea/modules.xml
-.idea/vcs.xml
 utils/docs/_build/
+.idea/
+.vscode/
