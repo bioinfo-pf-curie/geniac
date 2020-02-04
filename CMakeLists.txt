@@ -43,11 +43,12 @@ set(singularity_image_dir "containers/singularity")
 # Install the source code of the pipeline. Only usefull files for the execution
 # of the pipeline are deployed
 # ##############################################################################
-
+# TODO: use explicit include instead of exclusion pattern
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}
     USE_SOURCE_PERMISSIONS
+    PATTERN "environment.yml" EXCLUDE
     PATTERN "conf/templates" EXCLUDE
     PATTERN ".git*" EXCLUDE
     PATTERN "CMakeLists.txt" EXCLUDE
