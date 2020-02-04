@@ -70,6 +70,7 @@ Channel
     }.choice(condaFilesCh, condaPackagesCh){
         it[1] && it[1][0].endsWith('.yml') ? 0 : 1
     }
+condaPackagesCh.into{ condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh}
 
 Channel
     .fromPath("${baseDir}/recipes/singularity/*.def")
@@ -127,6 +128,39 @@ Channel
 /**
  * PROCESSES
 **/
+// TODO: use worklow.manifest.name for the name field
+// TODO: check if it works with pip packages 
+// TODO: Add a process in order to test the generated environment.yml (create a venv from it, activate, export and check diffs)
+// TODO: Check if order of dependencies can be an issue 
+process buildCondaEnvFromCondaPackages {
+    tag "condaEnvBuild"
+    publishDir "${baseDir}", overwrite: true, mode: 'copy'
+
+    input:
+    val dependencies from condaPackages4CondaEnvCh.collect{it[1]}
+
+    output:
+    file("environment.yml")
+
+    script:
+    String cplmtConda = ''
+    for (String[] tab: dependencies) {
+        cplmtConda += """\n    -${tab[0]}::${tab[1]}"""
+    }
+    """
+    cat << EOF > environment.yml
+    # You can use this file to create a conda environment for this pipeline:
+    #   conda env create -f environment.yml
+    name: pipeline_env
+    channels:
+    - bioconda
+    - conda-forge
+    - defaults
+    dependencies:
+    - which 
+    - bc${cplmtConda}
+    """
+}
 
 process buildDefaultSingularityRecipe {
     publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
@@ -207,13 +241,16 @@ process buildSingularityRecipeFromCondaFile {
     """
 }
 
+/** 
+ * Build Singularity recipe from conda specifications in params.tools
+**/
 process buildSingularityRecipeFromCondaPackages {
     tag "${key}"
     publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
 
     input:
-    set val(key), val(tools), val(yum), val(git) from condaPackagesCh
+    set val(key), val(tools), val(yum), val(git) from condaPackages4SingularityRecipesCh
         .groupTuple()
         .map{ addYumAndGitToCondaCh(it) }
 
