@@ -214,13 +214,20 @@ endif()
 
 add_custom_target(install_nextflow_config ALL
                   DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
-
+                
+# Install generated config file(s)
 install(
     DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/conf"
     FILES_MATCHING
     PATTERN "*.config")
 
+# Install generated conda file(s)
+install(
+    DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_conda}/"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}"
+    FILES_MATCHING
+    PATTERN "*.yml")
 # ##############################################################################
 # Setup path directories
 # ##############################################################################

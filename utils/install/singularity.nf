@@ -134,7 +134,7 @@ Channel
 // TODO: Check if order of dependencies can be an issue 
 process buildCondaEnvFromCondaPackages {
     tag "condaEnvBuild"
-    publishDir "${baseDir}", overwrite: true, mode: 'copy'
+    publishDir "${baseDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
 
     input:
     val dependencies from condaPackages4CondaEnvCh.collect{it[1]}
@@ -145,7 +145,7 @@ process buildCondaEnvFromCondaPackages {
     script:
     String cplmtConda = ''
     for (String[] tab: dependencies) {
-        cplmtConda += """\n    -${tab[0]}::${tab[1]}"""
+        cplmtConda += """\n    - ${tab[0]}::${tab[1]}"""
     }
     """
     cat << EOF > environment.yml
