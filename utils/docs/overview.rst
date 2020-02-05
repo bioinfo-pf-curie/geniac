@@ -89,9 +89,3 @@ Environment variables
 
 Use snake_case and lower case, for example ``my_global_var = "someValue"``.
 
-Git branch model
-================
-
-ADD DETAILS
-
-

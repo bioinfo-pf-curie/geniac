@@ -71,7 +71,7 @@ Where the tool is available?
 `Is it available only as a binary or as an executable script?`
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-* `Yes`, it is available as a binary (but without source code available) or as an executable script (shell, python, perl), then see :ref:`process-exec`
+* `Yes`, it is available as a binary (but without source code available) or as an executable script (shell, python, perl), then see :ref:`process-exec`.
 
 `Is the source code available?`
 +++++++++++++++++++++++++++++++
@@ -85,7 +85,7 @@ Probably not, otherwise, you would not be reading this. This means that the tool
 
 * it is provided as `deb`, `rpm` packages or any executable installer,
 * it is a windows executable that needs mono to be run,
-* it is whatever that needs a custom installation procedure
+* it is whatever that needs a custom installation procedure.
 
 Then see :ref:`process-custom-install`.
 
@@ -420,7 +420,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In order to have the container automatically built, you have to add an additional shell script in the ``modules`` directory with the suffix ``.sh`` (otherwise it will not work) and with the exact same name as the directory in which you added the source code. For example, you added the source code in ``helloWorld`` directory, thus the shell script must be named ``helloWorld.sh``. Then,write the code that has to be executed to compile and install the binary:
+In order to have the container automatically built, you have to add an additional shell script in the ``modules`` directory with the suffix ``.sh`` (otherwise it will not work) and with the exact same name as the directory in which you added the source code. For example, you added the source code in ``helloWorld`` directory, thus the shell script must be named ``helloWorld.sh``. Then, write the code that has to be executed to compile and install the binary:
 
 ::
 

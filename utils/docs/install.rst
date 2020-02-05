@@ -124,7 +124,7 @@ All the options can be set on the command line interface. If your want to instal
 
 .. tip::
 
-   To have all the available options and help, run ``cmake -LAH ../${myGitRepo}`` in the ``build`` directory. The different options are displayed in the **Cache values** section:
+   To have all the available options and help, run ``cmake -LAH ../${myGitRepo}`` in the ``build`` directory. The different options are displayed in the **Cache values** section.
 
 .. _install-configure-file:
 
@@ -175,12 +175,16 @@ Assume you are in the ``build`` directory. The following custom targets allows y
 * ``make build_docker_images``
 
 
+For singularity:
 
-Recipes will be generated in ``build/workDir/results/singularity/deffiles``.
+* Recipes will be generated in ``build/workDir/results/singularity/deffiles``.
+* Images will be generated in ``build/workDir/results/singularity/images``.
 
-Images will be generated in ``build/workDir/results/singularity/images``.
+For docker:
 
-ADD DETAILS FOR DOCKER.
+* Recipes will be generated in ``build/workDir/results/docker/Dockerfiles``.
+* Images will be created in the registry.
+
 
 .. _install-test:
 

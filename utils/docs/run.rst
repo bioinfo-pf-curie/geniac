@@ -5,7 +5,8 @@ Run the pipeline
 ****************
 
 
-For specific options of the analysis pipeline, use the `README`.
+Here, we only describe the general guidelines tun run any pipeline. For specific options of the analysis pipeline, refer to the `README.md` dedicated to the pipeline you want to run.
+
 
 .. _run-profiles:
 
@@ -49,7 +50,7 @@ The conda environment is created in the `$HOME/conda-cache-nextflow` directory b
 
 .. note::
 
-   The conda environment is created the first time th pipeline is started.
+   The conda environment is created the first time the pipeline is started.
 
 .. warning::
 
@@ -70,7 +71,8 @@ When using this profile, `nextflow` creates several conda environments: for ever
 
 .. note::
 
-   The conda environment is created the first time th pipeline is started.
+   The conda environments are created the first time the pipeline is started.
+
 .. _run-profile-singularity:
 
 
@@ -91,7 +93,7 @@ This profile allows the usage of the singularity containers. This profile will w
 docker
 ++++++
 
-This profile allows the usage of the singularity containers. This profile will work in any case.
+This profile allows the usage of the singularity containers. This profile will work in any case (provided that you have root credentials to run docker).
 
 *example*
 
@@ -118,7 +120,7 @@ This directory tree follows the pattern ``path/labelOfTheTool/bin`` meaning that
 
 Therefore, this profile make it possible to tackle any configuration such as using the same tool but with different versions.
 
-If the tool require is already installed on your system, you can just add a symlink. For example:
+If the tool required is already installed on your system, you can just add a symlink. For example:
 
 ::
 
@@ -128,9 +130,8 @@ Alternatively, you can also do the following:
 
 ::
 
-   rm path/fastqc/bin
-   ln -s /usr/bin path/fastqc
-
+   rm -r path/fastqc/bin
+   ln -s /usr/bin path/fastqc/bin
 
 
 Set where the computation will take place
@@ -278,7 +279,7 @@ Of course, it works!
 
 .. note::
 
-   This example with the ``helloWorld`` tool is not the most relevant as this tool is available whaterver the profile you use (see :ref:`run-process-profile-table`) but it is just here to show that it is possible to combine profiles to make sure that all the tools will be available.
+   This example with the ``helloWorld`` tool is not the most relevant as this tool is available whatever the profile you use (see :ref:`run-process-profile-table`) but it is just here to show that it is possible to combine profiles to make sure that all the tools will be available.
 
 Set options in command line for the tools
 -----------------------------------------
