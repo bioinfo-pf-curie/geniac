@@ -132,33 +132,36 @@ Channel
 // TODO: check if it works with pip packages 
 // TODO: Add a process in order to test the generated environment.yml (create a venv from it, activate, export and check diffs)
 // TODO: Check if order of dependencies can be an issue 
+condaChannelFromSpecsCh = Channel.create()
+condaDepFromSpecsCh = Channel.create()
+condaSpecsCh = condaPackages4CondaEnvCh.separate( condaChannelFromSpecsCh, condaDepFromSpecsCh ) { pTool -> [pTool[1][0], pTool[1][1]] }
+
 process buildCondaEnvFromCondaPackages {
     tag "condaEnvBuild"
     publishDir "${baseDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
 
     input:
-    val dependencies from condaPackages4CondaEnvCh.collect{it[1]}
+    val condaDependencies from condaDepFromSpecsCh.unique().collect()
+    val condaChannels from condaChannelFromSpecsCh.filter( ~/!(bioconda|conda-forge|defaults)/ ).unique().collect().ifEmpty('NO_CHANNEL')
 
     output:
     file("environment.yml")
 
     script:
-    String cplmtConda = ''
-    for (String[] tab: dependencies) {
-        cplmtConda += """\n    - ${tab[0]}::${tab[1]}"""
-    }
+    def condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
+    String condaDepEnv = String.join("\n    - ", condaDependencies)
+    String condaChanEnv = String.join("\n    - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
     """
     cat << EOF > environment.yml
     # You can use this file to create a conda environment for this pipeline:
     #   conda env create -f environment.yml
     name: pipeline_env
     channels:
-    - bioconda
-    - conda-forge
-    - defaults
+    - ${condaChanEnv} 
     dependencies:
     - which 
-    - bc${cplmtConda}
+    - bc
+    - ${condaDepEnv}
     """
 }
 
