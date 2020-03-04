@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Philippe documentation build configuration file, created by
+# nf-geniac documentation build configuration file, created by
 # sphinx-quickstart on Sat Dec 14 00:00:42 2019.
 #
 # This file is execfile()d with the current directory set to its
@@ -46,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Philippe'
+project = u'nf-geniac'
 copyright = u'2019, Philippe Hupé'
 author = u'Philippe Hupé'
 
@@ -112,7 +112,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Philippedoc'
+htmlhelp_basename = 'nf-geniacdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -139,7 +139,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Philippe.tex', u'Philippe Documentation',
+    (master_doc, 'nf-geniac.tex', u'nf-geniac Documentation',
      u'Philippe Hupé', 'manual'),
 ]
 
@@ -149,7 +149,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'philippe', u'Philippe Documentation',
+    (master_doc, 'nf-geniac', u'nf-geniac Documentation',
      [author], 1)
 ]
 
@@ -160,8 +160,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Philippe', u'Philippe Documentation',
-     author, 'Philippe', 'One line description of project.',
+    (master_doc, 'nf-geniac', u'ng-geniac Documentation',
+     author, 'Philippe Hupé', 'Automatic Configuration GENerator and Installer for nextflow pipeline.',
      'Miscellaneous'),
 ]
 

@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = Philippe
+SPHINXPROJ    = nf-geniac
 SOURCEDIR     = .
 BUILDDIR      = _build
 
