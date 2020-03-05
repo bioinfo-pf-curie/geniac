@@ -8,19 +8,21 @@ Principle: one process = one software
 
 * edit `pipeline/conf/template/base.in.config`
 
-* in the section `params.tools` add  `rmarkdown = "conda-forge::r-markdown=0.8"` as follows:
+* in the section `params.geniac.tools` add  `rmarkdown = "conda-forge::r-markdown=0.8"` as follows:
 
 
 ```
 params {
+  geniac{
     tools {
         rmarkdown = "conda-forge::r-markdown=0.8"
         soft2 = "condaChannelName::softName=version"
     }
+  }
 }
 ```
 
-Then add the process in the `main.nf`, the process can take any name but as to refer to the software with the `label` directive with the exact same name as given in the `params.tools` section:
+Then add the process in the `main.nf`, the process can take any name but as to refer to the software with the `label` directive with the exact same name as given in the `params.geniac.tools` section:
 
 ```
 process output_documentation {
@@ -60,20 +62,21 @@ Note that if needed, some conda dependencies can be added when the software is s
 
 
 params {
- 
-  tools {
-    fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
+  geniac{
+    tools {
+      fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
+    }
   }
 }
 
-Note that the name of the software provided in `params.tools` can be anyname (is it not necessarly the same nane as the software will be called in command line).
+Note that the name of the software provided in `params.geniac.tools` can be anyname (is it not necessarly the same nane as the software will be called in command line).
 
 
 * edit the file `pipeline/conf/multiconda.config` and add
 
 ```
 process {
-    withLabel: rmarkdown { conda = params.tools.rmarkdown}
+    withLabel: rmarkdown { conda = params.geniac.tools.rmarkdown}
  
 }
 ```
@@ -91,14 +94,15 @@ TO BE COMPLETED
 
 * edit `pipeline/conf/template/base.in.config`
 
-* in the section `params.tools` add  `trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"` as follows:
+* in the section `params.geniac.tools` add  `trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"` as follows:
 
 
 ```
 params {
-  
-  tools {
-    trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"
+  geniac{
+    tools {
+      trickysoftware = "${baseDir}/recipes/conda/trickysoftware.yml"
+    }
   }
 }
 ```
@@ -106,7 +110,7 @@ params {
 * edit the file `pipeline/conf/multiconda.config` and add
 
 process {
-    withLabel: trickysoftware { conda = params.tools.trickysoftware}
+    withLabel: trickysoftware { conda = params.geniac.tools.trickysoftware}
 }
 
 

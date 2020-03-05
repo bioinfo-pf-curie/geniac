@@ -10,14 +10,14 @@
 
 def addYumAndGitToCondaCh(List condaIt) {
     List<String> gitList = []
-    (params.containers.git[condaIt[0]]?:'')
+    (params.geniac.containers.git[condaIt[0]]?:'')
         .split()
         .each{ gitList.add(it.split('::')) }
 
     return [
         condaIt[0],
         condaIt[1],
-        params.containers.yum[condaIt[0]],
+        params.geniac.containers.yum[condaIt[0]],
         gitList
     ]
 }
@@ -51,7 +51,7 @@ String buildCplmtPath(List gitEntries) {
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
 Channel
-    .from(params.tools)
+    .from(params.geniac.tools)
     .flatMap{
         List<String> result = []
         for (Map.Entry<String,String> entry: it.entrySet()) {

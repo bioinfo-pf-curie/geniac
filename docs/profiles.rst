@@ -36,9 +36,9 @@ Are listed in the ``multiconda.config`` file only the tools available in conda.
    conda { cacheDir = "${params.condaCacheDir}" }
    
    process {
-       withLabel:fastqc { conda = "${params.tools.fastqc}" }
-       withLabel:trickySoftware { conda = "${params.tools.trickySoftware}" }
-       withLabel:rmarkdown { conda = "${params.tools.rmarkdown}" }
+       withLabel:fastqc { conda = "${params.geniac.tools.fastqc}" }
+       withLabel:trickySoftware { conda = "${params.geniac.tools.trickySoftware}" }
+       withLabel:rmarkdown { conda = "${params.geniac.tools.rmarkdown}" }
    }
 
 
@@ -54,16 +54,16 @@ All the tools are listed in the ``singularity.config`` file.
    singularity {
        enabled = true
        autoMounts = true
-       runOptions = "${params.containers.singularityRunOptions}"
+       runOptions = "${params.geniac.containers.singularityRunOptions}"
    }
    
    process {
-       withLabel:alpine { container = "${params.containers.singularityImagePath}/alpine.simg" }
-       withLabel:fastqc { container = "${params.containers.singularityImagePath}/fastqc.simg" }
-       withLabel:onlyLinux { container = "${params.containers.singularityImagePath}/onlylinux.simg" }
-       withLabel:rmarkdown { container = "${params.containers.singularityImagePath}/rmarkdown.simg" }
-       withLabel:trickySoftware { container = "${params.containers.singularityImagePath}/trickysoftware.simg" }
-       withLabel:helloWorld { container = "${params.containers.singularityImagePath}/helloworld.simg" }
+       withLabel:alpine { container = "${params.geniac.containers.singularityImagePath}/alpine.simg" }
+       withLabel:fastqc { container = "${params.geniac.containers.singularityImagePath}/fastqc.simg" }
+       withLabel:onlyLinux { container = "${params.geniac.containers.singularityImagePath}/onlylinux.simg" }
+       withLabel:rmarkdown { container = "${params.geniac.containers.singularityImagePath}/rmarkdown.simg" }
+       withLabel:trickySoftware { container = "${params.geniac.containers.singularityImagePath}/trickysoftware.simg" }
+       withLabel:helloWorld { container = "${params.geniac.containers.singularityImagePath}/helloworld.simg" }
    }
 
 docker
@@ -77,7 +77,7 @@ All the tools are listed in the ``docker.config`` file.
    
    docker {
        enabled = true
-       runOptions = "${params.containers.dockerRunOptions}"
+       runOptions = "${params.geniac.containers.dockerRunOptions}"
    }
    
    process {

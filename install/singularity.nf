@@ -10,14 +10,14 @@
 
 def addYumAndGitToCondaCh(List condaIt) {
     List<String> gitList = []
-    (params.containers.git[condaIt[0]]?:'')
+    (params.geniac.containers.git[condaIt[0]]?:'')
         .split()
         .each{ gitList.add(it.split('::')) }
 
     return [
         condaIt[0],
         condaIt[1],
-        params.containers.yum[condaIt[0]],
+        params.geniac.containers.yum[condaIt[0]],
         gitList
     ]
 }
@@ -51,7 +51,7 @@ String buildCplmtPath(List gitEntries) {
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
 Channel
-    .from(params.tools)
+    .from(params.geniac.tools)
     .flatMap{
         List<String> result = []
         for (Map.Entry<String,String> entry: it.entrySet()) {
@@ -245,7 +245,7 @@ process buildSingularityRecipeFromCondaFile {
 }
 
 /** 
- * Build Singularity recipe from conda specifications in params.tools
+ * Build Singularity recipe from conda specifications in params.geniac.tools
 **/
 process buildSingularityRecipeFromCondaPackages {
     tag "${key}"
@@ -398,7 +398,7 @@ process buildSingularityConfig {
 
     """
     cat << EOF > "${key}SingularityConfig.txt"
-        withLabel:${key} { container = "\\\${params.containers.singularityImagePath}/${key.toLowerCase()}.simg" }
+        withLabel:${key} { container = "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" }
     EOF
     """
 }
@@ -424,7 +424,7 @@ process mergeSingularityConfig {
     singularity {
         enabled = true
         autoMounts = true
-        runOptions = "\\\${params.containers.singularityRunOptions}"
+        runOptions = "\\\${params.geniac.containers.singularityRunOptions}"
     }
 
     process {
@@ -482,7 +482,7 @@ process mergeDockerConfig {
     
     docker {
         enabled = true
-        runOptions = "\\\${params.containers.dockerRunOptions}"
+        runOptions = "\\\${params.geniac.containers.dockerRunOptions}"
     }
 
     process {
@@ -566,7 +566,7 @@ process buildMulticondaConfig {
 
     """
     cat << EOF > "${key}MulticondaConfig.txt"
-        withLabel:${key} { conda = "\\\${params.tools.${key}}" }
+        withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
     EOF
     """
 }

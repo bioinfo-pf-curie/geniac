@@ -162,14 +162,16 @@ Easy install with conda
 
 Of course, the tool has to be available in a conda channel.
 
-Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8"`` in the section ``params.tools`` as follows:
+Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8"`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
    params {
-       tools {
-           rmarkdown = "conda-forge::r-markdown=0.8"
-       }
+      geniac{
+         tools {
+            rmarkdown = "conda-forge::r-markdown=0.8"
+         }
+      }
    }
 
 
@@ -180,9 +182,11 @@ Note that for some tools, other conda dependencies are required and can be added
 ::
 
    params {
-     tools {
-       fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
-     }
+      geniac{
+         tools {
+            fastqc = "conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
+         }
+      }
    }
 
 
@@ -190,7 +194,7 @@ Note that for some tools, other conda dependencies are required and can be added
 *label*
 +++++++
 
-The *label* directive must have the exact same name as given in the ``params.tools`` section.
+The *label* directive must have the exact same name as given in the ``params.geniac.tools`` section.
 
 *example*
 +++++++++
@@ -219,19 +223,20 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
 
 ::
-
-   containers {
-     yum {
-             fastqc = 'fontconfig dejavu*'
+   geniac{
+      containers {
+         yum {
+            fastqc = 'fontconfig dejavu*'
          }
+      }
    }
 
 .. warning::
 
-   Be careful that you use the exact same name in ``params.containers.yum``, ``params.tools`` and *label* otherwise, the container will not work.
+   Be careful that you use the exact same name in ``params.geniac.containers.yum``, ``params.geniac.tools`` and *label* otherwise, the container will not work.
 
 .. _process-custom-conda:
 
@@ -259,18 +264,20 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
            - numpy==1.13.1
    
 
-Edit the file ``conf/base.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.tools`` as follows:
+Edit the file ``conf/base.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
-   tools {
-     trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+   geniac{
+      tools {
+         trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+      }
    }
 
 *label*
 +++++++
 
-The *label* directive must have the exact same name as given in the ``params.tools`` section.
+The *label* directive must have the exact same name as given in the ``params.geniac.tools`` section.
 
 *example*
 +++++++++
@@ -297,20 +304,22 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.geniac.containers.yum`` as follows:
 
 
 ::
 
-   containers {
-     yum {
-             myFavouriteTool = 'gsl blas'
+   geniac{
+      containers {
+         yum {
+            myFavouriteTool = 'gsl blas'
          }
+      }
    }
 
 .. warning::
 
-   Be careful that you use the exact same name in ``params.containers.yum``,  ``params.tools`` and *label*, otherwise, the container will not work.
+   Be careful that you use the exact same name in ``params.geniac.containers.yum``,  ``params.geniac.tools`` and *label*, otherwise, the container will not work.
 
 .. _process-exec:
 
@@ -521,8 +530,8 @@ Tool options are set in the scope ``params`` of the file ``conf/tools.config`` a
 
 ::
 
-  //FastQC
-  fastqcOpts = "-q"
+   //FastQC
+   fastqcOpts = "-q"
 
 
 If the tool ``fastqc`` has to be called in several processes with different options, then define several variables. Then, invoke ``fastqc`` in the process as follows:
