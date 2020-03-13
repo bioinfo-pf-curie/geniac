@@ -162,20 +162,20 @@ Easy install with conda
 
 Of course, the tool has to be available in a conda channel.
 
-Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8"`` in the section ``params.geniac.tools`` as follows:
+Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8=r351h96ca727_1003`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
    params {
       geniac{
          tools {
-            rmarkdown = "conda-forge::r-markdown=0.8"
+            rmarkdown = "conda-forge::r-markdown=0.8=r351h96ca727_1003`
          }
       }
    }
 
 
-The syntax follows the pattern ``softName = "condaChannelName::softName=version"``.
+The syntax follows the pattern from the conda package naming ``softName = "condaChannelName::softName=version=buildString"``.
 
 Note that for some tools, other conda dependencies are required and can be added as follows:
 
