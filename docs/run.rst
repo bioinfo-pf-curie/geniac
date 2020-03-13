@@ -67,7 +67,7 @@ When using this profile, `nextflow` creates several conda environments: for ever
 
 ::
 
-   nextflow -c conf/test.config run main.nf -profile multiconda
+   nextflow -c conf/test.config run main.nf -profile multiconda --condaCacheDir "$HOME/myCondaCacheDir"
 
 .. note::
 
