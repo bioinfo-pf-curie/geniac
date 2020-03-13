@@ -226,6 +226,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
 
 ::
+
    geniac{
       containers {
          yum {
