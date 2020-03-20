@@ -363,9 +363,9 @@ process buildImages {
 
     input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh 
-    file condaYml from condaRecipes.collect()
-    file fileDep from fileDependencies.collect()
-    file moduleDir from sourceCodeDirCh.collect()
+    file condaYml from condaRecipes.collect().ifEmpty([])
+    file fileDep from fileDependencies.collect().ifEmpty([])
+    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
 
     output:
     file("${key.toLowerCase()}.simg")
