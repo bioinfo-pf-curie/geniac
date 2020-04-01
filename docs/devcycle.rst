@@ -62,44 +62,36 @@ Whoever you are, follow the guidelines describes in the :ref:`install-page` sect
 Git
 ===
 
-Refer to the `git <https://git-scm.com/>`_ documentation for details.
+We assume that the reader is familiar with `git <https://git-scm.com/>`_ (if not refer to the documentation for details).
+
 
 Branching strategy
 ------------------
-Pour assurer la gestion de versions des développements, nous allons utiliser dans git différentes **branches**, chacune correspondant à une finalité bien précise. Le modèle que nous utilisons est le suivant:
-
-* le **dépôt central** contient 4 branches:
-
-	* **devel**: correspond à la version courante de développement. Notons que la version courante **n'est pas forcément** celle qui est installée dans l'environnement de **dev**.
-
-    * **release**: correspond à la version candidate qui a pour vocation à passer en production, une fois que les tests opérationnels et les tests d'acceptation sont concluants. Autrement dit, la branche **release** est la version de pré-production. La branche **release** provient de la branche **devel**.
-
-	* **hotfix**: en cas de survenue d'une anomalie critique dans l'environnement de production, cette branche sera utilisée pour développer les correctifs nécessaires.
-	
-    * **master**: correspond à **l'archivage** des versions qui ont été déployées en production. Aucun développement, donc aucun commit n'est fait sur cette branche.
 
 
-Parmi ces quatre branches, les branches **release**, **master** et **hotfix** sont des branches protégées, cela signifie que seuls les utilisateurs qui disposent du rôle **Master** dans gitlab pourront faire un push sur ces branches du dépôt distant. Les modifications sur ces branches par les autres utilisateurs passeront par un **Merge request**.
+The management of the different development versions is based on different git **branches**. Each branch is used depending on the context and the stage in the developement cycle. The model we recommend is based on a central git repository that contains 4 branches:
 
-* le **répertoire local de travail** contient:
 
-    * les 4 branches ci-dessus,
+* **devel**: contains the code of the current version under development
+* **release**: contains the code with the official releases
+* **hotfix** (if needed): this branch is a mirror of the **release** branch and is used to patch the code that is in production. If a critical anomaly happens in production, this branch is used to fix the issue.
+* **master**: this branch is not used for developement, it is only used to archive the code from the **release** and **hotfix** branches.
+      
 
-    * des branches propres que le développeur a créées pour réaliser ses développements. Ces branches n'ont pas vocation à être connues par le dépôt central.  Ces branches propres de travail seront nommées **feature** (le terme feature pourra être remplacé par un nom plus explicite).
-	
-	* des branches que le développeur a créées pour des **Merge Request** sur les branches protégées.
 
-We recommend to use the following branches:
+The developer is encouraged to create local branches in his local developement environment whenever he/she develops new features or hotfixes.
 
-* devel
-* release
-* hotfix (if needed)
-* master
+The workflow accross the different branches can be summarized as described in the graphic below:
+
 
 .. |gitworkflow| image:: images/git-workflow.png
    :height: 400
 
 |gitworkflow|
+
+.. warning::
+
+   Do not forget to merge any developements from **release** to **devel**, and from **hotfix** to **release** and **devel** such that all the branches are up-to-date with last developments and hotfixes.
 
 Tag strategy
 ------------
