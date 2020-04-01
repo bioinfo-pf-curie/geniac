@@ -5,3 +5,6 @@
 /conf/genomes.config
 /conf/cluster.config
 /conf/tools-path.config
+utils/docs/_build/
+.idea/
+.vscode/
