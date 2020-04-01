@@ -11,5 +11,5 @@ Please replace this text providing a short description of your proposal.
 (Highlight the main building blocks of a possible implementation and/or related components)
 
 
-/label ~Enhancement
+/label ~enhancement
 
