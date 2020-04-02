@@ -14,7 +14,7 @@ Structure of the build directory tree
 Generate preload cache with default values
 ==========================================
 
-In order to generate the pre-load a script ``utils/install/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``utils/cmake/initCmakePreload.sh`` as follows:
+In order to generate the pre-load a script ``geniac/install/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``geniac/cmake/initCmakePreload.sh`` as follows:
 
 ::
 
@@ -23,7 +23,7 @@ In order to generate the pre-load a script ``utils/install/cmake-init-default.cm
    git clone ${git_repo_url}
    mkdir build
    cd build
-   ../${git_repo_name}/utils/cmake/initCmakePreload.sh ../${git_repo_name} > ../${git_repo_name}/utils/install/cmake-init-default.cmake
+   ../${git_repo_name}/geniac/cmake/initCmakePreload.sh ../${git_repo_name} > ../${git_repo_name}/geniac/install/cmake-init-default.cmake
 
 Containers
 ==========
@@ -31,10 +31,10 @@ Containers
 Build
 -----
 
-The ``utils/install/singularity.nf`` and ``utils/install/docker.nf`` *nextflow* scripts allow the automatic generation of recipes *def files* and *Dockerfiles* respectively. They also allow the building of the containers.
+The ``geniac/install/singularity.nf`` and ``geniac/install/docker.nf`` *nextflow* scripts allow the automatic generation of recipes *def files* and *Dockerfiles* respectively. They also allow the building of the containers.
 
 
-Options can be passed to these scripts and can be seen the ``utils/install/nextflow.config``. 
+Options can be passed to these scripts and can be seen the ``geniac/install/nextflow.config``. 
 
 
 These scripts are automatically called during the build step of the project (see :ref:`install-page`), thus you don't have to run them manually.

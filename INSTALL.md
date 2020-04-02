@@ -7,7 +7,7 @@
 ## Build and install singularity images
 
 
-* either edit `utils/install/cmake-init.cmake` and check that you have `set(ap_install_singularity_images "ON" CACHE BOOL "")`
+* either edit `geniac/install/cmake-init.cmake` and check that you have `set(ap_install_singularity_images "ON" CACHE BOOL "")`
 * or invoke `cmake` with the option `-Dap_install_singularity_images=ON`
 
 * to build singularity images, root credentials are required
