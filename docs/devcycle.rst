@@ -96,7 +96,7 @@ The workflow accross the different branches can be summarized as described in th
 Tag strategy
 ------------
 
-For official release that can be used in a production environnement, use a tag with the prefix **version-**.
+For official release that can be used in a production environnement, use a tag with the prefix **version-** (for example version-1.2.3).
 
 .. warning::
 
