@@ -56,7 +56,7 @@ set(ap_install_docker_images
 # ##############################################################################
 
 # Directory names where nextflow will write its results
-# TODO: is there a way to use parameters in utils/nextflow.config ?
+# TODO: is there a way to use parameters in geniac/nextflow.config ?
 set(publish_dir_singularity_images "results/singularity/images")
 set(publish_dir_conf "results/conf")
 set(publish_dir_conda "results/conda")

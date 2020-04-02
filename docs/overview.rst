@@ -16,7 +16,7 @@ The following software are required:
 * `git lfs <https://git-lfs.github.com/>`_
 * `cmake <https://cmake.org/>`_ >= 3.0
 
-To use the containers, ate least one of the following software is required:
+To use the containers, at least one of the following software is required:
 
 * `singularity <https://sylabs.io/singularity/>`_ >= 3.2
 * `docker <https://www.docker.com/>`_ >= 18.0
@@ -45,7 +45,7 @@ The source code is organized as follows:
    │   └── singularity
    ├── test
    │   └── data
-   └── utils
+   └── geniac
        ├── cmake
        ├── docs
        │   ├── images
@@ -53,7 +53,7 @@ The source code is organized as follows:
        │       └── sphinx_rtd_theme
        └── install
 
-The guidelines and additional utilities we developed are in the ``utils`` folder.
+The guidelines and additional utilities we developed are in the ``geniac`` folder.
 
 
 .. _overview-naming:

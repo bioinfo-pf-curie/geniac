@@ -132,16 +132,16 @@ Set options with a file
 -----------------------
 
 
-The file ``utils/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``utils/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
+The file ``geniac/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``geniac/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
 
 ::
 
    cd build
-   cmake -C ../${myGitRepo}/utils/install/cmake-init.cmake ../${myGitRepo}
+   cmake -C ../${myGitRepo}/geniac/install/cmake-init.cmake ../${myGitRepo}
 
 
 .. note::
-   On CentOS, the syntax is ``cmake3 ../${myGitRepo} -C ../${myGitRepo}/utils/install/cmake-init.cmake``
+   On CentOS, the syntax is ``cmake3 ../${myGitRepo} -C ../${myGitRepo}/geniac/install/cmake-init.cmake``
 
 
 
