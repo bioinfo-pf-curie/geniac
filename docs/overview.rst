@@ -11,7 +11,7 @@ Prerequisites
 
 The following software are required:
 
-* `nextflow <https://www.nextflow.io/>`_ >= 19.10.0
+* `nextflow <https://www.nextflow.io/>`_ >= 20.01.0
 * `git <https://git-scm.com/>`_  >= 2.0
 * `git lfs <https://git-lfs.github.com/>`_
 * `cmake <https://cmake.org/>`_ >= 3.0

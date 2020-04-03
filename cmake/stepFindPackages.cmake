@@ -5,7 +5,7 @@
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/geniac/cmake;${CMAKE_MODULE_PATH}")
 
 find_package(Git 2.0)
-find_package(Nextflow 19.10)
+find_package(Nextflow 20.01)
 find_package(Singularity 3.2)
 find_package(Docker 18.0)
 
