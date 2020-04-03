@@ -53,7 +53,14 @@ The source code is organized as follows:
        │       └── sphinx_rtd_theme
        └── install
 
-The guidelines and additional utilities we developed are in the ``geniac`` folder.
+The guidelines and additional utilities we developed are in the ``geniac`` folder. The utilities in the ``geniac`` folder can either be copied or link to your pipeline repository as a
+`git submodule <https://git-scm.com/book/en/v2/Git-Tools-Submodules>`.
+
+.. note::
+
+    If the ``geniac`` is used as a submodule in your repository, execute  the command ``git submodule update --init --recursive`` after you have cloned your repository, otherwise the ``geniac`` folder will remain empty.
+
+
 
 
 .. _overview-naming:
