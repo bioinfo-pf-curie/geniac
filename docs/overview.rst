@@ -77,30 +77,29 @@ The source code of your repository should look like this:
 
 ::
 
-   ├── assets
-   ├── bin
+   ├── assets                       # assets needed for runtime
+   ├── bin                          # scripts or binaries for the pipeline
    ├── CMakeLists.txt
-   ├── conf
-   │   ├── templates
+   ├── conf                         # configuration files for the pipeline
+   │   ├── templates                # template for nf-geniac
    │   │   └── cluster.config.in
-   ├── docs
-   ├── env
-   ├── geniac
-   │   ├── cmake
-   │   ├── docs
-   │   ├── install
+   ├── docs                         # documentation of the pipeline
+   ├── env                          # process specific environment variables
+   ├── geniac                       # nf-geniac utilities
+   │   ├── cmake                    # source files for the configuration step
+   │   ├── docs                     # guidelines for installation
+   │   ├── install                  # scripts for the build step
    ├── main.nf
-   ├── modules
+   ├── modules                      # tools installed from source code
    │   ├── CMakeLists.txt
    │   ├── helloWorld
    ├── nextflow.config
-   ├── README.md
-   ├── recipes
+   ├── recipes                      # installation recipes for the tools
    │   ├── conda
    │   ├── dependencies
    │   ├── docker
    │   └── singularity
-   └── test
+   └── test                         # data to test the pipeline
        ├── data
 
 .. _overview-naming:
