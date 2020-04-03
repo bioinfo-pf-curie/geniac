@@ -1,0 +1,10 @@
+/*
+ * -------------------------------------------------
+ *  Config the cluster profile and your scheduler
+ * -------------------------------------------------
+ */
+
+process {
+  executor = '@ap_nf_executor@'
+  queue = params.queue ?: null
+}

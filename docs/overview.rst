@@ -23,45 +23,85 @@ To use the containers, at least one of the following software is required:
 
 .. _overview-source-tree:
 
-Structure of the source code directory tree
-===========================================
 
-The source code is organized as follows:
+Start a new repository
+======================
+
+
+Structure of the source code directory tree
+-------------------------------------------
+
+The structure of the repository is based on `nf-core <https://nf-co.re/>`_ and additional files and folders are expected. Follow the guidelines below to initiate your repository. Initiate your repository using the `nf-core <https://nf-co.re/>`_  template.
+
+Create a the folder *geniac*
+++++++++++++++++++++++++++++
+
+
+The guidelines and additional utilities we developed are in ``nf-geniac`` should be located in a folder named ``geniac`` in your new repository. The utilities in the ``geniac`` folder can either be copied or link to your pipeline repository as a
+`git submodule <https://git-scm.com/book/en/v2/Git-Tools-Submodules>`_.
+
+.. note::
+
+    If the ``geniac`` is used as a submodule in your repository, execute  the command ``git submodule update --init --recursive`` once you have created the ``geniac`` submodule, otherwise the ``geniac`` folder will remain empty.
+    
+    If you want to create a submodule, you can edit and modify the variables in the file :download:`createSubmodule.bash <../data/createSubmodule.bash>` and follow the procedure.
+
+
+Create additional files and folders
++++++++++++++++++++++++++++++++++++
+
+The following files are mandatory:
+
+* :download:`CMakeLists.txt <../data/CMakeLists.txt>`: as the :ref:`install-page` requires ``cmake``, you need to copy this file in your repository. Check that the file is named ``CMakeLists.txt``.
+* :download:`cluster.config.in <../data/conf/templates/cluster.config.in>`: copy the file in the folder ``conf/templates``. This file is used by ``cmake`` to set which job scheduler is used in the ``cluster.config`` profile.
+* :download:`CMakeLists.txt <../data/modules/CMakeLists.txt>`: create a folder named ``modules`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
+
+Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever youd need them the following folders:
 
 ::
 
-   ├── assets
-   ├── bin
-   ├── conf
-   │   └── templates
-   ├── docs
    ├── env
    ├── modules
-   │   └── helloWorld
    ├── recipes
    │   ├── conda
    │   ├── dependencies
    │   ├── docker
    │   └── singularity
-   ├── test
-   │   └── data
-   └── geniac
-       ├── cmake
-       ├── docs
-       │   ├── images
-       │   └── _themes
-       │       └── sphinx_rtd_theme
-       └── install
-
-The guidelines and additional utilities we developed are in the ``geniac`` folder. The utilities in the ``geniac`` folder can either be copied or link to your pipeline repository as a
-`git submodule <https://git-scm.com/book/en/v2/Git-Tools-Submodules>`.
-
-.. note::
-
-    If the ``geniac`` is used as a submodule in your repository, execute  the command ``git submodule update --init --recursive`` after you have cloned your repository, otherwise the ``geniac`` folder will remain empty.
 
 
 
+How does the repository look like?
+----------------------------------
+
+The source code of your repository should look like this:
+
+::
+
+   ├── assets
+   ├── bin
+   ├── CMakeLists.txt
+   ├── conf
+   │   ├── templates
+   │   │   └── cluster.config.in
+   ├── docs
+   ├── env
+   ├── geniac
+   │   ├── cmake
+   │   ├── docs
+   │   ├── install
+   ├── main.nf
+   ├── modules
+   │   ├── CMakeLists.txt
+   │   ├── helloWorld
+   ├── nextflow.config
+   ├── README.md
+   ├── recipes
+   │   ├── conda
+   │   ├── dependencies
+   │   ├── docker
+   │   └── singularity
+   └── test
+       ├── data
 
 .. _overview-naming:
 
