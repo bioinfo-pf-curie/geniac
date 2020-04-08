@@ -14,7 +14,7 @@ set(ap_use_annotation_link
 )
 # ap_annotation_path must STRING (and not PATH)
 set(ap_annotation_path
-    "/to/be/replaced by your path"
+    "add your path in the variable ap_annotation_path"
     CACHE
         STRING
         "Path to the annotations. If the variable ap_use_annotation_link is ON, a symlink annotations with the given target will be created."
@@ -29,7 +29,7 @@ set(ap_use_singularity_image_link
 
 # ap_singularity_image_path must STRING (and not PATH)
 set(ap_singularity_image_path
-    "/to/be/replaced by your path"
+    "add your path in the variable ap_singularity_image_path"
     CACHE
         STRING
         "Path to the singularity images. If the variable ap_use_singularity_image_link is ON, a symlink containers/singularity with the given target will be created."

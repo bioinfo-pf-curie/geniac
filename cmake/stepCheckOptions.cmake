@@ -49,10 +49,19 @@ if(ap_use_singularity_image_link AND ap_install_singularity_images)
     )
 endif()
 
+# check that the variable ap_use_singularity_image_link is a boolean
+if(NOT (${ap_use_singularity_image_link} STREQUAL ON OR ${ap_use_singularity_image_link} STREQUAL OFF))
+
+    message_color(
+        FATAL_ERROR
+        "ap_use_singularity_image_link should be either ON or OFF (boolean variable)"
+    )
+endif()
+
 if(ap_use_singularity_image_link)
-    if(NOT IS_ABSOLUTE "${ap_singularity_image_path}")
+    if(NOT IS_ABSOLUTE ${ap_singularity_image_path})
         message_color(FATAL_ERROR
-                      "ap_singularity_image_path must be an absolute path.")
+                      "ap_singularity_image_path must be an absolute path.\n\tThe current value is invalid: \n\t'${ap_singularity_image_path}'. \n\tProvide a valid path with -Dap_singularity_image_path option")
     endif()
 
     if(IS_DIRECTORY ${ap_singularity_image_path})
@@ -71,11 +80,22 @@ if(ap_use_singularity_image_link)
     )
 endif()
 
+# check that the variable ap_use_annotation_link is a boolean
+if(NOT (${ap_use_annotation_link} STREQUAL ON OR ${ap_use_annotation_link} STREQUAL OFF))
+
+    message_color(
+        FATAL_ERROR
+        "ap_use_annotation_link should be either ON or OFF (boolean variable)"
+    )
+endif()
+
 if(ap_use_annotation_link)
-    if(NOT IS_ABSOLUTE "${ap_annotation_path}")
+
+    
+    if(NOT IS_ABSOLUTE ${ap_annotation_path})
         message_color(
             FATAL_ERROR
-            "ap_annotation_path must be an absolute path. ${ap_annotation_path}"
+            "ap_annotation_path must be an absolute path. \n\tThe current value is invalid: \n\t'${ap_annotation_path}'. \n\tProvide a valid path with -Dap_annotation_path option"
         )
     endif()
 
