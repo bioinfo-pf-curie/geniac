@@ -2,6 +2,12 @@
 # GIT INFORMATION
 # ##############################################################################
 
+# This script retrieves information about the git repository.
+# It will detect if the current version is in developement
+# or a production release provided that. This will work only if
+# the production version is tag with the prefix "version-".
+#  /!\  Do not use this prefix is this is not a production version /!\ 
+
 if(NOT IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
     message_color(FATAL_ERROR "Source directory is not a git repository")
 endif()
@@ -33,50 +39,27 @@ if(GIT_FOUND)
 
     message(STATUS "GIT repository name: ${git_repo_name}")
 
-    # check whether the commit sha1 exists on the release branch
+
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} branch release --contains ${git_commit}
+        COMMAND bash "-c" "${GIT_EXECUTABLE} describe --tags --match 'version-*' --exact-match ${git_commit}"
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        OUTPUT_VARIABLE _commit_in_release
+        OUTPUT_VARIABLE _has_production_tag
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    # check wether a production tag exists on the release branch for the commit
-    # sha1
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} tag --list 'version-*' --contains
-                ${git_commit}
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        OUTPUT_VARIABLE _release_has_tag
-        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    if("${_commit_in_release}" STREQUAL "")
+    if("${_has_production_tag}" STREQUAL "")
 
         message_color(
             WARNING
-            "GIT hash does not exist in release branch:\n\t===> this is a development version"
-        )
+            "GIT hash does not have a production tag:\n\t===> this is a development version"
+            )
 
-        set(git_commit "${git_commit} / devel")
-
+        set(git_commit "${git_commit} / devel") # do not change this, the variable must contain "devel"
     else()
-        message_color(INFO "GIT hash exists in release branch")
-
-        if("${_release_has_tag}" STREQUAL "")
-
-            message_color(
-                WARNING
-                "GIT hash exists in branch release but does not have tag with pattern 'version-*':\n\t===> this is a development version"
+        message_color(
+            OK
+            "GIT hash has a 'version-*' tag:\n\t===> this is a production version"
             )
-
-            set(git_commit "${git_commit} / devel")
-
-        else()
-            message_color(
-                OK
-                "GIT hash has a 'version-*' tag:\n\t===> this is a production version"
-            )
-        endif()
-
     endif()
 
 else()
@@ -85,11 +68,11 @@ endif()
 
 # fill the files with the git information
 configure_file(${CMAKE_SOURCE_DIR}/main.nf ${CMAKE_BINARY_DIR}/git/main.nf
-               @ONLY)
+    @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/git/main.nf
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
 
 configure_file(${CMAKE_SOURCE_DIR}/nextflow.config
-               ${CMAKE_BINARY_DIR}/git/nextflow.config @ONLY)
+    ${CMAKE_BINARY_DIR}/git/nextflow.config @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/git/nextflow.config
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
