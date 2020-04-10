@@ -1,3 +1,5 @@
+.. include:: substitutions.rst
+
 .. _run-page:
 
 ****************

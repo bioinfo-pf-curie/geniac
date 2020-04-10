@@ -1,10 +1,12 @@
+.. include:: substitutions.rst
+
 .. _process-page:
 
 *************
 Add a process
 *************
 
-This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the `singularity <https://sylabs.io/singularity/>`_ and `docker <https://www.docker.com/>`_.
+This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the |singularity|_ and |docker|_.
 
 
 Structure of a process
@@ -223,7 +225,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
 
 ::
 
@@ -305,7 +307,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the `CentOS <https://www.centos.org/>`_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for `CentOS <https://www.centos.org/>`_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.geniac.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.geniac.containers.yum`` as follows:
 
 
 ::
@@ -378,9 +380,9 @@ Install from source code
 *prerequisite*
 ++++++++++++++
 
-First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a `git submodule <https://git-scm.com/docs/git-submodule>`_.
+First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_.
 
-Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_  function from `cmake <https://cmake.org>`_.
+Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmakeexternalproject|_  function from |cmake|_.
 
 
 ::
@@ -394,7 +396,7 @@ Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the `Exte
 
 .. note::
 
-   Depending on the source code you added, the arguments of the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_  function may be different. Refer to the cmake documentation for more details.
+   Depending on the source code you added, the arguments of the |cmakeexternalproject|_  function may be different. Refer to the cmake documentation for more details.
 
 .. important::
 
@@ -446,10 +448,10 @@ In order to have the container automatically built, you have to add an additiona
 
    * Consider that this shell script will be executed in the ``modules`` directory,
    * Use only relative path
-   * This script will be executed in `CentOS <https://www.centos.org/>`_ distribution, thus install any required packages with ``yum``,
+   * This script will be executed in |centos|_ distribution, thus install any required packages with ``yum``,
    * Set always the install directory to ``/usr/local/bin``.
 
-Any suggestion to avoid having both the `ExternalProject_Add <https://cmake.org/cmake/help/latest/module/ExternalProject.html>`_ function in the file ``modules/CMakeLists.txt`` and this shell script is very welcome.
+Any suggestion to avoid having both the |cmakeexternalproject|_ function in the file ``modules/CMakeLists.txt`` and this shell script is very welcome.
    
    .. _process-custom-install:
    

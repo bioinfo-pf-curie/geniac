@@ -1,3 +1,5 @@
+.. include:: substitutions.rst
+
 .. _devcycle-page:
 
 *****************
@@ -48,7 +50,7 @@ Whatever you use ``make test_multiconda`` (or any custom targets available in :r
 Containerizing
 ==============
 
-Building the `singularity <https://sylabs.io/singularity/>`_ or `docker <https://www.docker.com/>`_ containers should start once the prototyping is over. Thus, the software developers will take care of:
+Building the |singularity|_ or |docker|_ containers should start once the prototyping is over. Thus, the software developers will take care of:
 
 * writing the recipes for any process that have a label falling in the :ref:`process-source-code` or :ref:`process-custom-install` categories,
 * performing :ref:`process-resource` in order to optimize the informatic resource asked by the different processes.
@@ -62,7 +64,7 @@ Whoever you are, follow the guidelines describes in the :ref:`install-page` sect
 Git
 ===
 
-We assume that the reader is familiar with `git <https://git-scm.com/>`_ (if not refer to the documentation for details).
+We assume that the reader is familiar with |git|_ (if not refer to the documentation for details).
 
 
 Branching strategy

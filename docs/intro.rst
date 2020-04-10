@@ -1,10 +1,12 @@
+.. include:: substitutions.rst
+
 .. _intro-page:
 
 ************
 Introduction
 ************
 
-The document provides guidelines to implement pipelines using the workflow manager `Nextflow <https://www.nextflow.io/>`_. We assume that the reader is familiar with `Nextflow <https://www.nextflow.io/>`_, if not, please refer to the documentation. We capitalized on the `nf-core <https://nf-co.re/>`_ project by providing additional utilities and guidelines for production-ready bioinformatics pipelines.
+The document provides guidelines to implement pipelines using the workflow manager |nextflow|_. We assume that the reader is familiar with |nextflow|_, if not, please refer to the documentation. We capitalized on the |nfcore|_ project by providing additional utilities and guidelines for production-ready bioinformatics pipelines.
 
 We propose a set of best practices along the development life cycle of the pipeline and deployment for production operations that address different expert communities:
 
@@ -16,7 +18,7 @@ The utilities and guidelines were motivated by:
 
 * being as less as invasive on the different expert communities,
 * reducing the overall development cycle from the prototyping stage to the deployment in a production environment,
-* providing portable pipelines with containers (`docker <https://www.docker.com>`_ and `singularity <https://sylabs.io/docs/#singularity>`_),
+* providing portable pipelines with containers (|docker|_ and |singularity|_),
 * automating (whenever possible) the building of containers from the source code of the pipeline.
 
 Offering the portability of the pipeline with containers can be achieved in two ways:
@@ -34,8 +36,15 @@ We decided to retain this second way that we will call the *one container per to
 
 With this *one container per tool* strategy in mind, we therefore defined guidelines to implement the pipeline at the very early stage of the prototyping with very few effort from the bioinformaticians and statisticians experts such that the containers can be automatically built by parsing the source code (in most of the cases).
 
-To do so, we expect that the bioinformaticians and statisticians capitalize on the software that are available from the `conda <https://docs.conda.io>`_ channels whenever possible. 
+To do so, we expect that the bioinformaticians and statisticians capitalize on the software that are available from the |conda|_ channels whenever possible. 
 
 All the guidelines are detailed in the next sections.
+
+Useful resources for nf-geniac are available here:
+
+* |geniacdoc|_
+* |geniacrepo|_
+* |geniacdemo|_
+* |geniactemplate|_
 
 

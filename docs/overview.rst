@@ -1,8 +1,11 @@
+.. include:: substitutions.rst
+
 .. _overview-page:
 
 ***********
 Get started
 ***********
+
 
 This section just provides a general overview of the guidelines for the structure of the source code directory and the naming conventions. The most important guidelines are detailed in the :ref:`process-page` section.
 
@@ -11,15 +14,15 @@ Prerequisites
 
 The following software are required:
 
-* `nextflow <https://www.nextflow.io/>`_ >= 20.01.0
-* `git <https://git-scm.com/>`_  >= 2.0
-* `git lfs <https://git-lfs.github.com/>`_
-* `cmake <https://cmake.org/>`_ >= 3.0
+* |nextflow|_ >= 20.01.0
+* |git|_  >= 2.0
+* |gitlfs|_
+* |cmake|_ >= 3.0
 
 To use the containers, at least one of the following software is required:
 
-* `singularity <https://sylabs.io/singularity/>`_ >= 3.2
-* `docker <https://www.docker.com/>`_ >= 18.0
+* |singularity|_ >= 3.2
+* |docker|_ >= 18.0
 
 .. _overview-source-tree:
 
@@ -31,14 +34,14 @@ Start a new repository
 Structure of the source code directory tree
 -------------------------------------------
 
-The structure of the repository is based on `nf-core <https://nf-co.re/>`_ and additional files and folders are expected. Follow the guidelines below to initiate your repository. Initiate your repository using the `nf-core <https://nf-co.re/>`_  template.
+The structure of the repository is based on |nfcore|_ and additional files and folders are expected. Follow the guidelines below to initiate your repository. Initiate your repository using the |nfcore|_  template.
 
 Create a the folder *geniac*
 ++++++++++++++++++++++++++++
 
 
 The guidelines and additional utilities we developed are in ``nf-geniac`` should be located in a folder named ``geniac`` in your new repository. The utilities in the ``geniac`` folder can either be copied or link to your pipeline repository as a
-`git submodule <https://git-scm.com/book/en/v2/Git-Tools-Submodules>`_.
+|gitsubmodule|_.
 
 .. note::
 

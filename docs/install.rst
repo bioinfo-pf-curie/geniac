@@ -1,9 +1,11 @@
+.. include:: substitutions.rst
+
+
 .. _install-page:
 
 *********************
 Installation
 *********************
-
 
 We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (see :ref:`overview-source-tree`).
 
@@ -269,7 +271,7 @@ Install and run with conda
 
 .. important::
 
-   You must have `conda <https://docs.conda.io/>`_ installed locally, if not, proceed as follows:
+   You must have |conda|_ installed locally, if not, proceed as follows:
 
 
 ::
