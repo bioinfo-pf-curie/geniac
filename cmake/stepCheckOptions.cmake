@@ -42,23 +42,10 @@ if(ap_install_docker_images)
 
 endif()
 
-if(ap_use_singularity_image_link AND ap_install_singularity_images)
-    message_color(
-        FATAL_ERROR
-        "Both options ap_use_singularity_image_link and ap_install_singularity_images cannot be set to ON at the same time.\n\tEither ap_use_singularity_image_link is ON and a symlink to existing images directory must be provided,\n\tor ap_install_singularity_images is ON and images will be built and installed."
-    )
-endif()
 
-# check that the variable ap_use_singularity_image_link is a boolean
-if(NOT (${ap_use_singularity_image_link} STREQUAL ON OR ${ap_use_singularity_image_link} STREQUAL OFF))
+if(NOT "${ap_singularity_image_path}" STREQUAL "")
 
-    message_color(
-        FATAL_ERROR
-        "ap_use_singularity_image_link should be either ON or OFF (boolean variable)"
-    )
-endif()
-
-if(ap_use_singularity_image_link)
+    set(ap_use_singularity_image_link ON)
     if(NOT IS_ABSOLUTE ${ap_singularity_image_path})
         message_color(FATAL_ERROR
                       "ap_singularity_image_path must be an absolute path.\n\tThe current value is invalid: \n\t'${ap_singularity_image_path}'. \n\tProvide a valid path with -Dap_singularity_image_path option")
@@ -73,24 +60,26 @@ if(ap_use_singularity_image_link)
             "ap_singularity_image_path ${ap_singularity_image_path} does not exist"
         )
     endif()
+
+
     install(
         CODE "execute_process(
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/containers
         COMMAND ${CMAKE_COMMAND} -E create_symlink ${ap_singularity_image_path} ${CMAKE_INSTALL_PREFIX}/${singularity_image_dir})"
     )
+else()
+    set(ap_use_singularity_image_link OFF)
 endif()
 
-# check that the variable ap_use_annotation_link is a boolean
-if(NOT (${ap_use_annotation_link} STREQUAL ON OR ${ap_use_annotation_link} STREQUAL OFF))
 
+if(ap_use_singularity_image_link AND ap_install_singularity_images)
     message_color(
         FATAL_ERROR
-        "ap_use_annotation_link should be either ON or OFF (boolean variable)"
+        "Both options ap_singularity_image_path and ap_install_singularity_images cannot be used at the same time.\n\tEither ap_singularity_image_path is used and a symlink to existing images directory must be provided,\n\tor ap_install_singularity_images is ON and images will be built and installed."
     )
 endif()
 
-if(ap_use_annotation_link)
-
+if(NOT "${ap_annotation_path}" STREQUAL "")
     
     if(NOT IS_ABSOLUTE ${ap_annotation_path})
         message_color(

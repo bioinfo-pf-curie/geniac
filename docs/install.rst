@@ -49,7 +49,7 @@ ap_annotation_path
 ++++++++++++++++++
 
 | STRING
-| Path to the annotations. If the variable ``ap_use_annotation_link`` is ON, a symlink ``annotations`` with the given target will be created in the install directory.
+| Path to the annotations. A symlink ``annotations`` with the given target will be created in the install directory.
 | This is useful if the annotations are already available.
 
 
@@ -92,26 +92,12 @@ ap_singularity_image_path
 +++++++++++++++++++++++++
 
 | STRING
-| Path to the singularity images. If the variable ``ap_use_singularity_image_link`` is ON, a symlink ``containers/singularity`` with the given target will be created in the install directory.
+| Path to the singularity images. A symlink ``containers/singularity`` with the given target will be created in the install directory.
 | This is useful if the singularity containers are already available.
-
-ap_use_annotation_link
-++++++++++++++++++++++
-
-| BOOL
-| The directory ``annotations`` will be a symlink with the target given in the variable ``ap_annotation_path``.
-| Default is OFF.
-
-ap_use_singularity_image_link
-+++++++++++++++++++++++++++++
-
-| BOOL
-| The directory ``containers/singularity`` will be a symlink with the target given in the variable ``ap_singularity_image_path``.
-| Default is OFF
 
 .. warning::
 
-   Options ``ap_install_singularity_images`` and ``ap_use_singularity_image_link`` are exclusive.
+   Options ``ap_install_singularity_images`` and ``ap_singularity_image_path` are exclusive.
 
 Set options in CLI
 ------------------

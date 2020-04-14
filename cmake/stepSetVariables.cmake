@@ -6,30 +6,19 @@ set(ap_nf_executor
     "pbs"
     CACHE STRING "executor used by nextflow (e.g. pbs, slurm, etc.)")
 
-set(ap_use_annotation_link
-    "OFF"
-    CACHE
-        BOOL
-        "The directory annotations will be a symlink with the target given in the variable ap_annotation_path"
-)
 # ap_annotation_path must STRING (and not PATH)
+# this is the path where the annotations are available
 set(ap_annotation_path
-    "add your path in the variable ap_annotation_path"
+    ""
     CACHE
         STRING
-        "Path to the annotations. If the variable ap_use_annotation_link is ON, a symlink annotations with the given target will be created."
-)
-
-set(ap_use_singularity_image_link
-    "OFF"
-    CACHE
-        BOOL
-        "The directory containers/singularity will be a symlink with the target given in the variable ap_singularity_image_path"
+        "Path to the annotations. A symlink annotations with the given target will be created."
 )
 
 # ap_singularity_image_path must STRING (and not PATH)
+# this is the path where the singularity containers are available
 set(ap_singularity_image_path
-    "add your path in the variable ap_singularity_image_path"
+    ""
     CACHE
         STRING
         "Path to the singularity images. If the variable ap_use_singularity_image_link is ON, a symlink containers/singularity with the given target will be created."
