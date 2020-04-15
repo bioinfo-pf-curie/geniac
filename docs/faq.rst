@@ -6,13 +6,13 @@
 FAQ
 ***
 
-How can I write the config files for the different nextflow profiles?
-=====================================================================
+.. contents::
+   :depth: 1
+   :local:
 
-The utilies we propose allow the automatic generation of all the config files for the nextflow :ref:`run-profiles`. However, if you really want to write them yourself follow the examples described in :ref:`profiles-page`.
 
 
-How can i use nf-geniac on an existing repository?
+How can I use nf-geniac on an existing repository?
 ==================================================
 
 The structure of the repository is based on |nfcore|_ and additional files and folders are expected.
@@ -94,3 +94,31 @@ The source code of your repository should look like this:
    │   └── singularity
    └── test                         # data to test the pipeline
        ├── data
+
+How can I write the config files for the different nextflow profiles?
+=====================================================================
+
+The utilies we propose allow the automatic generation of all the config files for the nextflow :ref:`run-profiles`. However, if you really want to write them yourself follow the examples described in :ref:`profiles-page`.
+
+How should I define the path to the genome annotations?
+=======================================================
+
+When the pipeline is installed with `geniac`, the :ref:`install-structure-dir-tree` contains a directory named ``annotations``. This directory can be a symlink to the directory with your existing annotations (can be set during :ref:`install-configure` with the option ``ap_annotation_path``). Check that:
+
+
+
+1. The file :download:`base.config <../data/conf/base.config>` defines the ``genomeAnnotationPath`` in the scope ``params``  as follows:
+
+
+::
+
+   params {
+   
+     // genome annotations
+     genomeAnnotationPath = "${baseDir}/../annotations"
+   
+   }    
+
+2. All the paths to your annotations are defined using the variable ``params.genomeAnnotationPath`` as shown in the file :download:`genomes.config <../data/conf/genomes.config>`
+
+3. You use the variables defined in the :download:`genomes.config <../data/conf/genomes.config>` in the ``main.nf``, for example ``params.genomes['h19'].gtf``

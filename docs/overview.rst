@@ -30,7 +30,7 @@ To use the containers, at least one of the following software is required:
 Start a new repository
 ======================
 
-The best way to initiate your repository is to create a new |git|_ project from the |geniactemplate|_. However, you can use geniac on an existing repository and you can follow the procedure described in the :ref:`faq-page`.
+The best way to initiate your repository is to create a new |git|_ project from the |geniactemplate|_. Indeed, `geniac` expects that the repository contains specific folders and files that are already set up in the template. However, you can use `geniac` on an existing repository and you can follow the procedure described in the :ref:`faq-page`.
 
 
 .. _overview-naming:

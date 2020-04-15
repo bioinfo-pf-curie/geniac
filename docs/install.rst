@@ -213,6 +213,8 @@ If you want to add the :ref:`run-profile-cluster` profile, just type the followi
 
    For these custom targets to be available, test data and ``conf/test.config`` file have to be provided in the repository.
 
+.. _install-structure-dir-tree:
+
 Structure of the installation directory tree
 ============================================
 
