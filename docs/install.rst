@@ -97,7 +97,7 @@ ap_singularity_image_path
 
 .. warning::
 
-   Options ``ap_install_singularity_images`` and ``ap_singularity_image_path` are exclusive.
+   Options ``ap_install_singularity_images`` and ``ap_singularity_image_path`` are exclusive.
 
 Set options in CLI
 ------------------
