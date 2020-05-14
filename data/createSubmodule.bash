@@ -6,7 +6,7 @@
 ### information about your repository
 GIT_CONTAINER_BRANCH="devel"
 
-### information abour nf-geniac
+### information about nf-geniac
 GIT_SUBMODULE_REPO="https://github.com/bioinfo-pf-curie/"
 GIT_SUBMODULE_DIR="geniac"
 GIT_SUBMODULE_SHA1="f39ebdc4"
@@ -41,7 +41,7 @@ git branch -vv
 ### checkout the branch that contains the commit (or version) we want to use
 git checkout ${GIT_SUBMODULE_BRANCH}
 
-### dowload the git submodule reporsitory
+### download the git submodule repository
 git fetch
 
 ### checkout the commit (or version) we want to use as a Detached HEAD
