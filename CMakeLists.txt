@@ -29,17 +29,10 @@ endif()
 # ##############################################################################
 # STEP 1
 # ##############################################################################
-# Set variable to define name of subdirectories where will be installed the
-# pipeline and its dependencies such as singularity images. These variables are
-# used in cmake/CMakeLists.txt
+# Set all the cmake variables including CACHE variables
 # ##############################################################################
 
-set(pipeline_dir "pipeline")
-set(singularity_image_dir "containers/singularity")
-
-# as the main CMakeLists.txt is in the geniac folder, the source of the pipeline
-# is in the upper folder that is step in the pipeline_source_dir variable
-set(pipeline_source_dir ${CMAKE_SOURCE_DIR}/..)
+include("cmake/stepSetVariables.cmake")
 
 # ##############################################################################
 # STEP 2
