@@ -1,42 +1,42 @@
 # ##############################################################################
 # Include some functions
 # ##############################################################################
-include("cmake/functionColorMessage.cmake")
+include("functionColorMessage.cmake")
 
 # ##############################################################################
 # STEP 1
 # ##############################################################################
 # Set all the cmake variables includin CACHE variables
 # ##############################################################################
-include("cmake/stepSetVariables.cmake")
+include("stepSetVariables.cmake")
 
 # ##############################################################################
 # STEP 2
 # ##############################################################################
 # Check that all the prerequisites are met
 # ##############################################################################
-include("cmake/stepFindPackages.cmake")
+include("stepFindPackages.cmake")
 
 # ##############################################################################
 # STEP 3
 # ##############################################################################
 # Check that all the options are consistent
 # ##############################################################################
-include("cmake/stepCheckOptions.cmake")
+include("stepCheckOptions.cmake")
 
 # ##############################################################################
 # STEP 4
 # ##############################################################################
 # Extract git information
 # ##############################################################################
-include("cmake/stepGitInfo.cmake")
+include("stepGitInfo.cmake")
 
 # ##############################################################################
 # STEP 5
 # ##############################################################################
 # Fill template for config files
 # ##############################################################################
-include("cmake/stepFillConfigTemplate.cmake")
+include("stepFillConfigTemplate.cmake")
 
 # ##############################################################################
 # STEP 6
@@ -44,11 +44,11 @@ include("cmake/stepFillConfigTemplate.cmake")
 # Main core script to generate config files, recipes and containers, and
 # installed them
 # ##############################################################################
-include("cmake/stepMainCoreScript.cmake")
+include("stepMainCoreScript.cmake")
 
 # ##############################################################################
 # STEP 7
 # ##############################################################################
 # Add custom targets for tests
 # ##############################################################################
-include("cmake/stepAddTestTargets.cmake")
+include("stepAddTestTargets.cmake")

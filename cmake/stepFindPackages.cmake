@@ -2,7 +2,7 @@
 # Find packages
 # ##############################################################################
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/geniac/cmake;${CMAKE_MODULE_PATH}")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
 
 find_package(Git 2.0)
 find_package(Nextflow 20.01)

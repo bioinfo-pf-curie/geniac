@@ -12,27 +12,27 @@
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir.done
     COMMAND ${CMAKE_COMMAND} -E echo "create workDir/"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/recipes
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pipeline_source_dir}/recipes
             ${CMAKE_BINARY_DIR}/workDir/recipes
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflowConf
             ${CMAKE_BINARY_DIR}/workDir/conf/
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/nextflow.config
+            ${CMAKE_SOURCE_DIR}/install/nextflow.config
             ${CMAKE_BINARY_DIR}/workDir/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pipeline_source_dir}/conf
             ${CMAKE_BINARY_DIR}/workDir/conf
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
+            ${CMAKE_SOURCE_DIR}/install/singularity.nf
             ${CMAKE_BINARY_DIR}/workDir
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/modules
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pipeline_source_dir}/modules
             ${CMAKE_BINARY_DIR}/workDir/modules
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
-    DEPENDS ${CMAKE_SOURCE_DIR}/recipes/*
-    DEPENDS ${CMAKE_SOURCE_DIR}/conf/base.config
-    DEPENDS ${CMAKE_SOURCE_DIR}/modules/*
-    DEPENDS ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
-    DEPENDS ${CMAKE_SOURCE_DIR}/geniac/install/nextflow.config
-    DEPENDS ${CMAKE_SOURCE_DIR}/geniac/install/docker.nf)
+    DEPENDS ${pipeline_source_dir}/recipes/*
+    DEPENDS ${pipeline_source_dir}/conf/base.config
+    DEPENDS ${pipeline_source_dir}/modules/*
+    DEPENDS ${CMAKE_SOURCE_DIR}/install/singularity.nf
+    DEPENDS ${CMAKE_SOURCE_DIR}/install/nextflow.config
+    DEPENDS ${CMAKE_SOURCE_DIR}/install/docker.nf)
 
 # ##############################################################################
 # Automatic generation of the config files, recipes and containers
@@ -44,7 +44,7 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
+            ${CMAKE_SOURCE_DIR}/install/singularity.nf
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
@@ -61,7 +61,7 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
+            ${CMAKE_SOURCE_DIR}/install/singularity.nf
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
@@ -78,7 +78,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/geniac/install/docker.nf
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/install/docker.nf
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerfiles true
@@ -108,7 +108,7 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
+            ${CMAKE_SOURCE_DIR}/install/singularity.nf
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
@@ -125,7 +125,7 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/geniac/install/docker.nf
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/install/docker.nf
             ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
@@ -238,7 +238,7 @@ add_custom_command(
         ${CMAKE_COMMAND}
         -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/pathLink.txt
         -Dpath_link_dir=${CMAKE_BINARY_DIR}/pathDirectories -P
-        ${CMAKE_SOURCE_DIR}/geniac/cmake/createPathDirectories.cmake
+        ${CMAKE_SOURCE_DIR}/cmake/createPathDirectories.cmake
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectories.done"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 

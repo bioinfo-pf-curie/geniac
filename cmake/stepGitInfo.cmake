@@ -8,7 +8,8 @@
 # the production version is tag with the prefix "version-".
 #  /!\  Do not use this prefix is this is not a production version /!\ 
 
-if(NOT IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git)
+
+if(NOT IS_DIRECTORY ${pipeline_source_dir}/.git)
     message_color(FATAL_ERROR "Source directory is not a git repository")
 endif()
 
@@ -17,7 +18,7 @@ if(GIT_FOUND)
     # extract the commid id
     execute_process(
         COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        WORKING_DIRECTORY "${pipeline_source_dir}"
         OUTPUT_VARIABLE git_commit
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -30,7 +31,7 @@ if(GIT_FOUND)
     # extract the remothe URL of the git repository and extract its name
     execute_process(
         COMMAND ${GIT_EXECUTABLE} remote get-url origin
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        WORKING_DIRECTORY "${pipeline_source_dir}"
         OUTPUT_VARIABLE git_url
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -42,7 +43,7 @@ if(GIT_FOUND)
 
     execute_process(
         COMMAND bash "-c" "${GIT_EXECUTABLE} describe --tags --match 'version-*' --exact-match ${git_commit}"
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        WORKING_DIRECTORY "${pipeline_source_dir}"
         OUTPUT_VARIABLE _has_production_tag
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -67,12 +68,12 @@ else()
 endif()
 
 # fill the files with the git information
-configure_file(${CMAKE_SOURCE_DIR}/main.nf ${CMAKE_BINARY_DIR}/git/main.nf
+configure_file(${pipeline_source_dir}/main.nf ${CMAKE_BINARY_DIR}/git/main.nf
     @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/git/main.nf
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
 
-configure_file(${CMAKE_SOURCE_DIR}/nextflow.config
+configure_file(${pipeline_source_dir}/nextflow.config
     ${CMAKE_BINARY_DIR}/git/nextflow.config @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/git/nextflow.config
     DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir})
