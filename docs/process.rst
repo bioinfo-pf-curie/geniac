@@ -389,7 +389,7 @@ Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmak
 
    ExternalProject_Add(
        helloWorld
-       SOURCE_DIR ${CMAKE_SOURCE_DIR}/modules/helloWorld
+       SOURCE_DIR ${pipeline_source_dir}/modules/helloWorld
        CMAKE_ARGS
            -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/externalProject/bin)
 
@@ -399,6 +399,8 @@ Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmak
    Depending on the source code you added, the arguments of the |cmakeexternalproject|_  function may be different. Refer to the cmake documentation for more details.
 
 .. important::
+
+   Always use the variable  ``${pipeline_source_dir}`` in the ``SOURCE_DIR`` directive, for example  ``SOURCE_DIR ${pipeline_source_dir}/modules/helloWorld``.
 
    Always install the binary in ``${CMAKE_BINARY_DIR}/externalProject/bin)`` (note that CMAKE_BINARY_DIR is actually the build directory you have created to configure and build the pipeline, see :ref:`install-page`).
 
