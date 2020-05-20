@@ -3,6 +3,7 @@
 
 file(COPY ${geniac_binary_dir}/nextflowConf/ DESTINATION ${geniac_binary_dir}/workDir/conf)
 file(COPY ${geniac_source_dir}/install/singularity.nf DESTINATION ${geniac_binary_dir}/workDir)
+file(COPY ${geniac_source_dir}/install/docker.nf DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${geniac_source_dir}/install/nextflow.config DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${pipeline_source_dir}/conf/ DESTINATION ${geniac_binary_dir}/workDir/conf)
 

@@ -47,9 +47,6 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -64,9 +61,6 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -82,8 +76,6 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/install/docker.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -111,9 +103,6 @@ add_custom_target(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -129,8 +118,6 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/install/docker.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
