@@ -20,9 +20,9 @@ Installation require cmake (version 3.0 or above) and consists of the following 
 
    mkdir build
    cd build
-   cmake ../${git_repo}     # configure the pipeline
-   make                     # build the files needed by the pipeline
-   make install             # install the pipeline
+   cmake ../${git_repo}/geniac     # configure the pipeline
+   make                            # build the files needed by the pipeline
+   make install                    # install the pipeline
 
 .. note::
 
@@ -107,12 +107,12 @@ All the options can be set on the command line interface. If your want to instal
 ::
 
    cd build
-   cmake -C ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   cmake -C ../${myGitRepo}/geniac  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
    
 
 .. tip::
 
-   To have all the available options and help, run ``cmake -LAH ../${myGitRepo}`` in the ``build`` directory. The different options are displayed in the **Cache values** section.
+   To have all the available options and help, run ``cmake -LAH ../${myGitRepo}/geniac`` in the ``build`` directory. The different options are displayed in the **Cache values** section.
 
 .. _install-configure-file:
 
@@ -125,11 +125,11 @@ The file ``geniac/install/cmake-init-default.cmake`` provides a script to set al
 ::
 
    cd build
-   cmake -C ../${myGitRepo}/geniac/install/cmake-init.cmake ../${myGitRepo}
+   cmake -C ../${myGitRepo}/geniac/install/cmake-init.cmake ../${myGitRepo}/geniac
 
 
 .. note::
-   On CentOS, the syntax is ``cmake3 ../${myGitRepo} -C ../${myGitRepo}/geniac/install/cmake-init.cmake``
+   On CentOS, the syntax is ``cmake3 ../${myGitRepo}/geniac -C ../${myGitRepo}/geniac/install/cmake-init.cmake``
 
 
 
@@ -280,7 +280,7 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
 
    mkdir build
    cd build
-   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
+   cmake ../${myGitRepo}/geniac  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
    make
    make install
 
@@ -306,7 +306,7 @@ Install and run with singularity
 
    mkdir build
    cd build
-   cmake ../${myGitRepo}  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   cmake ../${myGitRepo}/geniac  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
    make ### must be done with the root credentials
    make install
 
