@@ -380,7 +380,7 @@ Install from source code
 *prerequisite*
 ++++++++++++++
 
-First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_.
+First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. Create the ``modules`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_.
 
 Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmakeexternalproject|_  function from |cmake|_.
 
