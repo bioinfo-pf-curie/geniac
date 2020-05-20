@@ -43,7 +43,6 @@ Create additional files and folders
 
 The following files are mandatory:
 
-* :download:`CMakeLists.txt <../data/CMakeLists.txt>`: as the :ref:`install-page` requires ``cmake``, you need to copy this file in your repository. Check that the file is named ``CMakeLists.txt``.
 * :download:`cluster.config.in <../data/conf/templates/cluster.config.in>`: copy the file in the folder ``conf/templates``. This file is used by ``cmake`` to set which job scheduler is used in the ``cluster.config`` profile.
 * :download:`CMakeLists.txt <../data/modules/CMakeLists.txt>`: create a folder named ``modules`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
 * :download:`base.config <../data/conf/base.config>`: copy the file in the folder ``conf``. This file containes a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
@@ -71,7 +70,6 @@ The source code of your repository should look like this:
 
    ├── assets                       # assets needed for runtime
    ├── bin                          # scripts or binaries for the pipeline
-   ├── CMakeLists.txt
    ├── conf                         # configuration files for the pipeline
    │   ├── base.config              # contains the geniac scope mandatory for nextflow
    │   ├── templates                # template for nf-geniac
