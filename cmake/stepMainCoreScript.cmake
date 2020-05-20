@@ -9,30 +9,34 @@
 # generate the config files, the recipes or the containers depending on the
 # configure options that will be set with cmake
 # ##############################################################################
+set(workdir_depends_files
+    ${pipeline_source_dir}/conf/base.config
+    ${CMAKE_SOURCE_DIR}/install/singularity.nf
+    ${CMAKE_SOURCE_DIR}/install/nextflow.config
+    ${CMAKE_SOURCE_DIR}/install/docker.nf)
+
+if(EXISTS ${pipeline_source_dir}/modules/)
+    set(workdir_depends_files
+        ${workdir_depends_files}
+        ${pipeline_source_dir}/modules/*)
+endif()
+
+if(EXISTS ${pipeline_source_dir}/recipes/)
+    set(workdir_depends_files
+        ${workdir_depends_files}
+        ${pipeline_source_dir}/recipes/*)
+endif()
+
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir.done
     COMMAND ${CMAKE_COMMAND} -E echo "create workDir/"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pipeline_source_dir}/recipes
-            ${CMAKE_BINARY_DIR}/workDir/recipes
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflowConf
-            ${CMAKE_BINARY_DIR}/workDir/conf/
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/install/nextflow.config
-            ${CMAKE_BINARY_DIR}/workDir/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pipeline_source_dir}/conf
-            ${CMAKE_BINARY_DIR}/workDir/conf
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${pipeline_source_dir}/modules
-            ${CMAKE_BINARY_DIR}/workDir/modules
+    COMMAND ${CMAKE_COMMAND}
+            -Dpipeline_source_dir=${pipeline_source_dir}
+            -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
+            -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
+            -P ${CMAKE_SOURCE_DIR}/cmake/createWorkDir.cmake
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
-    DEPENDS ${pipeline_source_dir}/recipes/*
-    DEPENDS ${pipeline_source_dir}/conf/base.config
-    DEPENDS ${pipeline_source_dir}/modules/*
-    DEPENDS ${CMAKE_SOURCE_DIR}/install/singularity.nf
-    DEPENDS ${CMAKE_SOURCE_DIR}/install/nextflow.config
-    DEPENDS ${CMAKE_SOURCE_DIR}/install/docker.nf)
+    DEPENDS ${workdir_depends_files})
 
 # ##############################################################################
 # Automatic generation of the config files, recipes and containers
