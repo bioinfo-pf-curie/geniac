@@ -224,7 +224,7 @@ outputDir
 Analysis options
 ----------------
 
-They are defined in the ``conf/tools.config`` file. Refer to the *README* of the pipeline for details.
+Refer to the *README* of the pipeline for details.
 
 Results
 =======
@@ -282,15 +282,4 @@ Of course, it works!
 .. note::
 
    This example with the ``helloWorld`` tool is not the most relevant as this tool is available whatever the profile you use (see :ref:`run-process-profile-table`) but it is just here to show that it is possible to combine profiles to make sure that all the tools will be available.
-
-Set options in command line for the tools
------------------------------------------
-
-
-All options in ``conf/tools.path`` can be set in command line. For example:
-
-::
-
-   nextflow -c conf/test.config run main.nf -profile multiconda --trickySoftwareOpts "'--help'"
-
 

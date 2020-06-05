@@ -300,7 +300,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
    
      script:
      """
-     python ${params.trickySoftwareOpts} > trickySoftwareResults.txt 2>&1
+     python --version > trickySoftwareResults.txt 2>&1
      """
    }
 
@@ -525,53 +525,6 @@ This is the only case you will have to write the recipe yourself. The recipe sho
 
    As your recipe will very likely depends on files you added in the ``recipes/dependencies/`` directory, you can just mention the name of the files in the ``%files`` section for `singularity` or with the ``ADD`` directive for `docker`.
 
-
-.. _process-options:
-
-Tool options
-------------
-
-Tool options are set in the scope ``params`` of the file ``conf/tools.config`` as follows:
-
-::
-
-   //FastQC
-   fastqcOpts = "-q"
-
-
-If the tool ``fastqc`` has to be called in several processes with different options, then define several variables. Then, invoke ``fastqc`` in the process as follows:
-
-::
-
-   process fastqc {
-     label 'fastqc'
-     label 'smallMem'
-     label 'smallCpu'
-   
-     tag "${prefix}"
-     publishDir "${params.outputDir}/fastqc", mode: 'copy',
-         saveAs: {filename -> filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"}
-   
-     input:
-     set val(prefix), file(reads) from rawReadsFastqc
-   
-     output:
-     file "*_fastqc.{zip,html}" into fastqcResults
-   
-     script:
-     pbase = reads[0].toString() - ~/(\.fq)?(\.fastq)?(\.gz)?$/
-     """
-     fastqc ${params.fastqcOpts} $reads
-     mv ${pbase}_fastqc.html ${prefix}_fastqc.html
-     mv ${pbase}_fastqc.zip ${prefix}_fastqc.zip
-     """
-   }
-
-Defining a variable in the ``params`` scope offers the possibility to set custom options in command line if the user does no want to use the defaults:
-
-::
-
-   nextflow -c conf/test.config run main.nf -profile multiconda,path --fastqcOpts "-q -k 6"
 
 .. _process-env-var:
 
