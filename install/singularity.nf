@@ -684,3 +684,25 @@ process mergePathLink {
     """
 }
 
+process clusterConfig {
+    tag "clusterConfig"
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+    output:
+    file("cluster.config")
+
+    script:
+    """
+    cat << EOF > "cluster.config"
+    /*
+     * -------------------------------------------------
+     *  Config the cluster profile and your scheduler
+     * -------------------------------------------------
+     */
+    
+    process {
+        executor = '${params.clusterExecutor}'
+        queue = params.queue ?: null
+    }
+    """
+}

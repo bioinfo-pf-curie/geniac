@@ -49,7 +49,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
