@@ -285,7 +285,7 @@ process buildDockerRecipeFromSourceCode {
 }
 
 onlyCondaRecipeCh = dockerRecipeCh3.mix(dockerRecipeCh4)
-dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5)
+dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5).dump(tag:'dockerRecipes')
 
 process buildImages {
     tag "${key}"
@@ -296,14 +296,14 @@ process buildImages {
 
     input:
     set val(key), file(dockerRecipe), val(optionalPath) from dockerAllRecipeCh
-    file condaYml from condaRecipes.collect()
-    file fileDep from fileDependencies.collect()
-    file moduleDir from sourceCodeDirCh.collect()
+    file condaYml from condaRecipes.collect().ifEmpty([])
+    file fileDep from fileDependencies.collect().ifEmpty([])
+    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
 
     script:
-
+    excludemoduleDir = moduleDir == [] ? "" : "--exclude='modules'"
     """
-    tar cvfh contextDir.tar *
+    tar cvfh contextDir.tar ${excludemoduleDir} *
     mkdir contextDir
     tar xvf contextDir.tar --directory contextDir
     docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} contextDir

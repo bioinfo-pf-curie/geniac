@@ -8,3 +8,4 @@
 utils/docs/_build/
 .idea/
 .vscode/
+/docs/_build/
