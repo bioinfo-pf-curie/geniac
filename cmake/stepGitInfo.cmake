@@ -9,7 +9,7 @@
 #  /!\  Do not use this prefix is this is not a production version /!\ 
 
 
-if(NOT IS_DIRECTORY ${pipeline_source_dir}/.git)
+if(NOT EXISTS ${pipeline_source_dir}/.git)
     message_color(FATAL_ERROR "Source directory is not a git repository")
 endif()
 
