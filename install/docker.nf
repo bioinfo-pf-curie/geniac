@@ -301,7 +301,7 @@ process buildImages {
     file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
 
     script:
-    excludemoduleDir = moduleDir == [] ? "" : "--exclude='modules'"
+    excludemoduleDir = moduleDir == [] ? "--exclude='modules'" : ""
     """
     tar cvfh contextDir.tar ${excludemoduleDir} *
     mkdir contextDir
