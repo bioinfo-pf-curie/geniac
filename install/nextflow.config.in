@@ -8,7 +8,7 @@ params {
   // leave all the default options to false
   buildSingularityImages = false
   buildDockerImages = false
-  
+
   // option for the cluster executor
   clusterExecutor = 'pbs'
 
@@ -26,4 +26,4 @@ params {
 }
 
 includeConfig 'conf/base.config'
-
+@geniac_config_string@

@@ -12,7 +12,7 @@
 set(workdir_depends_files
     ${pipeline_source_dir}/conf/base.config
     ${CMAKE_SOURCE_DIR}/install/singularity.nf
-    ${CMAKE_SOURCE_DIR}/install/nextflow.config
+    ${CMAKE_SOURCE_DIR}/install/nextflow.config.in
     ${CMAKE_SOURCE_DIR}/install/docker.nf)
 
 if(EXISTS ${pipeline_source_dir}/modules/)
