@@ -10,14 +10,16 @@
 
 def addYumAndGitToCondaCh(List condaIt) {
     List<String> gitList = []
-    (params.geniac.containers.git[condaIt[0]]?:'')
+    LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
+    LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
+    (gitConf[condaIt[0]]?:'')
         .split()
         .each{ gitList.add(it.split('::')) }
 
     return [
         condaIt[0],
         condaIt[1],
-        params.geniac.containers.yum[condaIt[0]],
+        yumConf[condaIt[0]],
         gitList
     ]
 }
