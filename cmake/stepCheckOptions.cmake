@@ -61,12 +61,16 @@ if(NOT "${ap_singularity_image_path}" STREQUAL "")
         )
     endif()
 
+    install(
+        CODE "execute_process(
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/containers"
+    )
 
     install(
         CODE "execute_process(
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/containers
         COMMAND ${CMAKE_COMMAND} -E create_symlink ${ap_singularity_image_path} ${CMAKE_INSTALL_PREFIX}/${singularity_image_dir})"
     )
+
 else()
     set(ap_use_singularity_image_link OFF)
 endif()
