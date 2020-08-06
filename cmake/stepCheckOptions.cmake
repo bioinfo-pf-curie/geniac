@@ -63,7 +63,7 @@ if(NOT "${ap_singularity_image_path}" STREQUAL "")
 
     install(
         CODE "execute_process(
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/containers")
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_INSTALL_PREFIX}/containers)"
     )
 
     install(
