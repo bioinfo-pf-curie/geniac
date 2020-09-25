@@ -1,11 +1,10 @@
-
 # Create workDir
 
 # Add geniac.config file in nextflow.config if it exists otherwise use
 if(EXISTS ${pipeline_source_dir}/conf/geniac.config)
 	set(geniac_config_string "includeConfig 'conf/geniac.config'")
 else()
-	set(geniac_config_string "'")
+	set(geniac_config_string "")
 endif()
 
 configure_file(
