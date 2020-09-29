@@ -400,7 +400,7 @@ process buildSingularityConfig {
 
     """
     cat << EOF > "${key}SingularityConfig.txt"
-        withLabel:${key} { container = "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" }
+        withLabel:${key} { container = \\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" : "\\\${baseDir}/../containers/singularity/${key.toLowerCase()}.simg" }
     EOF
     """
 }
