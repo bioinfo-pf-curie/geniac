@@ -603,7 +603,7 @@ process mergeMulticondaConfig {
  * Generate path.config
 **/
 
-process buildPathConfig {
+process buildMultiPathConfig {
     tag "${key}"
     //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
@@ -614,75 +614,75 @@ process buildPathConfig {
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildPathCh
 
     output:
-    file("${key}PathConfig.txt") into mergePathConfigCh
-    file("${key}PathLink.txt") into mergePathLinkCh
+    file("${key}MultiPathConfig.txt") into mergeMultiPathConfigCh
+    file("${key}MultiPathLink.txt") into mergeMultiPathLinkCh
 
     script:
 
     """
-    cat << EOF > "${key}PathConfig.txt"
-        withLabel:${key} { beforeScript = "export PATH=\\\${baseDir}/../path/${key}/bin:\\\$PATH" } 
+    cat << EOF > "${key}MultiPathConfig.txt"
+        withLabel:${key} { beforeScript = \\\${params.geniac.multiPath} ? "export PATH=\\\${params.geniac.multiPath}:\\\$PATH" : "export PATH=\\\${baseDir}/../multipath/${key}/bin:\\\$PATH" } 
     EOF
-    cat << EOF > "${key}PathLink.txt"
+    cat << EOF > "${key}MultiPathLink.txt"
     ${key}/bin
     EOF
     """
 }
 
-process mergePathConfig {
-    tag "mergePathConfig"
+process mergeMultiPathConfig {
+    tag "mergeMultiPathConfig"
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildConfigFiles
 
     input:
-    file key from mergePathConfigCh.collect() 
+    file key from mergeMultiPathConfigCh.collect()
 
     output:
-    file("path.config") into finalPathConfigCh
+    file("multipath.config") into finalMultiPathConfigCh
 
     script:
     """
-    echo -e "includeConfig 'process.config'\n" >> path.config
-    echo "singularity {" >> path.config
-    echo "  enable = false" >> path.config
-    echo -e "}\n" >> path.config
-    echo "docker {" >> path.config
-    echo "  enable = false" >> path.config
-    echo -e "}\n" >> path.config
-    echo "process {"  >> path.config
+    echo -e "includeConfig 'process.config'\n" >> multipath.config
+    echo "singularity {" >> multipath.config
+    echo "  enable = false" >> multipath.config
+    echo -e "}\n" >> multipath.config
+    echo "docker {" >> multipath.config
+    echo "  enable = false" >> multipath.config
+    echo -e "}\n" >> multipath.config
+    echo "process {"  >> multipath.config
     for keyFile in ${key}
     do
-        cat \${keyFile} >> path.config
+        cat \${keyFile} >> multipath.config
     done
-    echo "}"  >> path.config
-    grep -v onlyLinux path.config > path.config.tmp
-    mv path.config.tmp path.config
+    echo "}"  >> multipath.config
+    grep -v onlyLinux multipath.config > multipath.config.tmp
+    mv multipath.config.tmp multipath.config
     """
 }
 
-process mergePathLink {
-    tag "mergePathLink"
+process mergeMultiPathLink {
+    tag "mergeMultiPathLink"
     publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
     when:
     params.buildConfigFiles
 
     input:
-    file key from mergePathLinkCh.collect()
+    file key from mergeMultiPathLinkCh.collect()
 
     output:
-    file("pathLink.txt") into finalPathLinkCh
+    file("multiPathLink.txt") into finalMultiPathLinkCh
 
     script:
     """
     for keyFile in ${key}
     do
-        cat \${keyFile} >> pathLink.txt
+        cat \${keyFile} >> multiPathLink.txt
     done
-    grep -v onlyLinux pathLink.txt > pathLink.txt.tmp
-    mv pathLink.txt.tmp pathLink.txt
+    grep -v onlyLinux multiPathLink.txt > multiPathLink.txt.tmp
+    mv multiPathLink.txt.tmp multiPathLink.txt
     """
 }
 
@@ -706,5 +706,37 @@ process clusterConfig {
         executor = '${params.clusterExecutor}'
         queue = params.queue ?: null
     }
+    """
+}
+
+process globalPathConfig {
+    tag "globalPathConfig"
+    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+    output:
+    file("path.config") into finalPathConfigCh
+    file("PathLink.txt") into finalPathLinkCh
+
+    script:
+    """
+    cat << EOF > "path.config"
+    includeConfig 'process.config'
+    
+    singularity {
+        enable = false
+        enable = false
+    }
+    
+    docker {
+      enable = false
+    }
+    
+    process {
+        beforeScript = \\\${params.geniac.path} ? "export PATH=\\\${params.geniac.path}:\\\$PATH" : "export PATH=\\\${baseDir}/../path:\\\$PATH"
+    }
+    EOF
+    cat << EOF > "PathLink.txt"
+    bin
+    EOF
     """
 }

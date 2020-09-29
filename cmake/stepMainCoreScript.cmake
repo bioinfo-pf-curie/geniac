@@ -224,17 +224,30 @@ install(
 # ##############################################################################
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/pathDirectories.done
+    OUTPUT ${CMAKE_BINARY_DIR}/multiPathDirectories.done
     COMMAND
         ${CMAKE_COMMAND}
-        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/pathLink.txt
-        -Dpath_link_dir=${CMAKE_BINARY_DIR}/pathDirectories -P
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/multiPathLink.txt
+        -Dpath_link_dir=${CMAKE_BINARY_DIR}/multiPathDirectories -P
         ${CMAKE_SOURCE_DIR}/cmake/createPathDirectories.cmake
-    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectories.done"
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/multiPathDirectories.done"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 
-add_custom_target(install_path_directories ALL
-                  DEPENDS ${CMAKE_BINARY_DIR}/pathDirectories.done)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/multiPathDirectories/
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/multipath)
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/pathDirectories/
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/pathDirectory.done
+    COMMAND
+        ${CMAKE_COMMAND}
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/PathLink.txt
+        -Dpath_link_dir=${CMAKE_BINARY_DIR}/PathDirectory -P
+        ${CMAKE_SOURCE_DIR}/cmake/createPathDirectories.cmake
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectory.done"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/PathDirectory/
         DESTINATION ${CMAKE_INSTALL_PREFIX}/path)
+
+add_custom_target(install_path_directories ALL
+                  DEPENDS ${CMAKE_BINARY_DIR}/multiPathDirectories.done ${CMAKE_BINARY_DIR}/pathDirectory.done)
