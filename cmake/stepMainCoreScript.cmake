@@ -63,7 +63,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
@@ -105,7 +105,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
