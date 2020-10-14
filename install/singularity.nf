@@ -421,8 +421,6 @@ process mergeSingularityConfig {
     script:
     """
     cat << EOF > "singularity.config"
-    includeConfig 'process.config'
-    
     singularity {
         enabled = true
         autoMounts = true
@@ -480,8 +478,6 @@ process mergeDockerConfig {
     script:
     """
     cat << EOF > "docker.config"
-    includeConfig 'process.config'
-    
     docker {
         enabled = true
         runOptions = "\\\${params.geniac.containers.dockerRunOptions}"
@@ -536,7 +532,6 @@ process mergeCondaConfig {
 
     script:
     """
-    echo -e "includeConfig 'process.config'\n" > conda.config
     echo -e "conda {\n    cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
     for keyFile in ${key}
@@ -588,7 +583,6 @@ process mergeMulticondaConfig {
 
     script:
     """
-    echo -e "includeConfig 'process.config'\n" > multiconda.config
     echo -e "conda {\n    cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
     for keyFile in ${key}
@@ -644,7 +638,6 @@ process mergeMultiPathConfig {
 
     script:
     """
-    echo -e "includeConfig 'process.config'\n" >> multipath.config
     echo "singularity {" >> multipath.config
     echo "  enable = false" >> multipath.config
     echo -e "}\n" >> multipath.config
@@ -720,8 +713,6 @@ process globalPathConfig {
     script:
     """
     cat << EOF > "path.config"
-    includeConfig 'process.config'
-    
     singularity {
         enable = false
         enable = false
