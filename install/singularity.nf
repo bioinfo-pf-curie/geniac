@@ -537,7 +537,7 @@ process mergeCondaConfig {
     script:
     """
     echo -e "includeConfig 'process.config'\n" > conda.config
-    echo -e "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }\n" >> conda.config
+    echo -e "conda {\n    cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
     for keyFile in ${key}
     do
@@ -589,7 +589,7 @@ process mergeMulticondaConfig {
     script:
     """
     echo -e "includeConfig 'process.config'\n" > multiconda.config
-    echo -e "conda { cacheDir = \\\"\\\${params.condaCacheDir}\\\" }\n" >> multiconda.config
+    echo -e "conda {\n    cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
     for keyFile in ${key}
     do
