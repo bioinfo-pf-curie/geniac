@@ -621,7 +621,7 @@ process buildMultiPathConfig {
 
     """
     cat << EOF > "${key}MultiPathConfig.txt"
-        withLabel:${key} { beforeScript = \\\${params.geniac.multiPath} ? "export PATH=\\\${params.geniac.multiPath}:\\\$PATH" : "export PATH=\\\${baseDir}/../multipath/${key}/bin:\\\$PATH" }
+        withLabel:${key} { beforeScript = \\\${params.geniac.multiPath} ? "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" : "export PATH=\\\${baseDir}/../multipath/${key}/bin:\\\$PATH" }
     EOF
     cat << EOF > "${key}MultiPathLink.txt"
     ${key}/bin
