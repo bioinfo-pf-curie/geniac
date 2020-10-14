@@ -43,7 +43,7 @@ add_custom_command(
 # ##############################################################################
 
 # generate conf/*.config files (singularity, docker, conda, multiconda, path,
-# etc.) that will be used by the different nextflow profiles in the pipeline
+# multipath.) that will be used by the different nextflow profiles in the pipeline
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
