@@ -438,6 +438,7 @@ process mergeSingularityConfig {
     }
 
     process {
+        checkProfileSingularity(\\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}" : "\\\${baseDir}/../containers/singularity")
     EOF
     for keyFile in ${key}
     do
@@ -671,6 +672,7 @@ process mergeMultiPathConfig {
     echo "  enable = false" >> multipath.config
     echo -e "}\n" >> multipath.config
     echo "process {"  >> multipath.config
+    echo "  checkProfileMultipath(\\\${params.geniac.multiPath} ? "\\\${params.geniac.multiPath}" : "\\\${baseDir}/../multipath" )" >> multipath.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multipath.config
@@ -759,6 +761,7 @@ process globalPathConfig {
     }
     
     process {
+        checkProfilePath(\\\${params.geniac.path} ? "\\\${params.geniac.path}" : "\\\${baseDir}/../path")
         beforeScript = \\\${params.geniac.path} ? "export PATH=\\\${params.geniac.path}:\\\$PATH" : "export PATH=\\\${baseDir}/../path:\\\$PATH"
     }
     EOF
