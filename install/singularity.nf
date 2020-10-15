@@ -400,7 +400,7 @@ process buildSingularityConfig {
 
     """
     cat << EOF > "${key}SingularityConfig.txt"
-        withLabel:${key} { container = \\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" : "\\\${baseDir}/../containers/singularity/${key.toLowerCase()}.simg" }
+      withLabel:${key} { container = \\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" : "\\\${baseDir}/../containers/singularity/${key.toLowerCase()}.simg" }
     EOF
     """
 }
@@ -432,13 +432,13 @@ process mergeSingularityConfig {
     }
 
     singularity {
-        enabled = true
-        autoMounts = true
-        runOptions = "\\\${params.geniac.containers.singularityRunOptions}"
+      enabled = true
+      autoMounts = true
+      runOptions = "\\\${params.geniac.containers.singularityRunOptions}"
     }
 
     process {
-        checkProfileSingularity(\\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}" : "\\\${baseDir}/../containers/singularity")
+      checkProfileSingularity(\\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}" : "\\\${baseDir}/../containers/singularity")
     EOF
     for keyFile in ${key}
     do
@@ -468,7 +468,7 @@ process buildDockerConfig {
 
     """
     cat << EOF > "${key}DockerConfig.txt"
-        withLabel:${key} { container = "${key.toLowerCase()}" }
+      withLabel:${key} { container = "${key.toLowerCase()}" }
     EOF
     """
 }
@@ -490,8 +490,8 @@ process mergeDockerConfig {
     """
     cat << EOF > "docker.config"
     docker {
-        enabled = true
-        runOptions = "\\\${params.geniac.containers.dockerRunOptions}"
+      enabled = true
+      runOptions = "\\\${params.geniac.containers.dockerRunOptions}"
     }
 
     process {
@@ -523,7 +523,7 @@ process buildCondaConfig {
 
     """
     cat << EOF > "${key}CondaConfig.txt"
-        withLabel:${key} { conda = "\\\${baseDir}/environment.yml" }
+      withLabel:${key} { conda = "\\\${baseDir}/environment.yml" }
     EOF
     """
 }
@@ -543,7 +543,7 @@ process mergeCondaConfig {
 
     script:
     """
-    echo -e "conda {\n    cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
+    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
     for keyFile in ${key}
     do
@@ -574,7 +574,7 @@ process buildMulticondaConfig {
 
     """
     cat << EOF > "${key}MulticondaConfig.txt"
-        withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
+      withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
     EOF
     """
 }
@@ -594,7 +594,7 @@ process mergeMulticondaConfig {
 
     script:
     """
-    echo -e "conda {\n    cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
+    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
     for keyFile in ${key}
     do
@@ -626,7 +626,7 @@ process buildMultiPathConfig {
 
     """
     cat << EOF > "${key}MultiPathConfig.txt"
-        withLabel:${key} { beforeScript = \\\${params.geniac.multiPath} ? "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" : "export PATH=\\\${baseDir}/../multipath/${key}/bin:\\\$PATH" }
+      withLabel:${key} { beforeScript = \\\${params.geniac.multiPath} ? "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" : "export PATH=\\\${baseDir}/../multipath/${key}/bin:\\\$PATH" }
     EOF
     cat << EOF > "${key}MultiPathLink.txt"
     ${key}/bin
@@ -724,8 +724,8 @@ process clusterConfig {
      */
     
     process {
-        executor = '${params.clusterExecutor}'
-        queue = params.queue ?: null
+      executor = '${params.clusterExecutor}'
+      queue = params.queue ?: null
     }
     """
 }
@@ -752,17 +752,17 @@ process globalPathConfig {
     }
 
     singularity {
-        enable = false
-        enable = false
+      enable = false
+      enable = false
     }
-    
+
     docker {
       enable = false
     }
     
     process {
-        checkProfilePath(\\\${params.geniac.path} ? "\\\${params.geniac.path}" : "\\\${baseDir}/../path")
-        beforeScript = \\\${params.geniac.path} ? "export PATH=\\\${params.geniac.path}:\\\$PATH" : "export PATH=\\\${baseDir}/../path:\\\$PATH"
+      checkProfilePath(\\\${params.geniac.path} ? "\\\${params.geniac.path}" : "\\\${baseDir}/../path")
+      beforeScript = \\\${params.geniac.path} ? "export PATH=\\\${params.geniac.path}:\\\$PATH" : "export PATH=\\\${baseDir}/../path:\\\$PATH"
     }
     EOF
     cat << EOF > "PathLink.txt"
