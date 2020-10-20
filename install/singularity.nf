@@ -400,7 +400,7 @@ process buildSingularityConfig {
 
     """
     cat << EOF > "${key}SingularityConfig.txt"
-      withLabel:${key} { container = \\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" : "\\\${baseDir}/../containers/singularity/${key.toLowerCase()}.simg" }
+      withLabel:${key} { container = "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" }
     EOF
     """
 }
@@ -422,12 +422,17 @@ process mergeSingularityConfig {
     """
     cat << EOF > "singularity.config"
     def checkProfileSingularity(path){
-      File directory = new File(path)
-      def contents = []
-      directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
-      if (!path?.trim() || contents == null || contents.size() == 0){
-         println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
-         System.exit(-1)
+      if (new File(path).exists()){
+        File directory = new File(path)
+        def contents = []
+        directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+        if (!path?.trim() || contents == null || contents.size() == 0){
+          println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See `--singularityImagePath` for advanced usage."
+          System.exit(-1)
+        }
+      }else{
+        println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See `--singularityImagePath` for advanced usage."
+        System.exit(-1)
       }
     }
 
@@ -438,7 +443,7 @@ process mergeSingularityConfig {
     }
 
     process {
-      checkProfileSingularity(\\\${params.geniac.containers.singularityImagePath} ? "\\\${params.geniac.containers.singularityImagePath}" : "\\\${baseDir}/../containers/singularity")
+      checkProfileSingularity("\\\${params.geniac.containers.singularityImagePath}")
     EOF
     for keyFile in ${key}
     do
@@ -626,7 +631,7 @@ process buildMultiPathConfig {
 
     """
     cat << EOF > "${key}MultiPathConfig.txt"
-      withLabel:${key} { beforeScript = \\\${params.geniac.multiPath} ? "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" : "export PATH=\\\${baseDir}/../multipath/${key}/bin:\\\$PATH" }
+      withLabel:${key} { beforeScript = "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" }
     EOF
     cat << EOF > "${key}MultiPathLink.txt"
     ${key}/bin
@@ -650,12 +655,17 @@ process mergeMultiPathConfig {
     def eofContent = """\
                      cat << EOF > "multipath.config"
                      def checkProfileMultipath(path){
-                       File directory = new File(path)
-                       def contents = []
-                       directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
-                       if (!path?.trim() || contents == null || contents.size() == 0){
-                          println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
-                          System.exit(-1)
+                       if (new File(path).exists()){
+                         File directory = new File(path)
+                         def contents = []
+                         directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+                         if (!path?.trim() || contents == null || contents.size() == 0){
+                           println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+                           System.exit(-1)
+                         }
+                       }else{
+                         println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+                         System.exit(-1)
                        }
                      }
 
@@ -672,7 +682,7 @@ process mergeMultiPathConfig {
     echo "  enable = false" >> multipath.config
     echo -e "}\n" >> multipath.config
     echo "process {"  >> multipath.config
-    echo "  checkProfileMultipath(\\\${params.geniac.multiPath} ? "\\\${params.geniac.multiPath}" : "\\\${baseDir}/../multipath" )" >> multipath.config
+    echo "  checkProfileMultipath(\\\${params.geniac.multiPath})" >> multipath.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multipath.config
@@ -741,13 +751,18 @@ process globalPathConfig {
     script:
     """
     cat << EOF > "path.config"
-    def checkProfilePath(path){
-      File directory = new File(path)
-      def contents = []
-      directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
-      if (!path?.trim() || contents == null || contents.size() == 0){
-         println "   ### ERROR ###    The option '-profile path' requires all dependencies to be available in the same path. See \\`--globalPath\\` for advanced usage."
-         System.exit(-1)
+    def checkProfileMultipath(path){
+      if (new File(path).exists()){
+        File directory = new File(path)
+        def contents = []
+        directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+        if (!path?.trim() || contents == null || contents.size() == 0){
+          println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          System.exit(-1)
+        }
+      }else{
+        println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        System.exit(-1)
       }
     }
 
@@ -761,8 +776,8 @@ process globalPathConfig {
     }
     
     process {
-      checkProfilePath(\\\${params.geniac.path} ? "\\\${params.geniac.path}" : "\\\${baseDir}/../path")
-      beforeScript = \\\${params.geniac.path} ? "export PATH=\\\${params.geniac.path}:\\\$PATH" : "export PATH=\\\${baseDir}/../path:\\\$PATH"
+      checkProfilePath(\\\${params.geniac.path})
+      beforeScript = "export PATH=\\\${params.geniac.path}:\\\$PATH"
     }
     EOF
     cat << EOF > "PathLink.txt"
