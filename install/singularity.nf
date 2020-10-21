@@ -753,7 +753,7 @@ process globalPathConfig {
     script:
     """
     cat << EOF > "path.config"
-    def checkProfileMultipath(path){
+    def checkProfilePath(path){
       if (new File(path).exists()){
         File directory = new File(path)
         def contents = []
