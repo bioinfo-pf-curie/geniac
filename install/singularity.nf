@@ -653,34 +653,36 @@ process mergeMultiPathConfig {
     file("multipath.config") into finalMultiPathConfigCh
 
     def eofContent = """\
-                     cat << EOF > "multipath.config"
-                     def checkProfileMultipath(path){
-                       if (new File(path).exists()){
-                         File directory = new File(path)
-                         def contents = []
-                         directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
-                         if (!path?.trim() || contents == null || contents.size() == 0){
-                           println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
-                           System.exit(-1)
-                         }
-                       }else{
-                         println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
-                         System.exit(-1)
-                       }
-                     }
+      cat << EOF > "multipath.config"
+      def checkProfileMultipath(path){
+        if (new File(path).exists()){
+          File directory = new File(path)
+          def contents = []
+          directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+          if (!path?.trim() || contents == null || contents.size() == 0){
+            println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+            System.exit(-1)
+          }
+        }else{
+          println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          System.exit(-1)
+        }
+      }
+                     
+      singularity {
+        enabled = false
+      }
+      
+      docker {
+        enabled = false
+      }
 
-                     EOF
-                     """.stripIndent()
+      EOF
+      """.stripIndent()
 
     script:
     """
     ${eofContent}
-    echo "singularity {" >> multipath.config
-    echo "  enable = false" >> multipath.config
-    echo -e "}\n" >> multipath.config
-    echo "docker {" >> multipath.config
-    echo "  enable = false" >> multipath.config
-    echo -e "}\n" >> multipath.config
     echo "process {"  >> multipath.config
     echo "  checkProfileMultipath(\\\${params.geniac.multiPath})" >> multipath.config
     for keyFile in ${key}
@@ -767,12 +769,11 @@ process globalPathConfig {
     }
 
     singularity {
-      enable = false
-      enable = false
+      enabled = false
     }
 
     docker {
-      enable = false
+      enabled = false
     }
     
     process {
