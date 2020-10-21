@@ -759,11 +759,11 @@ process globalPathConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
         System.exit(-1)
       }
     }
