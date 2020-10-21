@@ -246,7 +246,7 @@ process buildSingularityRecipeFromCondaFile {
     """
 }
 
-/** 
+/**
  * Build Singularity recipe from conda specifications in params.geniac.tools
 **/
 process buildSingularityRecipeFromCondaPackages {
@@ -306,7 +306,7 @@ process buildSingularityRecipeFromSourceCode {
 
     input:
     set val(key), file(installFile) from sourceCodeCh
-    
+
     output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh5
 
@@ -364,7 +364,7 @@ process buildImages {
     params.buildSingularityImages
 
     input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh 
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh
     file condaYml from condaRecipes.collect().ifEmpty([])
     file fileDep from fileDependencies.collect().ifEmpty([])
     file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
@@ -391,7 +391,7 @@ process buildSingularityConfig {
     params.buildConfigFiles
 
     input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh 
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh
 
     output:
     file("${key}SingularityConfig.txt") into mergeSingularityConfigCh
@@ -413,7 +413,7 @@ process mergeSingularityConfig {
     params.buildConfigFiles
 
     input:
-    file key from mergeSingularityConfigCh.collect() 
+    file key from mergeSingularityConfigCh.collect()
 
     output:
     file("singularity.config") into finalSingularityConfigCh
@@ -464,7 +464,7 @@ process buildDockerConfig {
     params.buildConfigFiles
 
     input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh 
+    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh
 
     output:
     file("${key}DockerConfig.txt") into mergeDockerConfigCh
@@ -486,7 +486,7 @@ process mergeDockerConfig {
     params.buildConfigFiles
 
     input:
-    file key from mergeDockerConfigCh.collect() 
+    file key from mergeDockerConfigCh.collect()
 
     output:
     file("docker.config") into finalDockerConfigCh
@@ -541,7 +541,7 @@ process mergeCondaConfig {
     params.buildConfigFiles
 
     input:
-    file key from mergeCondaConfigCh.collect() 
+    file key from mergeCondaConfigCh.collect()
 
     output:
     file("conda.config") into finalCondaConfigCh
@@ -592,7 +592,7 @@ process mergeMulticondaConfig {
     params.buildConfigFiles
 
     input:
-    file key from mergeMulticondaConfigCh.collect() 
+    file key from mergeMulticondaConfigCh.collect()
 
     output:
     file("multiconda.config") into finalMulticondaConfigCh
