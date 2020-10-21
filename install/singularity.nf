@@ -400,7 +400,7 @@ process buildSingularityConfig {
 
     """
     cat << EOF > "${key}SingularityConfig.txt"
-      withLabel:${key} { container = "\\\${params.geniac.containers.singularityImagePath}/${key.toLowerCase()}.simg" }
+      withLabel:${key} { container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.simg" }
     EOF
     """
 }
@@ -443,7 +443,7 @@ process mergeSingularityConfig {
     }
 
     process {
-      checkProfileSingularity("\\\${params.geniac.containers.singularityImagePath}")
+      checkProfileSingularity("\\\${params.geniac.singularityImagePath}")
     EOF
     for keyFile in ${key}
     do
