@@ -427,11 +427,11 @@ process mergeSingularityConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See `--singularityImagePath` for advanced usage."
+          println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See `--singularityImagePath` for advanced usage."
+        println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
         System.exit(-1)
       }
     }
