@@ -777,7 +777,7 @@ process globalPathConfig {
     }
     
     process {
-      checkProfilePath(\\\${params.geniac.path})
+      checkProfilePath("\\\${params.geniac.path}")
       beforeScript = "export PATH=\\\${params.geniac.path}:\\\$PATH"
     }
     EOF
