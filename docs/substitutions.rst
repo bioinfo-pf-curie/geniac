@@ -1,7 +1,7 @@
 .. |biogitflow| replace:: biogitflow
 .. _biogitflow: https://biogitflow.readthedocs.io
 
-.. |biogitflowref| replace:: biogitflow: development workflow protocols for bioinformatics pipelines with git and GitLab
+.. |biogitflowref| replace:: biogitflow: development workflow protocols for bioinformatics pipelines with git and GitLab (Kamoun et al., 2020)
 .. _biogitflowref: https://f1000research.com/articles/9-632
 
 .. |centos| replace:: CentOS
