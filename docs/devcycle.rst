@@ -95,6 +95,10 @@ The workflow accross the different branches can be summarized as described in th
 
    Do not forget to merge any developements from **release** to **devel**, and from **hotfix** to **release** and **devel** such that all the branches are up-to-date with last developments and hotfixes.
 
+.. tip::
+
+   For more details on the branching model and the usage of git, we recommend the user to read the |biogitflow|_ documentation and the associated article |biogitflowref|_.
+
 Tag strategy
 ------------
 
@@ -102,5 +106,19 @@ For official release that can be used in a production environnement, use a tag w
 
 .. warning::
 
-   This is essential that you use this naming convention. Indeed, this will allow the display of a message if a user runs a pipeline with a development version that can be unstable and thus providing results that are not reliable.
+   This is essential that you use this naming convention. Indeed, this will allow the display of a message if a user runs a pipeline with a development version that can be unstable and thus providing results that are not reliable. For example:
+
+   ::
+
+      ======================================================================
+      DISCLAIMER
+      
+      This software is currently under active development and the results 
+      have been generated with a non stable version.
+      The reliability, reproducibility and the quality of the results are 
+      therefore not guaranteed.
+      
+      /!\ Do not use the results for any kind of projects /!\
+      ======================================================================
+
 
