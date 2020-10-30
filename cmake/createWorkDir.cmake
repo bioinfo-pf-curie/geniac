@@ -19,6 +19,8 @@ file(COPY ${pipeline_source_dir}/conf/ DESTINATION ${geniac_binary_dir}/workDir/
 
 if(EXISTS ${pipeline_source_dir}/modules/)
     file(COPY ${pipeline_source_dir}/modules/ DESTINATION ${geniac_binary_dir}/workDir/modules)
+else()
+    file(MAKE_DIRECTORY ${geniac_binary_dir}/workDir/modules)
 endif()
 
 if(EXISTS ${pipeline_source_dir}/recipes/)

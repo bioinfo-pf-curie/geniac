@@ -115,7 +115,7 @@ Channel
 
 
 Channel
-    .fromPath("${baseDir}/modules", type: 'dir')
+    .fromPath("${baseDir}/modules", type: 'dir', checkIfExists: true)
     .set{ sourceCodeDirCh }
 
 
