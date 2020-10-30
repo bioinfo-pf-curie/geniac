@@ -12,23 +12,23 @@ FAQ
 
 
 
-How can I use nf-geniac on an existing repository?
+How can I use geniac on an existing repository?
 ==================================================
 
 The structure of the repository is based on |nfcore|_ and additional files and folders are expected.
 
-All the resources for nf-geniac are available here:
+All the resources for geniac are available here:
 
 * |geniacrepo|_
 * |geniacdemo|_
 * |geniactemplate|_
 
-Follow the guidelines below if you want to use nf-geniac on an existing repository. 
+Follow the guidelines below if you want to use geniac on an existing repository. 
 
 Create a the folder *geniac*
 ----------------------------
 
-The guidelines and additional utilities we developed are in ``nf-geniac`` should be located in a folder named ``geniac`` in your new repository. The utilities in the ``geniac`` folder can either be copied or link to your pipeline repository as a
+The guidelines and additional utilities we developed are in ``geniac`` should be located in a folder named ``geniac`` in your new repository. The utilities in the ``geniac`` folder can either be copied or link to your pipeline repository as a
 |gitsubmodule|_.
 
 .. note::
@@ -73,7 +73,7 @@ The source code of your repository should look like this:
    │   ├── base.config              # contains the geniac scope mandatory for nextflow
    ├── docs                         # documentation of the pipeline
    ├── env                          # process specific environment variables
-   ├── geniac                       # nf-geniac utilities
+   ├── geniac                       # geniac utilities
    │   ├── cmake                    # source files for the configuration step
    │   ├── docs                     # guidelines for installation
    │   ├── install                  # scripts for the build step

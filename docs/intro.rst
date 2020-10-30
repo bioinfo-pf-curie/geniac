@@ -40,7 +40,7 @@ To do so, we expect that the bioinformaticians and statisticians capitalize on t
 
 All the guidelines are detailed in the next sections.
 
-Useful resources for nf-geniac are available here:
+Useful resources for geniac are available here:
 
 * |geniacdoc|_
 * |geniacrepo|_

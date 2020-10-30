@@ -13,16 +13,16 @@
 .. |docker| replace:: docker
 .. _docker: https://www.docker.com/
 
-.. |geniacdemo| replace:: nf-geniac demo
+.. |geniacdemo| replace:: geniac demo
 .. _geniacdemo: https://gitlab.curie.fr/pipeline_templates/data-analysis_demo
 
-.. |geniacdoc| replace:: nf-geniac documentation
-.. _geniacdoc: https://nf-geniac.readthedocs.io/
+.. |geniacdoc| replace:: geniac documentation
+.. _geniacdoc: https://geniac.readthedocs.io/
 
-.. |geniacrepo| replace:: nf-geniac repository
-.. _geniacrepo: https://gitlab.curie.fr/pipeline_templates/nf-geniac
+.. |geniacrepo| replace:: geniac repository
+.. _geniacrepo: https://gitlab.curie.fr/pipeline_templates/geniac
 
-.. |geniactemplate| replace:: nf-geniac template
+.. |geniactemplate| replace:: geniac template
 .. _geniactemplate: https://gitlab.curie.fr/pipeline_templates/data-analysis_template
 
 .. |git| replace:: git
