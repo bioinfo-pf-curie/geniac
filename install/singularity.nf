@@ -684,7 +684,7 @@ process mergeMultiPathConfig {
     """
     ${eofContent}
     echo "process {"  >> multipath.config
-    echo "  checkProfileMultipath(\\\${params.geniac.multiPath})" >> multipath.config
+    echo "  checkProfileMultipath(\"\\\${params.geniac.multiPath}\")" >> multipath.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multipath.config
