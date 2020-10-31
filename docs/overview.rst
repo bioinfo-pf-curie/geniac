@@ -64,5 +64,5 @@ For the scripts you develop and that are accessible in the ``bin/`` use the pref
 Environment variables
 ---------------------
 
-Use snake_case and lower case, for example ``MY_GLOBAL_VAR = "someValue"``.
+Use snake_case and upper case, for example ``MY_GLOBAL_VAR = "someValue"``.
 
