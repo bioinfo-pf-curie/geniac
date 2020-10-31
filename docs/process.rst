@@ -542,19 +542,19 @@ If the environment variable will be used by several processes, add it in the ``c
 ::
 
    env {
-       my_global_var = "someValue"
+       MY_GLOBAL_VAR = "someValue"
    }
 
 *example*
 
-The script ``apMyscript.sh`` uses ``my_global_var``:
+The script ``apMyscript.sh`` uses ``MY_GLOBAL_VAR``:
 
 ::
 
    #! /bin/bash
    
    echo "This is a script I have developed for the pipeline."
-   echo "my_global_var: ${my_global_var}"
+   echo "MY_GLOBAL_VAR: ${MY_GLOBAL_VAR}"
 
 
 This script is called in the following process:
@@ -590,9 +590,9 @@ Add a file with the name of your process and the extension ``.env`` in the folde
    #!/bin/bash
    
    # required environment variables for alpine
-   peak_height="4810m" 
+   PEAK_HEIGHT="4810m" 
    
-   export peak_height
+   export PEAK_HEIGHT
 
 *example*
 
@@ -616,7 +616,7 @@ In your process, source the ``env/alpine.env`` and then use the variable you def
      script:
      """
      source ${baseDir}/env/alpine.env
-     echo "Hello from alpine: \$(date). This is very high here: \${peak_height}!" > alpine_${x}.txt
+     echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
      """
    }
 

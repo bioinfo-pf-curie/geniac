@@ -42,7 +42,7 @@ Variables
 ---------
 
 
-Use camelCase, for example ``outputDir = './results'``.
+Use camelCase, for example ``outDir = './results'``.
 
 
 Channels
@@ -56,7 +56,7 @@ Files
 -----
 
 
-Use camelCase, for example ``someScript.sh``.
+Prefer camelCase (whenever possible as some tools expect specific pattern such as |multiqc|_ like ``_mqc`` suffixe), for example ``someScript.sh``.
 
 For the scripts you develop and that are accessible in the ``bin/`` use the prefix **ap** (**a**\nalysis **p**\ipeline), for example ``apMyscript.sh``. This prefix makes it possible to distinguish the scripts you personally developed from those you retrieved from third parties.
 
@@ -64,5 +64,5 @@ For the scripts you develop and that are accessible in the ``bin/`` use the pref
 Environment variables
 ---------------------
 
-Use snake_case and lower case, for example ``my_global_var = "someValue"``.
+Use snake_case and lower case, for example ``MY_GLOBAL_VAR = "someValue"``.
 
