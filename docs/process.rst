@@ -6,7 +6,7 @@
 Add a process
 *************
 
-This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the |singularity|_ and |docker|_.
+This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the |singularity|_ and |docker|_ containers.
 
 
 Structure of a process
@@ -20,28 +20,34 @@ Each process must have a *label* directive. The *label* name may be different of
 
 ::
 
-   process outputDocumentation {
-     label 'rmarkdown'
-     publishDir "${params.summaryDir}", mode: 'copy'
+   process fastqc {
+     label 'fastqc'
+     label 'smallMem'
+     label 'smallCpu'
+   
+     tag "${prefix}"
+     publishDir "${params.outDir}/fastqc", mode: 'copy'
    
      input:
-     file outputDocs from OutputDocsCh
+     set val(prefix), file(reads) from rawReadsFastqcCh
    
      output:
-     file "resultsDescription.html"
+     file "*_fastqc.{zip,html}" into fastqcResultsCh
+     file "v_fastqc.txt" into fastqcVersionCh
    
      script:
      """
-     markdownToHtml.r $outputDocs resultsDescription.html
+     fastqc -q $reads
+     fastqc --version > v_fastqc.txt
      """
    }
 
 
-Having a label is essential such that it makes it possible to automatically generate the configuration files ``conda.config``, ``multiconda.config``, ``singularity.config``, ``docker.config`` and ``path.config``. This configuration files use the ``withLabel`` process selector. We will explain in the section :ref:`process-guidelines` that the name of the *label* must follow specific rules.
+Having a label is essential such that it makes it possible to automatically generate the configuration files ``conda.config``, ``multiconda.config``, ``singularity.config``, ``docker.config``, ``path.config`` and ``multipath.config``. This configuration files use the ``withLabel`` process selector. We will explain in the section :ref:`process-guidelines` that the name of the *label* must follow specific rules.
 
 .. important::
 
-   Pay a lot of attention to declare the *label* for each process since the automatic generation of configuration files mentionned above along with the singularity / docker recipes and containers relies on the label name by parsing the ``conf/base.config`` file from the source code.
+   Pay a lot of attention to declare the *label* for each process since the automatic generation of configuration files mentionned above along with the singularity / docker recipes and containers relies on the label name by parsing the ``conf/geniac.config`` file from the source code.
 
 .. note:: 
 
@@ -129,19 +135,18 @@ Use always ``label 'onlyLinux'``
 
 ::
 
-   
    process standardUnixCommand {
      label 'onlyLinux'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/standardUnixCommand", mode: 'copy'
-   
+     publishDir "${params.outDir}/standardUnixCommand", mode: 'copy'
+
      input:
      file hello from helloWorldOutputCh
-   
+
      output:
      file "bonjourMonde.txt"
-   
+
      script:
      """
      sed -e 's/Hello World/Bonjour Monde/g' ${hello} > bonjourMonde.txt
@@ -164,7 +169,7 @@ Easy install with conda
 
 Of course, the tool has to be available in a conda channel.
 
-Edit the file ``conf/base.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8=r351h96ca727_1003`` in the section ``params.geniac.tools`` as follows:
+Edit the file ``conf/geniac.config`` and add for example ``rmarkdown = "conda-forge::r-markdown=0.8=r351h96ca727_1003`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
@@ -205,19 +210,25 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
 ::
 
-   process outputDocumentation {
-     label 'rmarkdown'
-     publishDir "${params.summaryDir}", mode: 'copy'
+   process fastqc {
+     label 'fastqc'
+     label 'smallMem'
+     label 'smallCpu'
+   
+     tag "${prefix}"
+     publishDir "${params.outDir}/fastqc", mode: 'copy'
    
      input:
-     file outputDocs from chOutputDocs
+     set val(prefix), file(reads) from rawReadsFastqcCh
    
      output:
-     file "resultsDescription.html"
+     file "*_fastqc.{zip,html}" into fastqcResultsCh
+     file "v_fastqc.txt" into fastqcVersionCh
    
      script:
      """
-     markdownToHtml.r $outputDocs resultsDescription.html
+     fastqc -q $reads
+     fastqc --version > v_fastqc.txt
      """
    }
 
@@ -225,7 +236,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/base.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/geniac.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
 
 ::
 
@@ -255,19 +266,18 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
 
 ::
 
-   name: trickySoftware_env
-   channels:
-       - bioconda
-       - conda-forge
-       - defaults
-   dependencies:
-       - python=2.7.13=1
-       - pip:
-           - pysam==0.11.2.2
-           - numpy==1.13.1
-   
+    name: trickySoftware_env
+    channels:
+        - bioconda
+        - conda-forge
+        - defaults
+    dependencies:
+        - python=3.9.0=h2a148a8_4_cpython
+        - pip:
+            - numpy==1.19.2
 
-Edit the file ``conf/base.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
+
+Edit the file ``conf/geniac.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
@@ -293,7 +303,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
      label 'trickySoftware'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/trickySoftware", mode: 'copy'
+     publishDir "${params.outDir}/trickySoftware", mode: 'copy'
    
      output:
      file "trickySoftwareResults.txt"
@@ -307,7 +317,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/base.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.geniac.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/geniac.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.geniac.containers.yum`` as follows:
 
 
 ::
@@ -351,7 +361,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
      label 'onlyLinux'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/execBinScript", mode: 'copy'
+     publishDir "${params.outDir}/execBinScript", mode: 'copy'
    
      output:
      file "execBinScriptResults_*"
@@ -380,7 +390,7 @@ Install from source code
 *prerequisite*
 ++++++++++++++
 
-First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. Create the ``modules`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_.
+First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. Create the ``modules`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_ `(see this tutorial) <https://biogitflow.readthedocs.io/en/latest/git.html#add-a-submodule-in-a-repository>`_.
 
 Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmakeexternalproject|_  function from |cmake|_.
 
@@ -420,7 +430,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
      label 'helloWorld'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/helloWorld", mode: 'copy'
+     publishDir "${params.outDir}/helloWorld", mode: 'copy'
    
      output:
      file "helloWorld.txt" into helloWorldOutputCh
@@ -468,7 +478,7 @@ Add your installer file (`deb`, `rpm` or whatever) in the ``recipes/dependencies
 *label*
 +++++++
 
-
+Choose any name you want.
 
 *example*
 +++++++++
@@ -481,7 +491,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
      label 'alpine'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/alpine", mode: 'copy'
+     publishDir "${params.outDir}/alpine", mode: 'copy'
    
      input:
      val x from oneToFiveCh
@@ -520,6 +530,25 @@ This is the only case you will have to write the recipe yourself. The recipe sho
    %environment
        export LC_ALL=C
        export PATH=/usr/games:$PATH
+
+The ``alpine.Dockerfile`` recipe looks like this:
+
+::
+
+   FROM alpine:3.7
+   
+   RUN mkdir -p /opt
+   
+   ADD myDependency.sh /opt/myDependency.sh
+   
+   RUN apk update
+   RUN apk add bash
+   RUN bash /opt/myDependency.sh
+   
+   ENV LC_ALL C
+   ENV PATH /usr/games:$PATH
+
+
 
 .. important::
 
@@ -565,7 +594,7 @@ This script is called in the following process:
      label 'onlyLinux'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/execBinScript", mode: 'copy'
+     publishDir "${params.outDir}/execBinScript", mode: 'copy'
    
      output:
      file "execBinScriptResults_*"
@@ -576,7 +605,6 @@ This script is called in the following process:
      someScript.sh > execBinScriptResults_2.txt
      """
    }
-
 
 Process specific
 ++++++++++++++++
@@ -605,7 +633,7 @@ In your process, source the ``env/alpine.env`` and then use the variable you def
      label 'alpine'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/alpine", mode: 'copy'
+     publishDir "${params.outDir}/alpine", mode: 'copy'
    
      input:
      val x from oneToFiveCh
@@ -651,7 +679,7 @@ Then, in any process, you can just set any label you need. For example:
      label 'onlyLinux'
      label 'smallMem'
      label 'smallCpu'
-     publishDir "${params.outputDir}/execBinScript", mode: 'copy'
+     publishDir "${params.outDir}/execBinScript", mode: 'copy'
    
      output:
      file "execBinScriptResults_*"
@@ -671,22 +699,20 @@ To optimize the resources used in a computing cluster, you may want to finely tu
 
 ::
 
-  withName:workflowSummaryMqc {
-    cpus = { checkMax (1, 'cpus') }
-    memory = { checkMax( 10.MB, 'memory' ) }
-    executor = 'local'
+  withName:outputDocumentation {
+    memory = { checkMax( 100.MB, 'memory' ) }
   }
 
 .. tip::
 
-   To assess what are the amount of resources used by you process refers to `Metrics documentation <https://www.nextflow.io/docs/latest/metrics.html>`_.
+   To assess what are the amount of resources used by you process refers to the `Metrics section <https://www.nextflow.io/docs/latest/metrics.html>`_ fron the |nextflow|_ documentation.
 
 Results
 =======
 
-Use the ``publishDir`` directive with the ``${params.outputDir}`` parameters and organize your results as you wish. For example:
+Use the ``publishDir`` directive with the ``${params.outDir}`` parameters and organize your results as you wish. For example:
 
 ::
 
-   publishDir "${params.outputDir}/execBinScript", mode: 'copy'
+   publishDir "${params.outDir}/execBinScript", mode: 'copy'
 

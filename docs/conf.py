@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'geniac'
-copyright = u'2019, Philippe Hupé'
+copyright = u'2020, Philippe Hupé'
 author = u'Philippe Hupé'
 
 # The version info for the project you're documenting, acts as replacement for

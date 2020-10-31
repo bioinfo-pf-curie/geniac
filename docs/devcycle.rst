@@ -41,7 +41,7 @@ Whatever you use ``make test_multiconda`` (or any custom targets available in :r
 
    **Why it is essential to deploy the pipeline in a dedicated directory and then test your modifications** rather than testing it directly from your source code directory in which you are developing?
    
-   The deployement of the pipeline in a dedicated directory makes it possible to keep developing and modifying any file or to checkout any branch while a test is running especially when the test can take time. If you would launch a test from the source code directory the files could be modified while the test is running.
+   The deployment of the pipeline in a dedicated directory makes it possible to keep developing and modifying any file or to checkout any branch while a test is running especially when the test can take time. If you would launch a test from the source code directory the files could be modified while the test is running.
 
 .. note::
 
@@ -55,7 +55,7 @@ Building the |singularity|_ or |docker|_ containers should start once the protot
 * writing the recipes for any process that have a label falling in the :ref:`process-source-code` or :ref:`process-custom-install` categories,
 * performing :ref:`process-resource` in order to optimize the informatic resource asked by the different processes.
 
-Deployement
+Deployment
 ===========
 
 Whoever you are, follow the guidelines describes in the :ref:`install-page` section.

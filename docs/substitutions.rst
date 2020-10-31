@@ -40,6 +40,9 @@
 .. |gitsubmodule| replace:: git submodule
 .. _gitsubmodule: https://git-scm.com/book/en/v2/Git-Tools-Submodules
 
+.. |multiqc| replace:: MultiQC
+.. _multiqc: https://multiqc.info
+
 .. |nextflow| replace:: nextflow
 .. _nextflow: https://www.nextflow.io/
 
