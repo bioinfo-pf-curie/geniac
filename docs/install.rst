@@ -9,7 +9,7 @@ Installation
 
 We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (see :ref:`overview-source-tree`).
 
-Installation require cmake (version 3.0 or above) and consists of the following sequence.
+Installation requires |cmake|_ (version 3.0 or above) and consists of the following sequence.
 
 ::
 
@@ -26,9 +26,9 @@ Installation require cmake (version 3.0 or above) and consists of the following 
 
 .. note::
 
-   If you use CentOS cmake 3 is available as ``cmake3``. You can alias ``cmake3`` as ``cmake`` in your ``.bashrc`` if needed.
+   If you use |centos|_, |cmake|_ version 3 is available as ``cmake3`` executable. You can alias ``cmake3`` as ``cmake`` in your ``.bashrc`` if needed.
 
-Different options can be passed to cmake for the configuration step. They are described in the following section.
+Different options can be passed to |cmake|_ for the configuration step. They are described in the following section.
 
 .. _install-configure:
 
@@ -38,12 +38,12 @@ Configure
 List of options
 ---------------
 
-The configure options for the **a**\nalysis **p**\ipeline start with the prefix **ap** and are in lower case. Options in upper case are cmake variables.
+The configure options for the **a**\nalysis **p**\ipeline start with the prefix **ap** and are in lower case. Options in upper case are |cmake|_ language variables.
 
 CMAKE_INSTALL_PREFIX
 ++++++++++++++++++++
 
-This is the cmake variable to set the install directory.
+This is the |cmake|_ variable to set the install directory.
 
 ap_annotation_path
 ++++++++++++++++++
@@ -85,7 +85,7 @@ ap_nf_executor
 ++++++++++++++
 
 | STRING
-| executor used by nextflow (e.g. pbs, slurm, etc.).
+| `executor <https://www.nextflow.io/docs/latest/executor.html>`_ used by nextflow (e.g. pbs, slurm, etc.).
 | Default is pbs.
 
 ap_singularity_image_path
@@ -129,7 +129,7 @@ The file ``geniac/install/cmake-init-default.cmake`` provides a script to set al
 
 
 .. note::
-   On CentOS, the syntax is ``cmake3 ../${myGitRepo}/geniac -C ../${myGitRepo}/geniac/install/cmake-init.cmake``
+   On |centos|_, the syntax is ``cmake3 ../${myGitRepo}/geniac -C ../${myGitRepo}/geniac/install/cmake-init.cmake``
 
 
 
@@ -186,6 +186,7 @@ In order to make the deployment and testing of the pipeline easier, several cust
 * ``make test_conda``
 * ``make test_docker``
 * ``make test_multiconda``
+* ``make test_multipath``
 * ``make test_path``
 * ``make test_singularity``
 * ``make test_standard``
@@ -204,6 +205,7 @@ If you want to add the :ref:`run-profile-cluster` profile, just type the followi
 * ``make test_conda_cluster``
 * ``make test_docker_cluster``
 * ``make test_multiconda_cluster``
+* ``make test_multipath_cluster``
 * ``make test_path_cluster``
 * ``make test_singularity_cluster``
 * ``make test_standard_cluster``
@@ -223,7 +225,7 @@ Structure of the installation directory tree
    ├── annotations
    ├── containers
    │   └── singularity
-   ├── path
+   ├── multipath
    │   ├── alpine
    │   │   └── bin
    │   ├── fastqc
@@ -234,6 +236,8 @@ Structure of the installation directory tree
    │   │   └── bin
    │   └── trickySoftware
    │       └── bin
+   ├── path
+   │   ├── bin
    └── pipeline
        ├── assets
        ├── bin
@@ -317,5 +321,5 @@ Install and run with singularity
 
 .. note::
 
-   Whenever you explicitely set an option on the command line such as ``-Dap_install_singularity_images=ON``, and then you want to reconfigure your build directory by specifying only another option on the command line such as ``-DCMAKE_INSTALL_PREFIX=$HOME/myPipelineNewDir``, the ``ap_install_singularity_images`` will remain ``ON`` unless you specify ``-Dap_install_singularity_images=ON``.
+   Whenever you explicitely set an option on the command line such as ``-Dap_install_singularity_images=ON``, and then you want to reconfigure your build directory by specifying only another option on the command line such as ``-DCMAKE_INSTALL_PREFIX=$HOME/myPipelineNewDir``, the ``ap_install_singularity_images`` will remain ``ON`` unless you specify ``-Dap_install_singularity_images=OFF``.
 

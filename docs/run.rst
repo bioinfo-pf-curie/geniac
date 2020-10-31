@@ -18,23 +18,6 @@ Profiles
 Set where the tools are available
 ---------------------------------
 
-.. _run-profile-standard:
-
-standard
-++++++++
-
-This is the default profile used when ``-profile`` is not specified when you launch `nextflow`. This profile requires that all the tools are available in your path.
-
-
-*example*
-
-::
-
-   nextflow -c conf/test.config run main.nf
-
-.. warning::
-
-   If two different processes require the same tool but with different versions, this profile will not work. Thus, you will have to use :ref:`run-profile-multiconda`, :ref:`run-profile-singularity`, :ref:`run-profile-docker` or :ref:`run-profile-path` profiles.
 
 .. _run-profile-conda:
 
@@ -58,6 +41,19 @@ The conda environment is created in the `$HOME/conda-cache-nextflow` directory b
 
    Only tools that are compatible with each other can be added in the conda recipe ``environment.yml``.
 
+.. _run-profile-docker:
+
+docker
+++++++
+
+This profile allows the usage of the singularity containers. This profile will work in any case (provided that you have root credentials to run docker).
+
+*example*
+
+::
+
+   nextflow -c conf/test.config run main.nf -profile singularity
+
 .. _run-profile-multiconda:
 
 multiconda
@@ -75,40 +71,12 @@ When using this profile, `nextflow` creates several conda environments: for ever
 
    The conda environments are created the first time the pipeline is started.
 
-.. _run-profile-singularity:
+.. _run-profile-multipath:
 
+multipath
++++++++++
 
-singularity
-+++++++++++
-
-This profile allows the usage of the singularity containers. This profile will work in any case.
-
-*example*
-
-::
-
-   nextflow -c conf/test.config run main.nf -profile singularity
-
-
-.. _run-profile-docker:
-
-docker
-++++++
-
-This profile allows the usage of the singularity containers. This profile will work in any case (provided that you have root credentials to run docker).
-
-*example*
-
-::
-
-   nextflow -c conf/test.config run main.nf -profile singularity
-
-.. _run-profile-path:
-
-path
-++++
-
-On the pipeline is installed, the following directory tree is created in the install directory:
+Once the pipeline is installed, the following directory tree is created in the install directory:
 
 ::
 
@@ -135,6 +103,37 @@ Alternatively, you can also do the following:
    rm -r path/fastqc/bin
    ln -s /usr/bin path/fastqc/bin
 
+.. _run-profile-singularity:
+
+singularity
++++++++++++
+
+This profile allows the usage of the singularity containers. This profile will work in any case.
+
+*example*
+
+::
+
+   nextflow -c conf/test.config run main.nf -profile singularity
+
+
+.. _run-profile-standard:
+
+standard
+++++++++
+
+This is the default profile used when ``-profile`` is not specified when you launch `nextflow`. This profile requires that all the tools are available in your path.
+
+
+*example*
+
+::
+
+   nextflow -c conf/test.config run main.nf
+
+.. warning::
+
+   If two different processes require the same tool but with different versions, this profile will not work. Thus, you will have to use :ref:`run-profile-multiconda`, :ref:`run-profile-singularity`, :ref:`run-profile-docker` or :ref:`run-profile-multipath` profiles.
 
 Set where the computation will take place
 -----------------------------------------
@@ -195,7 +194,7 @@ Depending on the process type, the tool is not available with all the different 
 
 | |ok| the tool will be available after install or first run of the pipeline
 | |ko| the tool must in your ``$PATH``
-| |path| the tool must be in the ``path/`` of the install directory (see :ref:`run-profile-path` for details)
+| |path| the tool must be in the ``path/`` of the install directory (see :ref:`run-profile-multipath` for details)
 
 Options
 =======
@@ -249,10 +248,10 @@ If all the tools are available in your path, just launch:
 
 .. _run-combine-path-conda:
 
-Combine path profile with conda/multiconda
-------------------------------------------
+Combine path/multipath profile with conda/multiconda
+----------------------------------------------------
 
-We see from the :ref:`run-process-profile-table` table that, if you use the :ref:`run-profile-multiconda` profile and one tool falls in the :ref:`process-custom-install` category, the workflow will fail unless the tool is already installed and available in your ``$PATH``. You also have the possibility to add the tool ins the ``path/`` of the install directory (see :ref:`run-profile-path` for details). To illustrate this, let's try the following:
+We see from the :ref:`run-process-profile-table` table that, if you use the :ref:`run-profile-multiconda` profile and one tool falls in the :ref:`process-custom-install` category, the workflow will fail unless the tool is already installed and available in your ``$PATH``. You also have the possibility to add the tool ins the ``path/`` of the install directory (see :ref:`run-profile-multipath` for details). To illustrate this, let's try the following:
 
 ::
 
@@ -265,7 +264,7 @@ Then, make the ``helloWorld`` tool unavailable:
 ::
 
    cd ..
-   mv pipeline/bin/helloWorld path/helloWorld/helloWorld
+   mv pipeline/bin/helloWorld path/helloWorld/bin/helloWorld
    cd -
    nextflow -c conf/test.config run main.nf -profile multiconda
 
@@ -275,7 +274,7 @@ Thus try:
 
 ::
 
-   nextflow -c conf/test.config run main.nf -profile multiconda,path
+   nextflow -c conf/test.config run main.nf -profile multiconda,multipath
 
 Of course, it works!
 

@@ -16,7 +16,7 @@ When prototyping the pipeline, we advice to use the :ref:`run-profile-multiconda
 
 We suggest that you provide test data and a ``conf/test.config`` file such that the pipeline can be tested on any modification of the source code for validation. Whenever possible, the test data must be as small as possible such that running the test does not take too much time.
 
-Then, to install and test your modifications, just type ``make test_multiconda`` (see :ref:`install-test`) in the build directory. The first time this command is typed, the ``config`` files are automatically generated and installed. The configuration files will be regenerated whenever you modify the ``conf/base.config`` file (or whenever something is added or modified the both the ``recipes`` or ``modules`` directories).
+Then, to install and test your modifications, just type ``make test_multiconda`` (see :ref:`install-test`) in the build directory. The first time this command is typed, the ``config`` files are automatically generated and installed. The configuration files will be regenerated whenever you modify the ``conf/geniac.config`` file (or whenever something is added or modified in both the ``recipes`` or ``modules`` directories).
 
 
 .. |ko| image:: images/install.png
@@ -28,7 +28,7 @@ Then, to install and test your modifications, just type ``make test_multiconda``
 
 .. note::
 
-   You can combine both the :ref:`run-profile-multiconda` with the :ref:`run-profile-path` profiles as described in the :ref:`run-combine-path-conda` section. This offers the possibility to install on your own all the software you need to setup the analysis methodology for the pipeline you are developing, in particular whenever you fall in any of the cases |ko| of |path| as described in the  :ref:`run-process-profile-table` table.
+   You can combine both the :ref:`run-profile-multiconda` with the :ref:`run-profile-multipath` profiles as described in the :ref:`run-combine-path-conda` section. This offers the possibility to install on your own all the software you need to setup the analysis methodology for the pipeline you are developing, in particular whenever you fall in any of the cases |ko| of |path| as described in the  :ref:`run-process-profile-table` table.
 
 If you don't want any test to be started, just type ``make install``.
 
