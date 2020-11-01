@@ -13,16 +13,29 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
 
 ::
 
-   git_repo="myGitRepo"
-   git_repo_url="http://myGitReporUrl"
+   export WORK_DIR="${HOME}/tmp/myPipeline"
+   export SRC_DIR="${WORK_DIR}/src"
+   export INSTALL_DIR="${WORK_DIR}/install"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://myPipeline/myPipeline.git"
 
-   git clone ${git_repo_url}
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
 
-   mkdir build
-   cd build
-   cmake ../${git_repo}/geniac     # configure the pipeline
-   make                            # build the files needed by the pipeline
-   make install                    # install the pipeline
+   # clone the repository
+   # the option --recursive is needed if you use geniac as a submodule
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+
+   cd ${BUILD_DIR}
+
+   # configure the pipeline
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+
+   # build the files needed by the pipeline
+   make
+
+   # install the pipeline
+   make install
+
 
 .. note::
 
@@ -106,13 +119,13 @@ All the options can be set on the command line interface. If your want to instal
 
 ::
 
-   cd build
-   cmake -C ../${myGitRepo}/geniac  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   cd ${BUILD_DIR}
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
    
 
 .. tip::
 
-   To have all the available options and help, run ``cmake -LAH ../${myGitRepo}/geniac`` in the ``build`` directory. The different options are displayed in the **Cache values** section.
+   To have all the available options and help, run ``cmake -LAH ${SRC_DIR}/geniac`` in the ``build`` directory. The different options are displayed in the **Cache values** section.
 
 .. _install-configure-file:
 
@@ -125,11 +138,11 @@ The file ``geniac/install/cmake-init-default.cmake`` provides a script to set al
 ::
 
    cd build
-   cmake -C ../${myGitRepo}/geniac/install/cmake-init.cmake ../${myGitRepo}/geniac
+   cmake -C ${SRC_DIR}/geniac/install/cmake-init.cmake ${SRC_DIR}/geniac
 
 
 .. note::
-   On |centos|_, the syntax is ``cmake3 ../${myGitRepo}/geniac -C ../${myGitRepo}/geniac/install/cmake-init.cmake``
+   On |centos|_, the syntax is ``cmake3 ${SRC_DIR}/geniac -C ${SRC_DIR}/geniac/install/cmake-init.cmake``
 
 
 
@@ -191,13 +204,13 @@ In order to make the deployment and testing of the pipeline easier, several cust
 * ``make test_singularity``
 * ``make test_standard``
 
-Assuming that you configured the build directory such that ``CMAKE_INSTALL_PREFIX=$HOME/myPipeline``, typing ``make test_conda`` is similar to:
+Assuming that you configured the build directory such that ``CMAKE_INSTALL_PREFIX=${INSTALL_DIR}``, typing ``make test_conda`` is similar to:
 
 ::
 
    make
    make install
-   cd $HOME/myPipeline
+   cd ${SRC_DIR}/pipeline
    nextflow -c conf/test.config run main.nf -profile conda
 
 If you want to add the :ref:`run-profile-cluster` profile, just type the following:
@@ -277,18 +290,23 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
 
 ::
 
-   git_repo="myGitRepo"
-   git_repo_url="http://myGitReporUrl"
+   export WORK_DIR="${HOME}/tmp/myPipeline"
+   export SRC_DIR="${WORK_DIR}/src"
+   export INSTALL_DIR="${WORK_DIR}/install"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://myPipeline/myPipeline.git"
 
-   git clone ${git_repo_url}
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+   
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   ### the option --recursive is needed if you use geniac as a submodule
 
-   mkdir build
-   cd build
-   cmake ../${myGitRepo}/geniac  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline
+   cd ${BUILD_DIR}
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
    make
    make install
 
-   cd $HOME/myPipeline/pipeline
+   cd ${INSTALL_DIR}/pipeline
 
    nextflow -c conf/test.config run main.nf -profile conda
    
@@ -303,23 +321,27 @@ Install and run with singularity
 
 ::
 
-   git_repo="myGitRepo"
-   git_repo_url="http://myGitReporUrl"
+   export WORK_DIR="${HOME}/tmp/myPipeline"
+   export SRC_DIR="${WORK_DIR}/src"
+   export INSTALL_DIR="${WORK_DIR}/install"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://myPipeline/myPipeline.git"
 
-   git clone ${git_repo_url}
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+   
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   ### the option --recursive is needed if you use geniac as a submodule
 
-   mkdir build
-   cd build
-   cmake ../${myGitRepo}/geniac  -DCMAKE_INSTALL_PREFIX=$HOME/myPipeline -Dap_install_singularity_images=ON
+   cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
    make ### must be done with the root credentials
    make install
 
-   cd $HOME/myPipeline/pipeline
+   cd ${INSTALL_DIR}/pipeline
 
    nextflow -c conf/test.config run main.nf -profile singularity
 
 
 .. note::
 
-   Whenever you explicitely set an option on the command line such as ``-Dap_install_singularity_images=ON``, and then you want to reconfigure your build directory by specifying only another option on the command line such as ``-DCMAKE_INSTALL_PREFIX=$HOME/myPipelineNewDir``, the ``ap_install_singularity_images`` will remain ``ON`` unless you specify ``-Dap_install_singularity_images=OFF``.
+   Whenever you explicitely set an option on the command line such as ``-Dap_install_singularity_images=ON``, and then you want to reconfigure your build directory by specifying only another option on the command line such as ``-DCMAKE_INSTALL_PREFIX=${HOME}/myPipelineNewDir``, the ``ap_install_singularity_images`` will remain ``ON`` unless you specify ``-Dap_install_singularity_images=OFF``.
 

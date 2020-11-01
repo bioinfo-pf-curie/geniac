@@ -121,4 +121,4 @@ For official release that can be used in a production environnement, use a tag w
       /!\ Do not use the results for any kind of projects /!\
       ======================================================================
 
-
+      This head will be also displayed in the MultiQC report.
