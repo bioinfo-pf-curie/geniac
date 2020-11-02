@@ -261,6 +261,22 @@ When you use :ref:`run-profile-path` or :ref:`run-profile-multipath` profiles, t
 
    nextflow -c conf/test.config run main.nf -profile multipath --globalPath "${HOME}/myGlobalPath"
 
+
+\\-\\-maxMemory
++++++++++++++++
+
+Use to set a top-limit for the default memory requirement for each process. Should be a string in the format integer-unit. eg. `--maxMemory '8.GB'`
+
+\\-\\-maxTime
++++++++++++++
+
+Use to set a top-limit for the default time requirement for each process. Should be a string in the format integer-unit. eg. `--maxTime '2.h'`
+
+\\-\\-maxCpus
++++++++++++++
+
+Use to set a top-limit for the default CPU requirement for each process. Should be a string in the format integer-unit. eg. `--maxCpus 1`
+
 .. _run-option-outdir:
 
 \\-\\-outDir
