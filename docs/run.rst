@@ -242,6 +242,15 @@ Whenever you use the :ref:`run-profile-conda` or :ref:`run-profile-multiconda` p
 
    nextflow -c conf/test.config run main.nf -profile multiconda --condaCacheDir "${HOME}/myCondaCacheDir"
 
+\\-\\-genomeAnnotationPath
+++++++++++++++++++++++++++
+
+The genome annotations are expected to be found in the folder ``annotations`` by default, and organized as specified in the ``conf/genomes.config`` file. The ``--genomeAnnotationPath`` option allows the path of the ``annotations`` folder to be changed at runtine. For example:
+
+::
+
+   nextflow -c conf/test.config run main.nf -profile multiconda --genomeAnnotationPath "${HOME}/myGenomeAnnotationPath"
+
 \\-\\-globalPath
 ++++++++++++++++
 
@@ -272,7 +281,7 @@ If you want your job to be submitted on a specific ``queue`` when you use the :r
 \\-\\-singularityImagePath
 ++++++++++++++++++++++++++
 
-When you use the :ref:`run-profile-singularity` profile, the  |singularity|_ containers are located in the installation directory in the folder ``containers/singularity`` by default (see :ref:`install-structure-dir-tree`). The ``--singularityImagePath`` option allows the path of the ``containers/singularity`` folder to be change at runtine. For example:
+When you use the :ref:`run-profile-singularity` profile, the  |singularity|_ containers are located in the installation directory in the folder ``containers/singularity`` by default (see :ref:`install-structure-dir-tree`). The ``--singularityImagePath`` option allows the path of the ``containers/singularity`` folder to be changed at runtine. For example:
 
 ::
 
