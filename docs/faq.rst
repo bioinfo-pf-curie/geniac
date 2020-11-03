@@ -102,21 +102,20 @@ When the pipeline is installed with `geniac`, the :ref:`install-structure-dir-tr
 
 
 
-1. The file :download:`base.config <../data/conf/base.config>` defines the ``genomeAnnotationPath`` in the scope ``params``  as follows:
+1. The file :download:`geniac.config <../data/conf/geniac.config>` defines the ``genomeAnnotationPath`` in the scope ``params``  as follows:
 
 
 ::
 
    params {
    
-     // genome annotations
-     genomeAnnotationPath = "${baseDir}/../annotations"
+     genomeAnnotationPath = params.genomeAnnotationPath ?: "${baseDir}/../annotations"
    
    }    
 
 2. All the paths to your annotations are defined using the variable ``params.genomeAnnotationPath`` as shown in the file :download:`genomes.config <../data/conf/genomes.config>`
 
-3. You use the variables defined in the :download:`genomes.config <../data/conf/genomes.config>` in the ``main.nf``, for example ``params.genomes['h19'].gtf``
+3. You use the variables defined in the :download:`genomes.config <../data/conf/genomes.config>` in the ``main.nf``, for example ``params.genomes['mm10'].fasta``
 
 How can I pass specific options to run docker or singularity containers?
 ========================================================================
