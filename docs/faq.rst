@@ -122,3 +122,10 @@ How can I pass specific options to run docker or singularity containers?
 ========================================================================
 
 If needed, you can set the ``singularityRunOptions`` and ``dockerRunOptions`` values to whatever is needed for your configuration in the  ``geniac.config`` file. This will set the ``runOption`` parameters (see `Nextflow configuration <https://www.nextflow.io/docs/latest/config.html>`_) of the |singularity|_ and |docker|_ directive respectively to the selected value when the |singularity|_ and |docker|_ profiles will be called.
+
+
+What are the @git_*@ variables?
+===============================
+
+You will find in both the ``main.nf`` and ``nextflow.config`` some variables surrounded by ``@`` such ``as @git_repo_name@``. These variables are used during the ``cmake`` step that extacts the information from the git repository and replace them by their value. These variables are used in the nextflow manifest for example. If needed, you can remove these variables and set the value to whaterver you want.
+

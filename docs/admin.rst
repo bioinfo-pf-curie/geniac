@@ -1,3 +1,5 @@
+.. include:: substitutions.rst
+
 .. _admin-page:
 
 *******************
@@ -40,6 +42,12 @@ Among the different files and folders created in the ``build`` directory, we jus
                    ├── onlylinux.simg
                    ├── python.simg
                    └── trickysoftware.simg
+
+The |nextflow|_ scripts that are used to generate the ``*.config`` files and containers are also located in the ``workDir`` folder. There are:
+
+* ``docker.nf``: generates the |docker|_ containers and Dockerfiles.
+* ``singularity.nf``: generates the ``*.config`` files, the |singularity|_ images and def files.
+* ``nextflow.config``: is used by the above.
 
 
 Generate preload cache with default values
