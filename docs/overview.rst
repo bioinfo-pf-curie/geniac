@@ -9,6 +9,14 @@ Get started
 
 This section just provides a general overview of the guidelines for the structure of the source code directory and the naming conventions. The most important guidelines are detailed in the :ref:`process-page` section.
 
+.. important::
+
+   It is important to note that the |geniacrepo|_ relies on the structure of the |geniactemplate|_ while the |geniactemplate|_ could work without the |geniacrepo|_ (provided that you generate manually the missing :ref:`profiles-page`).
+   
+   It means also that this documentation explains how the |geniactemplate|_ works with the |geniacrepo|_. 
+   
+   All the examples shown in the documentation are taken from the |geniacdemo|_. You can clone this repository and reproduce what is presented.
+
 Prerequisites
 =============
 
