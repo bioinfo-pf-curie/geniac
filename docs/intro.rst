@@ -6,6 +6,9 @@
 Introduction
 ************
 
+Context
+=======
+
 The document provides guidelines to implement pipelines using the workflow manager |nextflow|_. We assume that the reader is familiar with |nextflow|_, if not, please refer to the documentation. We capitalized on the |nfcore|_ project by providing additional utilities and guidelines for production-ready bioinformatics pipelines.
 
 We propose a set of best practices along the development life cycle of the pipeline and deployment for production operations that address different expert communities:
@@ -40,6 +43,9 @@ To do so, we expect that the bioinformaticians and statisticians capitalize on t
 
 All the guidelines are detailed in the next sections.
 
+Resources
+=========
+
 Useful resources for geniac are available here:
 
 * |geniacdoc|_
@@ -47,4 +53,14 @@ Useful resources for geniac are available here:
 * |geniacdemo|_
 * |geniactemplate|_
 
+Cite us
+=======
 
+Coming soon.
+
+Acknowledgements
+================
+
+* `Institut Curie <https://www.curie.fr>`_
+* `Centre national de la recherche scientifique <www.cnrs.fr>`_
+* This project has received funding from the European Union’s Horizon 2020 research and innovation programme and the Canadian Institutes of Health Research under the grant agreement No 825835 in the framework on the `European-Canadian Cancer Network <https://eucancan.com/>`_
