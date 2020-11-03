@@ -44,7 +44,7 @@ Create additional files and folders
 The following files are mandatory:
 
 * :download:`CMakeLists.txt <../data/modules/CMakeLists.txt>`: create a folder named ``modules`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
-* :download:`base.config <../data/conf/base.config>`: copy the file in the folder ``conf``. This file containes a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
+* :download:`geniac.config <../data/conf/geniac.config>`: copy the file in the folder ``conf``. This file containes a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
 
 Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever youd need them the following folders:
 
@@ -52,11 +52,11 @@ Moreover, depending on which case your are when you :ref:`process-page`, you can
 
    ├── env
    ├── modules
-   ├── recipes
-   │   ├── conda
-   │   ├── dependencies
-   │   ├── docker
-   │   └── singularity
+   └── recipes
+       ├── conda
+       ├── dependencies
+       ├── docker
+       └── singularity
 
 
 
@@ -70,7 +70,7 @@ The source code of your repository should look like this:
    ├── assets                       # assets needed for runtime
    ├── bin                          # scripts or binaries for the pipeline
    ├── conf                         # configuration files for the pipeline
-   │   ├── base.config              # contains the geniac scope mandatory for nextflow
+   │   ├── geniac.config            # contains the geniac scope mandatory for nextflow
    ├── docs                         # documentation of the pipeline
    ├── env                          # process specific environment variables
    ├── geniac                       # geniac utilities
@@ -88,7 +88,7 @@ The source code of your repository should look like this:
    │   ├── docker
    │   └── singularity
    └── test                         # data to test the pipeline
-       ├── data
+       └── data
 
 How can I write the config files for the different nextflow profiles?
 =====================================================================
