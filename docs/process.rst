@@ -8,6 +8,9 @@ Add a process
 
 This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the |singularity|_ and |docker|_ containers.
 
+.. note::
+
+   All the examples below are taken from the |geniacdemo|_ pipeline. You can clone this repository and reproduce what is presented. This |geniacdemo|_ is fully functional.
 
 Structure of a process
 ======================
