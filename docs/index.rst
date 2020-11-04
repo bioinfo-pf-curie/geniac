@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to geniac's documentation!
-=====================================
+geniac's documentation!
+=======================
+
+
+Geniac: Automatic Configuration GENerator and Installer for nextflow pipeline.
 
 .. toctree::
    :maxdepth: 2
@@ -18,11 +21,3 @@ Welcome to geniac's documentation!
    run
    admin
    faq
-   
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
