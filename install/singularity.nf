@@ -53,26 +53,33 @@ String buildCplmtPath(List gitEntries) {
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
 Channel
-    .from(params.geniac.tools)
-    .flatMap{
-        List<String> result = []
-        for (Map.Entry<String,String> entry: it.entrySet()) {
-            List<String> tab = entry.value.split()
+  .from(params.geniac.tools)
+  .flatMap {
+    List<String> result = []
+    for (Map.Entry<String, String> entry : it.entrySet()) {
+      List<String> tab = entry.value.split()
 
-            for (String s: tab) {
-                result.add([entry.key, s.split('::')])
-            }
+      for (String s : tab) {
+        result.add([entry.key, s.split('::')])
+      }
 
-            if (tab.size == 0) {
-                result.add([entry.key, null])
-            }
-        }
-
-        return result
-    }.choice(condaFilesCh, condaPackagesCh){
-        it[1] && it[1][0].endsWith('.yml') ? 0 : 1
+      if (tab.size == 0) {
+        result.add([entry.key, null])
+      }
     }
-condaPackagesCh.into{ condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh}
+
+    return result
+  }.branch {
+  condaFilesCh:
+  (it[1] && it[1][0].endsWith('.yml'))
+  return [it[0], file(it[1][0])]
+  condaPackagesCh: true
+  return it
+}.set { condaForks }
+(condaFilesCh, condaPackagesCh) = [condaForks.condaFilesCh, condaForks.condaPackagesCh]
+
+condaPackagesCh.into { condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh }
+condaFilesCh.into { condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh }
 
 Channel
     .fromPath("${baseDir}/recipes/singularity/*.def")
@@ -200,14 +207,13 @@ process buildSingularityRecipeFromCondaFile {
     tag "${key}"
     publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
-    input:
-    set val(key), val(condaFile), val(yum), val(git) from condaFilesCh
-        .groupTuple()
-        .map{ addYumAndGitToCondaCh(it) }
-        .map{ [it[0], it[1][0].join(), it[2], it[3]] }
+  input:
+    set val(key), file(condaFile), val(yum), val(git) from condaFiles4SingularityRecipesCh
+      .groupTuple()
+      .map { addYumAndGitToCondaCh(it) }
 
-    output:
-    set val(key), file("${key}.def"), val(condaFile) into singularityRecipeCh3
+  output:
+    set val(key), file("${key}.def"), file(condaFile) into singularityRecipeCh3
 
     script:
     String cplmtGit = buildCplmtGit(git)
