@@ -215,9 +215,9 @@ process buildSingularityRecipeFromCondaFile {
     set val(key), file("${key}.def"), file(condaFile) into singularityRecipeCh3
 
   script:
-    String cplmtGit = buildCplmtGit(git)
-    String cplmtPath = buildCplmtPath(git)
-    String yumPkgs = yum ?: ''
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
     """
@@ -268,15 +268,15 @@ process buildSingularityRecipeFromCondaPackages {
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh4
 
   script:
-    String cplmtGit = buildCplmtGit(git)
-    String cplmtPath = buildCplmtPath(git)
-    String yumPkgs = yum ?: ''
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
-    String cplmtConda = ''
-    for (String[] tab: tools) {
-        cplmtConda += """ \\\\
-    && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+    def cplmtConda = ''
+    for (String[] tab : tools) {
+      cplmtConda += """ \\\\
+      && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
     }
 
     """
