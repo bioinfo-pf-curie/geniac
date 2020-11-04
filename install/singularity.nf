@@ -6,49 +6,48 @@
 
 /**
  * CUSTOM FUNCTIONS
-**/
+ **/
 
 def addYumAndGitToCondaCh(List condaIt) {
-    List<String> gitList = []
-    LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
-    LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-    (gitConf[condaIt[0]]?:'')
-        .split()
-        .each{ gitList.add(it.split('::')) }
+  List<String> gitList = []
+  LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
+  LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
+  (gitConf[condaIt[0]] ?: '')
+    .split()
+    .each { gitList.add(it.split('::')) }
 
-    return [
-        condaIt[0],
-        condaIt[1],
-        yumConf[condaIt[0]],
-        gitList
-    ]
+  return [
+    condaIt[0],
+    condaIt[1],
+    yumConf[condaIt[0]],
+    gitList
+  ]
 }
 
 String buildCplmtGit(def gitEntries) {
-    String cplmtGit = ''
-    for (String[] tab: gitEntries) {
-        cplmtGit += """ \\\\
+  String cplmtGit = ''
+  for (String[] tab : gitEntries) {
+    cplmtGit += """ \\\\
     && mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
-    }
+  }
 
-    return cplmtGit
+  return cplmtGit
 
 }
 
 String buildCplmtPath(List gitEntries) {
-    String cplmtPath = ''
-    for (String[] tab: gitEntries) {
-        cplmtPath += "/opt/\$(basename ${tab[0]} .git):"
-    }
+  String cplmtPath = ''
+  for (String[] tab : gitEntries) {
+    cplmtPath += "/opt/\$(basename ${tab[0]} .git):"
+  }
 
-    return cplmtPath
+  return cplmtPath
 }
-
 
 
 /**
  * CHANNELS INIT
-**/
+ **/
 
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
@@ -82,81 +81,82 @@ condaPackagesCh.into { condaPackages4SingularityRecipesCh; condaPackages4CondaEn
 condaFilesCh.into { condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh }
 
 Channel
-    .fromPath("${baseDir}/recipes/singularity/*.def")
-    .map{
-        String optionalFile = null
-        if (it.simpleName == 'r') {
-            optionalFile = "${baseDir}/../preconfs/renv.lock"
-        } else if (it.simpleName == 'transIndelAndSamtools') {
-            optionalFile = "${baseDir}/conda/transIndel.yml"
-        } else if (it.simpleName == 'bcl2fastq') {
-            optionalFile = "${baseDir}/tools/bcl2fastq2-v2.20.0.422-Linux-x86_64.rpm"
-        } else {
-            optionalFile = 'EMPTY'
-        }
-
-        return [it.simpleName, it, optionalFile]
+  .fromPath("${baseDir}/recipes/singularity/*.def")
+  .map {
+    String optionalFile = null
+    if (it.simpleName == 'r') {
+      optionalFile = "${baseDir}/../preconfs/renv.lock"
+    } else if (it.simpleName == 'transIndelAndSamtools') {
+      optionalFile = "${baseDir}/conda/transIndel.yml"
+    } else if (it.simpleName == 'bcl2fastq') {
+      optionalFile = "${baseDir}/tools/bcl2fastq2-v2.20.0.422-Linux-x86_64.rpm"
+    } else {
+      optionalFile = 'EMPTY'
     }
-    .set{ singularityRecipeCh1 }
+
+    return [it.simpleName, it, optionalFile]
+  }
+  .set { singularityRecipeCh1 }
 
 
 /**
  * CONDA RECIPES
-**/
+ **/
 
 Channel
-    .fromPath("${baseDir}/recipes/conda/*.yml")
-    .set{ condaRecipes }
+  .fromPath("${baseDir}/recipes/conda/*.yml")
+  .set { condaRecipes }
 
 
 /**
  * DEPENDENCIES
-**/
+ **/
 
 Channel
-    .fromPath("${baseDir}/recipes/dependencies/*")
-    .set{ fileDependencies }
+  .fromPath("${baseDir}/recipes/dependencies/*")
+  .set { fileDependencies }
 
 /**
  * SOURCE CODE
-**/
+ **/
 
 
 Channel
-    .fromPath("${baseDir}/modules", type: 'dir')
-    .set{ sourceCodeDirCh }
+  .fromPath("${baseDir}/modules", type: 'dir')
+  .set { sourceCodeDirCh }
 
 
 Channel
-    .fromPath("${baseDir}/modules/*.sh")
-    .map{
-        return [it.simpleName, it]
-    }
-    .set{ sourceCodeCh }
+  .fromPath("${baseDir}/modules/*.sh")
+  .map {
+    return [it.simpleName, it]
+  }
+  .set { sourceCodeCh }
 
 /**
  * PROCESSES
-**/
+ **/
 // TODO: use worklow.manifest.name for the name field
-// TODO: check if it works with pip packages 
+// TODO: check if it works with pip packages
 // TODO: Add a process in order to test the generated environment.yml (create a venv from it, activate, export and check diffs)
-// TODO: Check if order of dependencies can be an issue 
+// TODO: Check if order of dependencies can be an issue
 condaChannelFromSpecsCh = Channel.create()
 condaDepFromSpecsCh = Channel.create()
-condaSpecsCh = condaPackages4CondaEnvCh.separate( condaChannelFromSpecsCh, condaDepFromSpecsCh ) { pTool -> [pTool[1][0], pTool[1][1]] }
+condaSpecsCh = condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh) { pTool -> [pTool[1][0], pTool[1][1]] }
 
 process buildCondaEnvFromCondaPackages {
-    tag "condaEnvBuild"
-    publishDir "${baseDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
+  tag "condaEnvBuild"
+  publishDir "${baseDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
 
-    input:
-    val condaDependencies from condaDepFromSpecsCh.unique().collect()
-    val condaChannels from condaChannelFromSpecsCh.filter( ~/!(bioconda|conda-forge|defaults)/ ).unique().collect().ifEmpty('NO_CHANNEL')
+  input:
+    val condaDependencies from condaDepFromFilesCh.flatMap { it.text.split() }.mix(condaDepFromSpecsCh).unique().toSortedList()
+    val condaChannels from condaChanFromFilesCh.flatMap { it.text.split() }.mix(condaChannelFromSpecsCh).filter(~/!(bioconda|conda-forge|defaults)/).unique().toSortedList().ifEmpty('NO_CHANNEL')
+    val condaPipDependencies from condaPipDepFromFilesCh.flatMap { it.text.split() }.unique().toSortedList().ifEmpty("")
 
-    output:
+  output:
     file("environment.yml")
 
-    script:
+  script:
     def condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
     String condaDepEnv = String.join("\n    - ", condaDependencies)
     String condaChanEnv = String.join("\n    - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
@@ -175,14 +175,13 @@ process buildCondaEnvFromCondaPackages {
 }
 
 process buildDefaultSingularityRecipe {
-    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
-    output:
+  output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
 
-    script:
+  script:
     key = 'onlyLinux'
-
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
@@ -204,8 +203,8 @@ process buildDefaultSingularityRecipe {
 }
 
 process buildSingularityRecipeFromCondaFile {
-    tag "${key}"
-    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  tag "${key}"
+  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
     set val(key), file(condaFile), val(yum), val(git) from condaFiles4SingularityRecipesCh
@@ -215,7 +214,7 @@ process buildSingularityRecipeFromCondaFile {
   output:
     set val(key), file("${key}.def"), file(condaFile) into singularityRecipeCh3
 
-    script:
+  script:
     String cplmtGit = buildCplmtGit(git)
     String cplmtPath = buildCplmtPath(git)
     String yumPkgs = yum ?: ''
@@ -254,21 +253,21 @@ process buildSingularityRecipeFromCondaFile {
 
 /**
  * Build Singularity recipe from conda specifications in params.geniac.tools
-**/
+ **/
 process buildSingularityRecipeFromCondaPackages {
-    tag "${key}"
-    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  tag "${key}"
+  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
 
-    input:
+  input:
     set val(key), val(tools), val(yum), val(git) from condaPackages4SingularityRecipesCh
-        .groupTuple()
-        .map{ addYumAndGitToCondaCh(it) }
+      .groupTuple()
+      .map { addYumAndGitToCondaCh(it) }
 
-    output:
+  output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh4
 
-    script:
+  script:
     String cplmtGit = buildCplmtGit(git)
     String cplmtPath = buildCplmtPath(git)
     String yumPkgs = yum ?: ''
@@ -307,16 +306,16 @@ process buildSingularityRecipeFromCondaPackages {
 
 
 process buildSingularityRecipeFromSourceCode {
-    tag "${key}"
-    publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  tag "${key}"
+  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
-    input:
+  input:
     set val(key), file(installFile) from sourceCodeCh
 
-    output:
+  output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh5
 
-    script:
+  script:
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
@@ -357,29 +356,34 @@ process buildSingularityRecipeFromSourceCode {
 }
 
 onlyCondaRecipeCh = singularityRecipeCh3.mix(singularityRecipeCh4)
-onlyCondaRecipeCh.into { onlyCondaRecipe4buildCondaCh ; onlyCondaRecipe4buildMulticondaCh ; onlyCondaRecipe4buildImagesCh }
+onlyCondaRecipeCh.into {
+  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh;
+  onlyCondaRecipe4buildImagesCh
+}
 
 singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(onlyCondaRecipe4buildImagesCh).mix(singularityRecipeCh5)
-singularityAllRecipeCh.into { singularityAllRecipe4buildImagesCh ; singularityAllRecipe4buildSingularityCh ; singularityAllRecipe4buildDockerCh ; singularityAllRecipe4buildPathCh}
+singularityAllRecipeCh.into {
+  singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
+  singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
+}
 
 process buildImages {
-    tag "${key}"
-    publishDir "${baseDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
+  tag "${key}"
+  publishDir "${baseDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildSingularityImages
 
-    input:
+  input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh
     file condaYml from condaRecipes.collect().ifEmpty([])
     file fileDep from fileDependencies.collect().ifEmpty([])
     file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
 
-    output:
+  output:
     file("${key.toLowerCase()}.simg")
 
-    script:
-
+  script:
     """
     singularity build ${key.toLowerCase()}.simg ${singularityRecipe}
     """
@@ -388,22 +392,21 @@ process buildImages {
 
 /**
  * Generate singularity.config
-**/
+ **/
 
 process buildSingularityConfig {
-    tag "${key}"
+  tag "${key}"
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh
 
-    output:
+  output:
     file("${key}SingularityConfig.txt") into mergeSingularityConfigCh
 
-    script:
-
+  script:
     """
     cat << EOF > "${key}SingularityConfig.txt"
       withLabel:${key} { container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.simg" }
@@ -412,19 +415,19 @@ process buildSingularityConfig {
 }
 
 process mergeSingularityConfig {
-    tag "mergeSingularityConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "mergeSingularityConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     file key from mergeSingularityConfigCh.collect()
 
-    output:
+  output:
     file("singularity.config") into finalSingularityConfigCh
 
-    script:
+  script:
     """
     cat << EOF > "singularity.config"
     def checkProfileSingularity(path){
@@ -461,22 +464,21 @@ process mergeSingularityConfig {
 
 /**
  * Generate docker.config
-**/
+ **/
 
 process buildDockerConfig {
-    tag "${key}"
+  tag "${key}"
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh
 
-    output:
+  output:
     file("${key}DockerConfig.txt") into mergeDockerConfigCh
 
-    script:
-
+  script:
     """
     cat << EOF > "${key}DockerConfig.txt"
       withLabel:${key} { container = "${key.toLowerCase()}" }
@@ -485,19 +487,19 @@ process buildDockerConfig {
 }
 
 process mergeDockerConfig {
-    tag "mergeDockerConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "mergeDockerConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     file key from mergeDockerConfigCh.collect()
 
-    output:
+  output:
     file("docker.config") into finalDockerConfigCh
 
-    script:
+  script:
     """
     cat << EOF > "docker.config"
     docker {
@@ -516,22 +518,21 @@ process mergeDockerConfig {
 }
 /**
  * Generate conda.config
-**/
+ **/
 
 process buildCondaConfig {
-    tag "${key}"
+  tag "${key}"
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildCondaCh
 
-    output:
+  output:
     file("${key}CondaConfig.txt") into mergeCondaConfigCh
 
-    script:
-
+  script:
     """
     cat << EOF > "${key}CondaConfig.txt"
       withLabel:${key} { conda = "\\\${baseDir}/environment.yml" }
@@ -540,19 +541,19 @@ process buildCondaConfig {
 }
 
 process mergeCondaConfig {
-    tag "mergeCondaConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "mergeCondaConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     file key from mergeCondaConfigCh.collect()
 
-    output:
+  output:
     file("conda.config") into finalCondaConfigCh
 
-    script:
+  script:
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
@@ -566,23 +567,22 @@ process mergeCondaConfig {
 
 /**
  * Generate multiconda.config
-**/
+ **/
 
 process buildMulticondaConfig {
-    tag "${key}"
-    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
+  tag "${key}"
+  //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildMulticondaCh
 
-    output:
+  output:
     file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
 
-    script:
-
+  script:
     """
     cat << EOF > "${key}MulticondaConfig.txt"
       withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
@@ -591,19 +591,19 @@ process buildMulticondaConfig {
 }
 
 process mergeMulticondaConfig {
-    tag "mergeMulticondaConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "mergeMulticondaConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     file key from mergeMulticondaConfigCh.collect()
 
-    output:
+  output:
     file("multiconda.config") into finalMulticondaConfigCh
 
-    script:
+  script:
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
@@ -617,24 +617,23 @@ process mergeMulticondaConfig {
 
 /**
  * Generate path.config
-**/
+ **/
 
 process buildMultiPathConfig {
-    tag "${key}"
-    //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
+  tag "${key}"
+  //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildPathCh
 
-    output:
+  output:
     file("${key}MultiPathConfig.txt") into mergeMultiPathConfigCh
     file("${key}MultiPathLink.txt") into mergeMultiPathLinkCh
 
-    script:
-
+  script:
     """
     cat << EOF > "${key}MultiPathConfig.txt"
       withLabel:${key} { beforeScript = "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" }
@@ -646,47 +645,46 @@ process buildMultiPathConfig {
 }
 
 process mergeMultiPathConfig {
-    tag "mergeMultiPathConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "mergeMultiPathConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     file key from mergeMultiPathConfigCh.collect()
 
-    output:
+  output:
     file("multipath.config") into finalMultiPathConfigCh
 
+  script:
     def eofContent = """\
-      cat << EOF > "multipath.config"
-      def checkProfileMultipath(path){
-        if (new File(path).exists()){
-          File directory = new File(path)
-          def contents = []
-          directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
-          if (!path?.trim() || contents == null || contents.size() == 0){
-            println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
-            System.exit(-1)
-          }
-        }else{
+    cat << EOF > "multipath.config"
+    def checkProfileMultipath(path){
+      if (new File(path).exists()){
+        File directory = new File(path)
+        def contents = []
+        directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+        if (!path?.trim() || contents == null || contents.size() == 0){
           println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
           System.exit(-1)
         }
+      }else{
+        println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        System.exit(-1)
       }
-                     
-      singularity {
-        enabled = false
-      }
-      
-      docker {
-        enabled = false
-      }
-
-      EOF
-      """.stripIndent()
-
-    script:
+    }
+                   
+    singularity {
+      enabled = false
+    }
+    
+    docker {
+      enabled = false
+    }
+  
+    EOF
+    """.stripIndent()
     """
     ${eofContent}
     echo "process {"  >> multipath.config
@@ -702,19 +700,19 @@ process mergeMultiPathConfig {
 }
 
 process mergeMultiPathLink {
-    tag "mergeMultiPathLink"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "mergeMultiPathLink"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    when:
+  when:
     params.buildConfigFiles
 
-    input:
+  input:
     file key from mergeMultiPathLinkCh.collect()
 
-    output:
+  output:
     file("multiPathLink.txt") into finalMultiPathLinkCh
 
-    script:
+  script:
     """
     for keyFile in ${key}
     do
@@ -726,13 +724,13 @@ process mergeMultiPathLink {
 }
 
 process clusterConfig {
-    tag "clusterConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "clusterConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    output:
+  output:
     file("cluster.config")
 
-    script:
+  script:
     """
     cat << EOF > "cluster.config"
     /*
@@ -749,14 +747,14 @@ process clusterConfig {
 }
 
 process globalPathConfig {
-    tag "globalPathConfig"
-    publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  tag "globalPathConfig"
+  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
-    output:
+  output:
     file("path.config") into finalPathConfigCh
     file("PathLink.txt") into finalPathLinkCh
 
-    script:
+  script:
     """
     cat << EOF > "path.config"
     def checkProfilePath(path){
