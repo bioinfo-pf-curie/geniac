@@ -144,6 +144,26 @@ condaChannelFromSpecsCh = Channel.create()
 condaDepFromSpecsCh = Channel.create()
 condaSpecsCh = condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh) { pTool -> [pTool[1][0], pTool[1][1]] }
 
+process buildCondaDepFromRecipes {
+  tag { "condaDepBuild-" + key }
+
+  input:
+    set val(key), file(condaFile) from condaFilesForCondaDepCh
+
+  output:
+    file "condaChannels.txt" into condaChanFromFilesCh
+    file "condaDependencies.txt" into condaDepFromFilesCh
+    file "condaPipDependencies.txt" into condaPipDepFromFilesCh
+
+  script:
+    flags = 'BEGIN {flag=""} /channels/{flag="chan";next}  /dependencies/{flag="dep";next} /pip/{flag="pip";next}'
+    """
+    awk '${flags}  /^ *-/{if(flag == "chan"){print \$2}}' ${condaFile} > condaChannels.txt
+    awk '${flags}  /^ *-/{if(flag == "dep"){print \$2}}' ${condaFile} > condaDependencies.txt
+    awk '${flags}  /^ *-/{if(flag == "pip"){print \$2}}' ${condaFile} > condaPipDependencies.txt
+    """
+}
+
 process buildCondaEnvFromCondaPackages {
   tag "condaEnvBuild"
   publishDir "${baseDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
@@ -157,20 +177,21 @@ process buildCondaEnvFromCondaPackages {
     file("environment.yml")
 
   script:
-    def condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
-    String condaDepEnv = String.join("\n    - ", condaDependencies)
-    String condaChanEnv = String.join("\n    - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
+    condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
+    condaDepEnv = String.join("\n      - ", condaDependencies)
+    condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
+    condaPipDep = condaPipDependencies ? "\n      - pip:\n        - " + String.join("\n        - ", condaPipDependencies) : ""
     """
     cat << EOF > environment.yml
     # You can use this file to create a conda environment for this pipeline:
     #   conda env create -f environment.yml
     name: pipeline_env
     channels:
-    - ${condaChanEnv} 
+      - ${condaChanEnv} 
     dependencies:
-    - which 
-    - bc
-    - ${condaDepEnv}
+      - which 
+      - bc
+      - ${condaDepEnv}${condaPipDep}
     """
 }
 
