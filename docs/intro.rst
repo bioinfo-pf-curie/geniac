@@ -53,10 +53,6 @@ Useful resources for geniac are available here:
 * |geniacdemo|_
 * |geniactemplate|_
 
-Cite us
-=======
-
-Coming soon.
 
 Acknowledgements
 ================
@@ -64,3 +60,8 @@ Acknowledgements
 * `Institut Curie <https://www.curie.fr>`_
 * `Centre national de la recherche scientifique <https://www.cnrs.fr>`_
 * This project has received funding from the European Union’s Horizon 2020 research and innovation programme and the Canadian Institutes of Health Research under the grant agreement No 825835 in the framework on the `European-Canadian Cancer Network <https://eucancan.com/>`_.
+
+Citation
+========
+
+Coming soon.
