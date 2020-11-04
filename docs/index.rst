@@ -7,7 +7,7 @@ geniac's documentation!
 =======================
 
 
-Geniac: Automatic Configuration GENerator and Installer for nextflow pipeline.
+**Geniac**: **A**\u\ tomatic **C**\o\ nfiguration **GEN**\e\ rator and **I**\n\ staller for nextflow pipeline.
 
 .. toctree::
    :maxdepth: 2
