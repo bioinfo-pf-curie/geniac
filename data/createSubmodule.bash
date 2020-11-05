@@ -1,3 +1,5 @@
+#! /bin/bash
+
 #######################################################################################
 # This file is part of geniac.
 # 
@@ -17,9 +19,6 @@
 # The fact that you are presently reading this means that you have had knowledge
 # of the license and that you accept its terms.
 #######################################################################################
-
-
-#! /bin/bash
 
 
 ### <<<< MODIFY BELOW WITH YOUR CONFIGURATION
