@@ -22,6 +22,7 @@ Prerequisites
 
 The following software are required:
 
+* a Linux distribution
 * |nextflow|_ >= 20.01.0
 * |git|_  >= 2.0
 * |gitlfs|_
