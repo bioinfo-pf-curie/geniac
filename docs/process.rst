@@ -275,7 +275,7 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
         - conda-forge
         - defaults
     dependencies:
-        - python=3.9.0=h2a148a8_4_cpython
+        - python=3.9.0=ha017127_4_cpython
         - pip:
             - numpy==1.19.2
 
