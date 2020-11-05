@@ -136,3 +136,5 @@ The :ref:`run-profile-conda` relies on the ``environment.yml`` that is automatic
 ::
 
    cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_keep_envyml_from_source=ON
+
+Note that it may be impossible to have a working ``environment.yml`` file do to the incompatibility between tools. Use the :ref:`run-profile-multiconda` profile instead of the :ref:`run-profile-conda` profile.
