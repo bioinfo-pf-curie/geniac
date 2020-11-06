@@ -1,3 +1,5 @@
+.. include:: substitutions.rst
+
 .. _devcycle-page:
 
 *****************
@@ -14,7 +16,7 @@ When prototyping the pipeline, we advice to use the :ref:`run-profile-multiconda
 
 We suggest that you provide test data and a ``conf/test.config`` file such that the pipeline can be tested on any modification of the source code for validation. Whenever possible, the test data must be as small as possible such that running the test does not take too much time.
 
-Then, to install and test your modifications, just type ``make test_multiconda`` (see :ref:`install-test`) in the build directory. The first time this command is typed, the ``config`` files are automatically generated and installed. The configuration files will be regenerated whenever you modify the ``conf/base.config`` file (or whenever something is added or modified the both the ``recipes`` or ``modules`` directories).
+Then, to install and test your modifications, just type ``make test_multiconda`` (see :ref:`install-test`) in the build directory. The first time this command is typed, the ``config`` files are automatically generated and installed. The configuration files will be regenerated whenever you modify the ``conf/geniac.config`` file (or whenever something is added or modified in both the ``recipes`` or ``modules`` directories).
 
 
 .. |ko| image:: images/install.png
@@ -26,7 +28,7 @@ Then, to install and test your modifications, just type ``make test_multiconda``
 
 .. note::
 
-   You can combine both the :ref:`run-profile-multiconda` with the :ref:`run-profile-path` profiles as described in the :ref:`run-combine-path-conda` section. This offers the possibility to install on your own all the software you need to setup the analysis methodology for the pipeline you are developing, in particular whenever you fall in any of the cases |ko| of |path| as described in the  :ref:`run-process-profile-table` table.
+   You can combine both the :ref:`run-profile-multiconda` with the :ref:`run-profile-multipath` profiles as described in the :ref:`run-combine-path-conda` section. This offers the possibility to install on your own all the software you need to setup the analysis methodology for the pipeline you are developing, in particular whenever you fall in any of the cases |ko| of |path| as described in the  :ref:`run-process-profile-table` table.
 
 If you don't want any test to be started, just type ``make install``.
 
@@ -39,7 +41,7 @@ Whatever you use ``make test_multiconda`` (or any custom targets available in :r
 
    **Why it is essential to deploy the pipeline in a dedicated directory and then test your modifications** rather than testing it directly from your source code directory in which you are developing?
    
-   The deployement of the pipeline in a dedicated directory makes it possible to keep developing and modifying any file or to checkout any branch while a test is running especially when the test can take time. If you would launch a test from the source code directory the files could be modified while the test is running.
+   The deployment of the pipeline in a dedicated directory makes it possible to keep developing and modifying any file or to checkout any branch while a test is running especially when the test can take time. If you would launch a test from the source code directory the files could be modified while the test is running.
 
 .. note::
 
@@ -48,12 +50,12 @@ Whatever you use ``make test_multiconda`` (or any custom targets available in :r
 Containerizing
 ==============
 
-Building the `singularity <https://sylabs.io/singularity/>`_ or `docker <https://www.docker.com/>`_ containers should start once the prototyping is over. Thus, the software developers will take care of:
+Building the |singularity|_ or |docker|_ containers should start once the prototyping is over. Thus, the software developers will take care of:
 
 * writing the recipes for any process that have a label falling in the :ref:`process-source-code` or :ref:`process-custom-install` categories,
 * performing :ref:`process-resource` in order to optimize the informatic resource asked by the different processes.
 
-Deployement
+Deployment
 ===========
 
 Whoever you are, follow the guidelines describes in the :ref:`install-page` section.
@@ -62,7 +64,7 @@ Whoever you are, follow the guidelines describes in the :ref:`install-page` sect
 Git
 ===
 
-We assume that the reader is familiar with `git <https://git-scm.com/>`_ (if not refer to the documentation for details).
+We assume that the reader is familiar with |git|_ (if not refer to the documentation for details).
 
 
 Branching strategy
@@ -93,6 +95,10 @@ The workflow accross the different branches can be summarized as described in th
 
    Do not forget to merge any developements from **release** to **devel**, and from **hotfix** to **release** and **devel** such that all the branches are up-to-date with last developments and hotfixes.
 
+.. tip::
+
+   For more details on the branching model and the usage of git, we recommend the user to read the |biogitflow|_ documentation and the associated article |biogitflowref|_.
+
 Tag strategy
 ------------
 
@@ -100,5 +106,19 @@ For official release that can be used in a production environnement, use a tag w
 
 .. warning::
 
-   This is essential that you use this naming convention. Indeed, this will allow the display of a message if a user runs a pipeline with a development version that can be unstable and thus providing results that are not reliable.
+   This is essential that you use this naming convention. Indeed, this will allow the display of a message if a user runs a pipeline with a development version that can be unstable and thus providing results that are not reliable. For example:
 
+   ::
+
+      ======================================================================
+      DISCLAIMER
+      
+      This software is currently under active development and the results 
+      have been generated with a non stable version.
+      The reliability, reproducibility and the quality of the results are 
+      therefore not guaranteed.
+      
+      /!\ Do not use the results for any kind of projects /!\
+      ======================================================================
+
+      This head will be also displayed in the MultiQC report.
