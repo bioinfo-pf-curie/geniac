@@ -10,8 +10,9 @@
 ## Documentation
 
 * The [geniac documentation](https://geniac.readthedocs.io) provides a set of best practises to implement *Nextflow* pipelines.
-* The [geniac demo](https://github.com/bioinfo-pf-curie/geniac_demo) provides a toy pipeline to test and practise *Geniac*.
-* The [geniac template](https://github.com/bioinfo-pf-curie/geniac_template) provides a pipeline template to start a new pipeline.
+* The [geniac] source code (https://github.com/bioinfo-pf-curie/geniac) provides the set of utilities.
+* The [geniac demo](https://github.com/bioinfo-pf-curie/geniac-demo) provides a toy pipeline to test and practise *Geniac*.
+* The [geniac template](https://github.com/bioinfo-pf-curie/geniac-template) provides a pipeline template to start a new pipeline.
 
 ## Acknowledgements
 
