@@ -1,7 +1,26 @@
 #!/usr/bin/env nextflow
 
-// before running, start a local docker registry:
-// sudo docker run -d -p 5000:5000 --restart=always --name registry registry:2
+/*
+
+This file is part of geniac.
+
+Copyright Institut Curie 2020.
+
+This software is a computer program whose purpose is to perform
+Automatic Configuration GENerator and Installer for nextflow pipeline.
+
+You can use, modify and/ or redistribute the software under the terms
+of license (see the LICENSE file for more details).
+
+The software is distributed in the hope that it will be useful,
+but "AS IS" WITHOUT ANY WARRANTY OF ANY KIND.
+Users are therefore encouraged to test the software's suitability as regards
+their requirements in conditions enabling the security of their systems and/or data.
+
+The fact that you are presently reading this means that you have had knowledge
+of the license and that you accept its terms.
+
+*/
 
 
 /**
@@ -10,14 +29,16 @@
 
 def addYumAndGitToCondaCh(List condaIt) {
     List<String> gitList = []
-    (params.geniac.containers.git[condaIt[0]]?:'')
+    LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
+    LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
+    (gitConf[condaIt[0]]?:'')
         .split()
         .each{ gitList.add(it.split('::')) }
 
     return [
         condaIt[0],
         condaIt[1],
-        params.geniac.containers.yum[condaIt[0]],
+        yumConf[condaIt[0]],
         gitList
     ]
 }
@@ -113,7 +134,7 @@ Channel
 
 
 Channel
-    .fromPath("${baseDir}/modules", type: 'dir')
+    .fromPath("${baseDir}/modules", type: 'dir', checkIfExists: true)
     .set{ sourceCodeDirCh }
 
 
@@ -285,7 +306,7 @@ process buildDockerRecipeFromSourceCode {
 }
 
 onlyCondaRecipeCh = dockerRecipeCh3.mix(dockerRecipeCh4)
-dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5)
+dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5).dump(tag:'dockerRecipes')
 
 process buildImages {
     tag "${key}"
@@ -296,14 +317,14 @@ process buildImages {
 
     input:
     set val(key), file(dockerRecipe), val(optionalPath) from dockerAllRecipeCh
-    file condaYml from condaRecipes.collect()
-    file fileDep from fileDependencies.collect()
-    file moduleDir from sourceCodeDirCh.collect()
+    file condaYml from condaRecipes.collect().ifEmpty([])
+    file fileDep from fileDependencies.collect().ifEmpty([])
+    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
 
     script:
-
+    excludemoduleDir = moduleDir == [] ? "--exclude='modules'" : ""
     """
-    tar cvfh contextDir.tar *
+    tar cvfh contextDir.tar ${excludemoduleDir} *
     mkdir contextDir
     tar xvf contextDir.tar --directory contextDir
     docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} contextDir

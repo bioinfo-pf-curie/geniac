@@ -19,39 +19,32 @@
 #######################################################################################
 
 
-# ##############################################################################
-# Find packages
-# ##############################################################################
+# Create workDir
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake;${CMAKE_MODULE_PATH}")
-
-find_package(Git 2.0)
-find_package(Nextflow 20.01)
-find_package(Singularity 3.2)
-find_package(Docker 18.0)
-
-if(GIT_FOUND)
-    message_color(OK "Git found")
+# Add geniac.config file in nextflow.config if it exists otherwise use
+if(EXISTS ${pipeline_source_dir}/conf/geniac.config)
+	set(geniac_config_string "includeConfig 'conf/geniac.config'")
 else()
-    message_color(WARNING "Git not found")
+	set(geniac_config_string "")
 endif()
 
-if(NEXTFLOW_FOUND)
-    message_color(OK "Nextflow found")
+configure_file(
+	${geniac_source_dir}/install/nextflow.config.in
+	${geniac_binary_dir}/workDir/nextflow.config
+	@ONLY
+)
+
+file(COPY ${geniac_source_dir}/install/singularity.nf DESTINATION ${geniac_binary_dir}/workDir)
+file(COPY ${geniac_source_dir}/install/docker.nf DESTINATION ${geniac_binary_dir}/workDir)
+file(COPY ${pipeline_source_dir}/conf/ DESTINATION ${geniac_binary_dir}/workDir/conf)
+
+if(EXISTS ${pipeline_source_dir}/modules/)
+    file(COPY ${pipeline_source_dir}/modules/ DESTINATION ${geniac_binary_dir}/workDir/modules)
 else()
-    message_color(FATAL_ERROR
-                  "Nextflow not found. It is required during the build step.")
+    file(MAKE_DIRECTORY ${geniac_binary_dir}/workDir/modules)
 endif()
 
-if(SINGULARITY_FOUND)
-    message_color(OK "Singularity found")
-else()
-    message_color(WARNING "Singularity not found")
-endif()
-
-if(DOCKER_FOUND)
-    message_color(OK "Docker found")
-else()
-    message_color(WARNING "Docker not found")
+if(EXISTS ${pipeline_source_dir}/recipes/)
+    file(COPY ${pipeline_source_dir}/recipes/ DESTINATION ${geniac_binary_dir}/workDir/recipes)
 endif()
 

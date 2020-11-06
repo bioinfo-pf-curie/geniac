@@ -1,3 +1,24 @@
+#######################################################################################
+# This file is part of geniac.
+# 
+# Copyright Institut Curie 2020.
+# 
+# This software is a computer program whose purpose is to perform
+# Automatic Configuration GENerator and Installer for nextflow pipeline.
+# 
+# You can use, modify and/ or redistribute the software under the terms
+# of license (see the LICENSE file for more details).
+# 
+# The software is distributed in the hope that it will be useful,
+# but "AS IS" WITHOUT ANY WARRANTY OF ANY KIND.
+# Users are therefore encouraged to test the software's suitability as regards
+# their requirements in conditions enabling the security of their systems and/or data.
+# 
+# The fact that you are presently reading this means that you have had knowledge
+# of the license and that you accept its terms.
+#######################################################################################
+
+
 # ##############################################################################
 # Main core script
 # ##############################################################################
@@ -9,46 +30,48 @@
 # generate the config files, the recipes or the containers depending on the
 # configure options that will be set with cmake
 # ##############################################################################
+set(workdir_depends_files
+    ${pipeline_source_dir}/conf/base.config
+    ${pipeline_source_dir}/conf/geniac.config
+    ${CMAKE_SOURCE_DIR}/install/singularity.nf
+    ${CMAKE_SOURCE_DIR}/install/nextflow.config.in
+    ${CMAKE_SOURCE_DIR}/install/docker.nf)
+
+if(EXISTS ${pipeline_source_dir}/modules/)
+    set(workdir_depends_files
+        ${workdir_depends_files}
+        ${pipeline_source_dir}/modules/*)
+endif()
+
+if(EXISTS ${pipeline_source_dir}/recipes/)
+    set(workdir_depends_files
+        ${workdir_depends_files}
+        ${pipeline_source_dir}/recipes/*)
+endif()
+
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir.done
     COMMAND ${CMAKE_COMMAND} -E echo "create workDir/"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/recipes
-            ${CMAKE_BINARY_DIR}/workDir/recipes
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_BINARY_DIR}/nextflowConf
-            ${CMAKE_BINARY_DIR}/workDir/conf/
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/nextflow.config
-            ${CMAKE_BINARY_DIR}/workDir/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/conf
-            ${CMAKE_BINARY_DIR}/workDir/conf
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/modules
-            ${CMAKE_BINARY_DIR}/workDir/modules
+    COMMAND ${CMAKE_COMMAND}
+            -Dpipeline_source_dir=${pipeline_source_dir}
+            -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
+            -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
+            -P ${CMAKE_SOURCE_DIR}/cmake/createWorkDir.cmake
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
-    DEPENDS ${CMAKE_SOURCE_DIR}/recipes/*
-    DEPENDS ${CMAKE_SOURCE_DIR}/conf/base.config
-    DEPENDS ${CMAKE_SOURCE_DIR}/modules/*
-    DEPENDS ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
-    DEPENDS ${CMAKE_SOURCE_DIR}/geniac/install/nextflow.config
-    DEPENDS ${CMAKE_SOURCE_DIR}/geniac/install/docker.nf)
+    DEPENDS ${workdir_depends_files})
 
 # ##############################################################################
 # Automatic generation of the config files, recipes and containers
 # ##############################################################################
 
 # generate conf/*.config files (singularity, docker, conda, multiconda, path,
-# etc.) that will be used by the different nextflow profiles in the pipeline
+# multipath.) that will be used by the different nextflow profiles in the pipeline
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
@@ -60,12 +83,9 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
@@ -78,8 +98,6 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/geniac/install/docker.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -107,12 +125,9 @@ add_custom_target(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
-    COMMAND ${CMAKE_COMMAND} -E copy
-            ${CMAKE_SOURCE_DIR}/geniac/install/singularity.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
@@ -125,8 +140,6 @@ add_custom_command(
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/geniac/install/docker.nf
-            ${CMAKE_BINARY_DIR}/workDir
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
@@ -233,17 +246,45 @@ install(
 # ##############################################################################
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/pathDirectories.done
+    OUTPUT ${CMAKE_BINARY_DIR}/multiPathDirectories.done
     COMMAND
         ${CMAKE_COMMAND}
-        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/pathLink.txt
-        -Dpath_link_dir=${CMAKE_BINARY_DIR}/pathDirectories -P
-        ${CMAKE_SOURCE_DIR}/geniac/cmake/createPathDirectories.cmake
-    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectories.done"
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/multiPathLink.txt
+        -Dpath_link_dir=${CMAKE_BINARY_DIR}/multiPathDirectories -P
+        ${CMAKE_SOURCE_DIR}/cmake/createPathDirectories.cmake
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/multiPathDirectories.done"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 
-add_custom_target(install_path_directories ALL
-                  DEPENDS ${CMAKE_BINARY_DIR}/pathDirectories.done)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/multiPathDirectories/
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/multipath)
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/pathDirectories/
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/pathDirectory.done
+    COMMAND
+        ${CMAKE_COMMAND}
+        -Dpath_link_file=${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/PathLink.txt
+        -Dpath_link_dir=${CMAKE_BINARY_DIR}/PathDirectory -P
+        ${CMAKE_SOURCE_DIR}/cmake/createPathDirectories.cmake
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/pathDirectory.done"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/PathDirectory/
         DESTINATION ${CMAKE_INSTALL_PREFIX}/path)
+
+add_custom_target(install_path_directories ALL
+                  DEPENDS ${CMAKE_BINARY_DIR}/multiPathDirectories.done ${CMAKE_BINARY_DIR}/pathDirectory.done)
+
+# ##############################################################################
+# Keep environment.yml file from the source code
+# The environment.yml generated by geniac will be discarded
+# As it can be impossible to automatically generate the conda recipe we may have no choice but 
+# to write the environment.yml manually.
+# Leave this step at the end of this script.
+# ##############################################################################
+
+if(ap_keep_envyml_from_source)
+  if(EXISTS ${pipeline_source_dir}/environment.yml)
+    install(FILES ${pipeline_source_dir}/environment.yml DESTINATION ${pipeline_dir})
+    message_color(INFO "The environment.yml from the source code will be installed (the file automatically generated by geniac will be discarded).")
+  endif()
+endif()
