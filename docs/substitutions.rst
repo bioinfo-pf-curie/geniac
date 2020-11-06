@@ -20,16 +20,16 @@
 .. _docker: https://www.docker.com/
 
 .. |geniacdemo| replace:: geniac demo
-.. _geniacdemo: https://gitlab.curie.fr/pipeline_templates/data-analysis_demo
+.. _geniacdemo: https://github.com/bioinfo-pf-curie/geniac-demo
 
 .. |geniacdoc| replace:: geniac documentation
 .. _geniacdoc: https://geniac.readthedocs.io/
 
 .. |geniacrepo| replace:: geniac repository
-.. _geniacrepo: https://gitlab.curie.fr/pipeline_templates/geniac
+.. _geniacrepo: https://github.com/bioinfo-pf-curie/geniac
 
 .. |geniactemplate| replace:: geniac template
-.. _geniactemplate: https://gitlab.curie.fr/pipeline_templates/data-analysis_template
+.. _geniactemplate: https://github.com/bioinfo-pf-curie/geniac/template
 
 .. |git| replace:: git
 .. _git: https://git-scm.com/

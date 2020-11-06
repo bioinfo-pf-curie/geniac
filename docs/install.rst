@@ -7,7 +7,7 @@
 Installation
 *********************
 
-We describe here how the analysis pipeline can be installed. We assume that the pipeline is available from the git repository ``myGitRepo``  at the url ``http://myGitRepoUrl`` and follows the expected organisation (see :ref:`overview-source-tree`).
+We describe here how the analysis pipeline can be installed. The pipeline must be available from a git repository and follows the expected organisation (see :ref:`overview-source-tree`). An example of installation is provided with the |geniacdemo|_ pipeline.
 
 Installation requires |cmake|_ (version 3.0 or above) and consists of the following sequence.
 
@@ -17,7 +17,7 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
    export SRC_DIR="${WORK_DIR}/src"
    export INSTALL_DIR="${WORK_DIR}/install"
    export BUILD_DIR="${WORK_DIR}/build"
-   export GIT_URL="https://myPipeline/myPipeline.git"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
 
@@ -301,7 +301,7 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
    export SRC_DIR="${WORK_DIR}/src"
    export INSTALL_DIR="${WORK_DIR}/install"
    export BUILD_DIR="${WORK_DIR}/build"
-   export GIT_URL="https://myPipeline/myPipeline.git"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
    
@@ -332,7 +332,7 @@ Install and run with singularity
    export SRC_DIR="${WORK_DIR}/src"
    export INSTALL_DIR="${WORK_DIR}/install"
    export BUILD_DIR="${WORK_DIR}/build"
-   export GIT_URL="https://myPipeline/myPipeline.git"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
    
