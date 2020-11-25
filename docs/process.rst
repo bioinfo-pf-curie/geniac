@@ -25,8 +25,8 @@ Each process must have a *label* directive. The *label* name may be different of
 
    process fastqc {
      label 'fastqc'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'lowMem'
+     label 'lowCpu'
    
      tag "${prefix}"
      publishDir "${params.outDir}/fastqc", mode: 'copy'
@@ -140,8 +140,8 @@ Use always ``label 'onlyLinux'``
 
    process standardUnixCommand {
      label 'onlyLinux'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/standardUnixCommand", mode: 'copy'
 
      input:
@@ -215,8 +215,8 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
    process fastqc {
      label 'fastqc'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'lowMem'
+     label 'lowCpu'
    
      tag "${prefix}"
      publishDir "${params.outDir}/fastqc", mode: 'copy'
@@ -304,8 +304,8 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
    process trickySoftware {
      label 'trickySoftware'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/trickySoftware", mode: 'copy'
    
      output:
@@ -362,8 +362,8 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
    process execBinScript {
      label 'onlyLinux'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/execBinScript", mode: 'copy'
    
      output:
@@ -431,8 +431,8 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
    process helloWorld {
      label 'helloWorld'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/helloWorld", mode: 'copy'
    
      output:
@@ -595,8 +595,8 @@ This script is called in the following process:
 
    process execBinScript {
      label 'onlyLinux'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/execBinScript", mode: 'copy'
    
      output:
@@ -666,13 +666,17 @@ You can define generic labels for both CPU and memory (as you wish) in the file 
 
 ::
 
-  withLabel: smallCpu { cpus = 1 }
+  withLabel: minCpu { cpus = 1 }
+  withLabel: lowCpu { cpus = 2 }
   withLabel: medCpu { cpus = 4 }
-  withLabel: bigCpu { cpus = 8 }
-  withLabel: smallMem { memory = '2 GB' }
-  withLabel: medMem { memory = '15 GB' }
-  withLabel: bigMem { memory = '40 GB' }
+  withLabel: highCpu { cpus = 8 }
+  withLabel: extraCpu { cpus = 16 }
 
+  withLabel: minMem { memory = 1.GB }
+  withLabel: lowMem { memory = 2.GB }
+  withLabel: medMem { memory = 8.GB }
+  withLabel: highMem { memory = 16.GB }
+  withLabel: extraMem { memory = 32.GB }
 
 Then, in any process, you can just set any label you need. For example:
 
@@ -680,8 +684,8 @@ Then, in any process, you can just set any label you need. For example:
 
    process execBinScript {
      label 'onlyLinux'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/execBinScript", mode: 'copy'
    
      output:
