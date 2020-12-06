@@ -1,0 +1,14 @@
+name: geniac
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - certifi=2020.11.8=py38hecd8cb5_0
+  - python=3.8.5=h26836e1_1
+  - pip:
+    - colorlog==4.6.2
+    - pre-commit==2.9.2
+    - pytest==6.1.2
+    - setuptools-scm==4.1.2
+    - tox-conda==0.4.1
+    - wheel==0.36.1
