@@ -5,7 +5,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from configparser import ConfigParser
+from configparser import ConfigParser, ExtendedInterpolation
 from os.path import isdir, isfile
 
 from pkg_resources import resource_stream
@@ -38,7 +38,9 @@ class GCommand(ABC):
         Returns:
             :obj:`configparser.ConfigParser`: config instance
         """
-        config = ConfigParser(allow_no_value=True)
+        config = ConfigParser(interpolation=ExtendedInterpolation(), allow_no_value=True)
+        # TODO: add defauldict in order to init tree. sections with required, path, files, opt_files and exclude keys
+        # TODO: remove has_section checks in GCheck after previous todo
         # Read default config file
         config.read_string(resource_stream(__name__, self.default_config).read().decode())
         if config_file:
