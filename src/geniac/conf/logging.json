@@ -6,7 +6,7 @@
             "format": "%(levelname)-8s %(message)s"
         },
         "detail": {
-            "format": "[%(asctime)s] --- %(levelname)s --- %(message)s (%(name)s.%(abc_funcName)s:%(abc_lineno)s)",
+            "format": "[%(asctime)s] --- %(levelname)s --- %(message)s (%(name)s.%(funcName)s:%(lineno)d)",
             "datefmt": "%m/%d/%Y %I:%M:%S %p"
         },
         "colored": {
@@ -35,8 +35,7 @@
             "formatter": "detail",
             "filename": ".geniac.debug",
             "mode": "a",
-            "encoding": "utf8",
-            "filters": ["abc_filter"]
+            "encoding": "utf8"
         },
         "error_file_handler": {
             "class": "logging.handlers.RotatingFileHandler",
@@ -44,12 +43,10 @@
             "formatter": "detail",
             "filename": ".geniac.error",
             "mode": "a",
-            "encoding": "utf8",
-            "filters": ["abc_filter"]
+            "encoding": "utf8"
         }
     },
     "root": {
-        "level": "INFO",
         "handlers": [
             "console",
             "info_file_handler",

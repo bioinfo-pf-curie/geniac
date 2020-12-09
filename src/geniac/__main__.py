@@ -3,9 +3,14 @@
 
 """Geniac CLI interface"""
 
-import argparse
 import logging
-import sys
+
+from argparse import ArgumentParser
+from json import loads
+from logging.config import dictConfig
+from sys import argv
+
+from pkg_resources import resource_stream
 
 from . import __version__
 from .check import GCheck
@@ -14,6 +19,7 @@ from .confor import GConfor
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
 
+_logging_config = "conf/logging.json"
 _logger = logging.getLogger(__name__)
 
 
@@ -51,7 +57,7 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     # Top command
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         prog="geniac", description="Geniac Command Line Interface"
     )
     parser.add_argument(
@@ -107,10 +113,11 @@ def setup_logging(loglevel):
     Args:
       loglevel (int): minimum loglevel for emitting messages
     """
-    logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    logging.basicConfig(
-        level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
-    )
+    # Set a default logger
+    logging.basicConfig(level=loglevel if loglevel else logging.WARNING)
+    # Update with file handlers defined in _logging_config file
+    logging_config = loads(resource_stream(__name__, _logging_config).read().decode())
+    dictConfig(logging_config)
 
 
 def main(args):
@@ -127,7 +134,7 @@ def main(args):
 
 def run():
     """Entry point for console_scripts"""
-    main(sys.argv[1:])
+    main(argv[1:])
 
 
 if __name__ == "__main__":
