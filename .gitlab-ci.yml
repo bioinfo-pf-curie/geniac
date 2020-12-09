@@ -13,7 +13,10 @@ image: "python:3.8"
 #   - redis:latest
 #   - postgres:latest
 
-# variables:
+# Avoid shallow clone
+# TODO: enable default shallow clone to speed up CI
+variables:
+  GIT_DEPTH: 0
 #   POSTGRES_DB: database_name
 
 # Cache packages in between builds
