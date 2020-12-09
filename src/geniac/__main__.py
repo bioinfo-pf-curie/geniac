@@ -31,8 +31,7 @@ def check(args):
     Returns:
         :obj:`geniac.linter.GLinter`: geniac linter
     """
-    _logger.debug("Starting geniac lint command...")
-    return GCheck(args.get("project_dir"))
+    return GCheck(project_dir=args.project_dir, config_file=args.config)
 
 
 def conf(args):
@@ -41,10 +40,9 @@ def conf(args):
     Args:
 
     Returns:
-
+        :obj:`geniac.confor.GConfor`: geniac configurator
     """
-    _logger.debug("Starting geniac conf command...")
-    return GConfor(args.get("project_dir"))
+    return GConfor(args.project_dir)
 
 
 def parse_args(args):
@@ -80,6 +78,14 @@ def parse_args(args):
         help="set loglevel to DEBUG",
         action="store_const",
         const=logging.DEBUG,
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="Path to geniac config file (INI format)",
+        dest="config",
+        type=str,
+        metavar="CONF.INI"
     )
 
     # Add sub command (lint and conf)
