@@ -32,19 +32,18 @@ class GCommand(ABC):
         self._config_file = config_file if config_file and isfile(config_file) else None
         self._config = self.load_config()
 
-    def load_config(self):
-        """Load configuration file(s)
+    def load_config(self, config_file=None):
+        """Load default configuration file and update option with config_file
 
         Returns:
             :obj:`configparser.ConfigParser`: config instance
         """
         config = ConfigParser(allow_no_value=True)
         # Read default config file
-        with resource_stream(__name__, self.default_config) as conf:
-            config.read_file(conf)
-        if self._config_file:
+        config.read_string(resource_stream(__name__, self.default_config).read().decode())
+        if config_file:
             # Read configuration file
-            config.read(self._config_file)
+            config.read(config_file)
         return config
 
     @property
