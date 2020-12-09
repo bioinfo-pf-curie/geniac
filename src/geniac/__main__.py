@@ -4,7 +4,6 @@
 """Geniac CLI interface"""
 
 import logging
-
 from argparse import ArgumentParser
 from json import loads
 from logging.config import dictConfig
@@ -55,9 +54,7 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     # Top command
-    parser = ArgumentParser(
-        prog="geniac", description="Geniac Command Line Interface"
-    )
+    parser = ArgumentParser(prog="geniac", description="Geniac Command Line Interface")
     parser.add_argument(
         "--version",
         action="version",
@@ -85,7 +82,7 @@ def parse_args(args):
         help="Path to geniac config file (INI format)",
         dest="config",
         type=str,
-        metavar="CONF.INI"
+        metavar="CONF.INI",
     )
 
     # Add sub command (lint and conf)
@@ -95,8 +92,13 @@ def parse_args(args):
     parser_lint = subparsers.add_parser(
         "lint", help="Evaluate the compatibility of a Nextflow project with Geniac"
     )
-    parser_lint.add_argument("project_dir", metavar="DIR")
-    parser_lint.set_defaults(func=check)
+    parser_lint.add_argument(
+        "project_dir",
+        help="Path to Nextflow project directory",
+        type=str,
+        metavar="DIR",
+    )
+    parser_lint.set_defaults(func=check, which="lint")
 
     # Geniac Conf
     parser_conf = subparsers.add_parser(
@@ -108,7 +110,7 @@ def parse_args(args):
         type=str,
         metavar="INT",
     )
-    parser_conf.set_defaults(func=conf)
+    parser_conf.set_defaults(func=conf, which="conf")
 
     return parser.parse_args(args)
 
@@ -134,8 +136,9 @@ def main(args):
     """
     args = parse_args(args)
     setup_logging(args.loglevel)
+    _logger.info(f"Start geniac {args.which} command")
     args.func(args).run()
-    _logger.info("Script ends here")
+    _logger.debug("Script ends here")
 
 
 def run():
