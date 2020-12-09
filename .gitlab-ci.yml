@@ -27,11 +27,11 @@ before_script:
   - python -v                                   # Print out Python version for debugging
   # Setup git
   - apt-get install git
-  - git config --global user.email "you@example.com"
-  - git config --global user.name "Your Name"
+  - git config --global user.email "$GITLAB_USER_EMAIL"
+  - git config --global user.name "$GITLAB_USER_NAME"
   # Install dependencies for the testing environment
-  - pip install -U pip setuptools
-  - pip install -U tox
+  - pip install -U pip setuptools setuptools-scm wheel
+  - pip install -U tox-conda
 
 .test_script: &test_script
   script:
