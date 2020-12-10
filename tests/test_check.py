@@ -3,6 +3,8 @@
 
 """Foobar.py: Description of what foobar does."""
 
+import os
+
 import pytest
 
 from geniac.check import GCheck
@@ -19,4 +21,4 @@ def default_gcheck():
 
 def test_gcheck(default_gcheck):
     """Check if we can instantiate a GConfor object with a folder"""
-    assert default_gcheck.project_dir is None
+    assert default_gcheck.project_dir == os.getcwd()
