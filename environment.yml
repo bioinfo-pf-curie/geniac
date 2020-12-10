@@ -3,8 +3,8 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - certifi=2020.11.8=py38hecd8cb5_0
-  - python=3.8.5=h26836e1_1
+  - certifi=2020.11.8
+  - python=3.8.5
   - pip:
     - colorlog==4.6.2
     - pre-commit==2.9.2
