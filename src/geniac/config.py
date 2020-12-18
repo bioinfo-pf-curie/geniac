@@ -53,7 +53,7 @@ class NextflowConfig(GBase):
         super().__init__(*args, **kwargs)
         self.params = None
         self._scopes = self._format_scopes_config()
-        self._content = {}
+        self._content = dotty()
 
     @property
     def scopes(self):
@@ -102,8 +102,6 @@ class NextflowConfig(GBase):
         Returns:
             scopes (dict): Nextflow config loaded as a nested dict
         """
-        scopes = dotty(self.content)
-        _logger.debug(self.scopes)
 
         with config_path.open(encoding=encoding) as config_file:
             # _logger.debug(f.read())
@@ -170,7 +168,7 @@ class NextflowConfig(GBase):
                         f"in scope {param_idx}"
                     )
                     value = values.get("value")
-                    scopes[param_idx] = (
+                    self.content[param_idx] = (
                         value.strip('"')
                         if '"' in value
                         else value.strip("'")
@@ -179,9 +177,8 @@ class NextflowConfig(GBase):
                     )
                     continue
         _logger.debug(
-            f"LOADED {config_path} scope:\n{json.dumps(dict(scopes), indent=2)}"
+            f"LOADED {config_path} scope:\n{json.dumps(dict(self.content), indent=2)}"
         )
-        return dict(scopes)
 
     def read(self, config_paths, encoding=None):
         """Read and parse a Nextflow config file or an iterable of config files
