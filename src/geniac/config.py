@@ -154,6 +154,8 @@ class NextflowConfig(GBase):
                             ".".join((selector, label))
                             if not scope_idx
                             else ".".join((scope_idx, selector, label))
+                            if selector not in scope_idx
+                            else ".".join((scope_idx, label))
                         )
                     if values.get("close"):
                         scope_idx = ".".join(scope_idx.split(".").pop())
