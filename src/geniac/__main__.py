@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Geniac CLI interface"""
+"""Geniac main script"""
 
 import logging
 from argparse import ArgumentParser
