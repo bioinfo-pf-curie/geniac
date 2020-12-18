@@ -74,8 +74,22 @@ class NextflowConfig(GBase):
         self._content[key] = value
 
     def __repr__(self):
-        """"""
+        """List only values in content dict"""
         return repr(self.content)
+
+    def __contains__(self, item):
+        """Check if item is in content dict"""
+        return item in self._content
+
+    def __delitem__(self, key):
+        """Remove a key from content dict"""
+        del self._content[key]
+
+    def get(self, key, default=None):
+        """Get method with default option"""
+        if key in self.content:
+            return self[key]
+        return default
 
     def _format_scopes_config(self):
         """Format scopes from ini config"""
@@ -92,15 +106,11 @@ class NextflowConfig(GBase):
         }
 
     def _read(self, config_path: Path, encoding=None):
-        """Load a Nextflow config file
+        """Load a Nextflow config file into content property
 
         Args:
             config_path (Path): path to nextflow config file
             encoding (str): name of the encoding use to decode config files
-            scopes (dict): actual config dict
-
-        Returns:
-            scopes (dict): Nextflow config loaded as a nested dict
         """
 
         with config_path.open(encoding=encoding) as config_file:
