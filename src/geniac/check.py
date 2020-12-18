@@ -6,7 +6,7 @@
 import logging
 from pathlib import Path
 
-from .command import GCommand
+from .base import GCommand
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Foobar.py: Description of what foobar does."""
+"""base.py: CLI geniac interface"""
 
 import logging
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, ExtendedInterpolation
 from os import getcwd
 from os.path import isdir, isfile
+from pathlib import Path
 
 from pkg_resources import resource_stream
 
@@ -17,7 +18,7 @@ __copyright__ = "Institut Curie 2020"
 _logger = logging.getLogger(__name__)
 
 
-class GCommand(ABC):
+class GBase(ABC):
     """Abstract base class for Geniac commands"""
 
     default_config = "conf/geniac.ini"
@@ -31,9 +32,9 @@ class GCommand(ABC):
         """
         self.project_dir = project_dir
         self.config_file = config_file
-        self.config = self.load_config(self.config_file)
+        self.config = self._load_config(self.config_file)
 
-    def load_config(self, config_file=None):
+    def _load_config(self, config_file=None):
         """Load default configuration file and update option with config_file
 
         Returns:
@@ -97,7 +98,38 @@ class GCommand(ABC):
         value.set("tree.base", "path", self.project_dir)
         self._config = value
 
+    def config_paths(self, section, option):
+        """Format config option to list of Path objects"""
+        option = (
+            self.config.get(section, option).split()
+            if self.config.get(section, option)
+            else []
+        )
+        # Get Path instance for each file in the related configparser option. Glob
+        # patterns are unpacked here
+        return [
+            Path(in_path) if "*" not in in_path else glob_path
+            for in_path in option
+            for glob_path in sorted(Path().glob(in_path))
+        ]
+
+    def config_subsection(self, subsection):
+        """Filter sections to a uniq sub section"""
+        return {
+            section
+            for section in self.config.sections()
+            if section.startswith(f"{subsection}.")
+        }
+
+
+class GCommand(GBase):
+    """Base geniac command"""
+
+    def __init__(self, *args, **kwargs):
+        """"""
+        super().__init__(*args, **kwargs)
+
     @abstractmethod
     def run(self):
         """Main entry point for every geniac sub command"""
-        pass
+        raise NotImplementedError("This class should implement a basic run command")
