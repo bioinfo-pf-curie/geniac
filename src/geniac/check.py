@@ -21,63 +21,75 @@ class GCheck(GCommand):
         """Init flags specific to GCheck command"""
         super().__init__(*args, **kwargs)
         self._dir_flags = []
+        self._project_tree = self._format_tree_config()
+
+    @property
+    def project_tree(self):
+        """Formatted tree configuration"""
+        return self._project_tree
+
+    def _format_tree_config(self):
+        """Format configuration tree from ini config
+
+        Returns:
+            config_tree (dict)
+        """
+        config_tree = {
+            tree_section: {
+                # Is the folder required ?
+                "required": self.config.getboolean(tree_section, "required")
+                if self.config.has_option(tree_section, "required")
+                else False,
+                # Is the folder recommended ?
+                "recommended": self.config.getboolean(tree_section, "recommended")
+                if self.config.has_option(tree_section, "recommended")
+                else False,
+                # Path to the folder
+                "path": Path(self.config.get(tree_section, "path"))
+                if self.config.get(tree_section, "path")
+                else Path(Path.cwd()),
+                # Path(s) to mandatory file(s)
+                "required_files": self.config_paths(tree_section, "files"),
+                # Path(s) to optional file(s)
+                "optional_files": self.config_paths(tree_section, "optional"),
+                # Path(s) to file(s) excluded from the analysis
+                "excluded_files": self.config_paths(tree_section, "exclude"),
+            }
+            for tree_section in self.config_subsection("tree")
+        }
+        return {
+            tree_section: {
+                # Get a list all the files in the folder
+                "current_files": (
+                    [
+                        _
+                        for _ in config_tree.get(tree_section).get("path").iterdir()
+                        if _ not in config_tree.get(tree_section).get("excluded_files")
+                    ]
+                    if config_tree.get(tree_section).get("path").exists()
+                    else []
+                ),
+                **section,
+            }
+            for tree_section, section in config_tree.items()
+        }
 
     def check_tree_folder(self):
         """Check the directory d in order to set the flags"""
         _logger.info("Check tree folder")
 
-        def opt_paths(section, option):
-            """Format config option to list of Path objects"""
-            option = (
-                self.config.get(section, option).split()
-                if self.config.get(section, option)
-                else []
-            )
-            # Get Path instance for each file in the related configparser option. Glob
-            # patterns are unpacked here
-            return [
-                Path(in_path) if "*" not in in_path else glob_path
-                for in_path in option
-                for glob_path in sorted(Path().glob(in_path))
-            ]
-
         # TODO: rewrite get_sections to have a nested dict instead of a list
-        config_sections = [
-            section for section in self.config.sections() if section.startswith("tree.")
-        ]
         _logger.debug(f"Sections parsed from config file: {self.config.sections()}")
 
-        for config_section in config_sections:
-            [_logger.debug(msg) for msg in ("\n", f"SECTION {config_section}")]
-            # Is the folder required ?
-            required = (
-                self.config.getboolean(config_section, "required")
-                if self.config.has_option(config_section, "required")
-                else False
-            )
-            recommended = (
-                self.config.getboolean(config_section, "recommended")
-                if self.config.has_option(config_section, "recommended")
-                else False
-            )
-            # Path to the folder
-            path = (
-                Path(self.config.get(config_section, "path"))
-                if self.config.get(config_section, "path")
-                else Path(Path.cwd())
-            )
-            # Path(s) to mandatory file(s)
-            required_files = opt_paths(config_section, "files")
-            # Path(s) to optional file(s)
-            optional_files = opt_paths(config_section, "optional")
-            # Path(s) to file(s) excluded from the analysis
-            excluded_files = opt_paths(config_section, "exclude")
-            # Get a list all the files in the folder
-            cwd_files = (
-                [_ for _ in path.iterdir() if _ not in excluded_files]
-                if path.exists()
-                else []
-            )
+        for tree_section, section in self.project_tree.items():
+            [_logger.debug(msg) for msg in ("\n", f"SECTION {tree_section}")]
+
+            required = section.get("required")
+            recommended = section.get("recommended")
+            path = section.get("path")
+            required_files = section.get("required_files")
+            optional_files = section.get("optional_files")
+            current_files = section.get("current_files")
 
             [
                 _logger.debug(msg)
@@ -86,15 +98,15 @@ class GCheck(GCommand):
                     f"path: {path}",
                     f"expected files: {required_files}",
                     f"optional files: {optional_files}",
-                    f"excluded files: {excluded_files}",
-                    f"current files: {cwd_files}",
+                    f"excluded files: {section.get('excluded_files')}",
+                    f"current files: {current_files}",
                 )
             ]
 
             # If folder exists and is not empty (excluded files are ignored)
-            if path.exists() and path.is_dir() and len(cwd_files) >= 1:
+            if path.exists() and path.is_dir() and len(current_files) >= 1:
                 _logger.debug("Add section to directory flags")
-                self._dir_flags.append(config_section)
+                self._dir_flags.append(tree_section)
             elif required and not path.exists():
                 _logger.error(
                     f"Directory {path.name} does not exist. Add it to you project if "
@@ -106,7 +118,7 @@ class GCheck(GCommand):
                     f" one"
                 )
 
-            for file in cwd_files:
+            for file in current_files:
                 if not file.exists():
                     if required and file in required_files:
                         # TODO: if config folder check if the file has been included in
