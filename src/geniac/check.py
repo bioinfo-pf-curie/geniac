@@ -7,6 +7,7 @@ import logging
 from pathlib import Path
 
 from .base import GCommand
+from .config import NextflowConfig
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -114,8 +115,8 @@ class GCheck(GCommand):
                 )
             elif recommended and not path.exists():
                 _logger.warning(
-                    f"Directory {path.name} does not exist. It is recommended to have"
-                    f" one"
+                    "Directory %s does not exist. It is recommended to have one",
+                    path.name,
                 )
 
             for file in current_files:
@@ -137,13 +138,52 @@ class GCheck(GCommand):
 
         _logger.debug(f"Directory flags: {self._dir_flags}")
 
+    def check_geniac_config(self):
+        """Check the content of a geniac config file
+
+        Returns:
+
+        """
+        _logger.debug(self.config.get("project.config", "geniac"))
+        # Parse base, geniac and process config files
+        config = NextflowConfig()
+
+        # Read all the default config files
+        # [config.read(conf) for conf in self.config.options("project.config")]
+        config.read(self.config.get("project.config", "geniac"))
+        _logger.debug(config)
+
+        # config.read(Path(self.config.get('project.config', 'geniac')))
+        # params = config.get("params")
+        # if not params.get("geniac"):
+        #   _logger.error("
+        pass
+
+    def check_process_config(self):
+        """Check the content of a process config file
+
+        Returns:
+
+        """
+        pass
+
+    def check_nextflow_config(self):
+        """Check the content of a nextflow config file
+
+        Returns:
+
+        """
+        pass
+
     def check_config_file_content(self):
         """Check the structure of the repo
 
         Returns:
 
         """
-        pass
+        self.check_geniac_config()
+        self.check_process_config()
+        self.check_nextflow_config()
 
     def get_labels_from_folders(self):
         """Parse information from recipes and modules folders
