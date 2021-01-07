@@ -7,7 +7,7 @@ import logging
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, ExtendedInterpolation
 from os import getcwd
-from os.path import isdir, isfile
+from os.path import basename, dirname, isdir, isfile
 from pathlib import Path
 
 from pkg_resources import resource_stream
@@ -110,7 +110,7 @@ class GBase(ABC):
         return [
             Path(in_path) if "*" not in in_path else glob_path
             for in_path in option
-            for glob_path in sorted(Path().glob(in_path))
+            for glob_path in sorted(Path(dirname(in_path)).glob(basename(in_path)))
         ]
 
     def config_subsection(self, subsection):
