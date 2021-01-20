@@ -85,20 +85,6 @@ class NextflowConfig(GBase):
             return self[key]
         return default
 
-    def _format_scopes_config(self):
-        """Format scopes from ini config"""
-        return {
-            scope_section: {
-                scope_property: ""
-                for scope_property in (
-                    self.config.get(scope_section, "properties").split()
-                    if self.config.get(scope_section, "properties")
-                    else []
-                )
-            }
-            for scope_section in self.config_subsection("scope")
-        }
-
     def _read(self, config_path: Path, encoding=None):
         """Load a Nextflow config file into content property
 
