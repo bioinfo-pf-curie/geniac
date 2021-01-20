@@ -6,7 +6,6 @@
 import logging
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, ExtendedInterpolation
-from os import getcwd
 from os.path import basename, dirname, isdir, isfile
 from pathlib import Path
 
@@ -68,7 +67,9 @@ class GBase(ABC):
     @project_dir.setter
     def project_dir(self, value):
         """If value is not a directory, set the project dir to the current directory"""
-        self._project_dir = value if value and isdir(value) else getcwd()
+        self._project_dir = (
+            Path(value).resolve() if value and isdir(value) else Path().cwd()
+        )
 
     @property
     def config_file(self):
@@ -96,7 +97,7 @@ class GBase(ABC):
     @config.setter
     def config(self, value):
         """Update base dir with project dir"""
-        value.set("tree.base", "path", self.project_dir)
+        value.set("tree.base", "path", str(self.project_dir))
         self._config = value
 
     def config_paths(self, section, option):
