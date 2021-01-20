@@ -144,6 +144,83 @@ class GCheck(GCommand):
 
         _logger.debug(f"Directory flags: {self._dir_flags}")
 
+    def _check_config_scope(
+        self,
+        nxf_config: NextflowConfig,
+        nxf_config_scope: str,
+        nxf_config_path: str = "",
+    ):
+        """Check if the given scope is in an NextflowConfig instance
+
+        Args:
+            nxf_config (NextflowConfig): Nextflow configuration object
+            nxf_config_scope (str): Scope checked in the Nextflow configuration
+        """
+        _logger.debug(f"Checking {nxf_config_scope} in {nxf_config_path}")
+
+        def get_config_list(config, scope, option):
+            """Get option list from configparser object
+            Args:
+                scope:
+                option:
+
+            Returns:
+                list
+            """
+            return (
+                list(filter(None, config_option.split("\n")))
+                if (config_option := config.get(f"scope.{scope}", option))
+                else []
+            )
+
+        config_scopes = get_config_list(self.config, nxf_config_scope, "scopes")
+        config_paths = get_config_list(self.config, nxf_config_scope, "paths")
+        config_props = get_config_list(self.config, nxf_config_scope, "properties")
+        config_values = {
+            key: value
+            for key, value in (
+                self.config.items(f"scope.{nxf_config_scope}.values")
+                if self.config.has_section(f"scope.{nxf_config_scope}.values")
+                else []
+            )
+        }
+
+        # Check if the actual scope exists in the Nextflow config
+        if nxf_config_scope and not (scope := nxf_config.get(nxf_config_scope)):
+            _logger.error(
+                f"Config file {nxf_config_path} doesn't have {nxf_config_scope} scope"
+            )
+
+        # Check if config_paths in the Nextflow config corresponds to their default values
+        if config_paths:
+            for config_path in config_paths:
+                if config_path and (cfg_val := scope.get(config_path)) != (
+                    def_val := config_values.get(config_path)
+                ):
+                    _logger.warning(
+                        f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter in file {nxf_config_path} "
+                        f"doesn't correspond to the default value {def_val}"
+                    )
+
+        # Check if config_props exists in the Nextflow config
+        if config_props:
+            for config_prop in config_props:
+                if config_prop and (cfg_val := scope.get(config_prop)) != (
+                    def_val := config_values.get(config_prop)
+                ):
+                    _logger.info(
+                        f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter in file {nxf_config_path} "
+                        f"doesn't correspond to the default value ('{def_val}')"
+                    )
+
+        # Call same checks on nested scopes
+        for nested_scope in config_scopes:
+            self._check_config_scope(
+                nxf_config,
+                ".".join((nxf_config_scope, nested_scope)),
+                nxf_config_path=nxf_config_path,
+            )
+
     def check_geniac_config(self):
         """Check the content of a geniac config file
 
@@ -152,11 +229,15 @@ class GCheck(GCommand):
         """
         _logger.debug(self.config.get("project.config", "geniac"))
         # Parse base, geniac and process config files
-        config = NextflowConfig()
+        conf_path = self.config.get("project.config", "geniac")
 
-        # Read all the default config files
-        # [config.read(conf) for conf in self.config.options("project.config")]
-        config.read(self.config.get("project.config", "geniac"))
+        # Parse geniac config files
+        config = NextflowConfig()
+        config.read(conf_path)
+
+        # Check parameters according to their default values
+        self._check_config_scope(config, "params", nxf_config_path=conf_path)
+
         _logger.debug(config)
 
         # config.read(Path(self.config.get('project.config', 'geniac')))
