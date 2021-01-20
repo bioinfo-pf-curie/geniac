@@ -5,6 +5,7 @@
 
 import logging
 import re
+import subprocess
 from pathlib import Path
 
 from .base import GCommand
@@ -222,13 +223,14 @@ class GCheck(GCommand):
             )
 
     def check_geniac_config(self):
-        """Check the content of a geniac config file
+        """Check the content of params scope in a geniac config file
 
         Returns:
-
+            labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
         """
-        _logger.debug(self.config.get("project.config", "geniac"))
-        # Parse base, geniac and process config files
+        conda_check = True
+        labels_geniac_tools = []
+
         conf_path = self.config.get("project.config", "geniac")
 
         # Parse geniac config files
@@ -238,13 +240,49 @@ class GCheck(GCommand):
         # Check parameters according to their default values
         self._check_config_scope(config, "params", nxf_config_path=conf_path)
 
-        _logger.debug(config)
+        # Check if conda command exists
+        if subprocess.run(["conda", "-h"], capture_output=True).returncode != 0:
+            _logger.error(
+                "Conda is not available in your path. Geniac will not check if tool recipes are correct"
+            )
+            conda_check = False
 
-        # config.read(Path(self.config.get('project.config', 'geniac')))
-        # params = config.get("params")
-        # if not params.get("geniac"):
-        #   _logger.error("
-        pass
+        # Check each label in params.geniac.tools
+        for label, recipe in config.get("params.geniac.tools").items():
+            labels_geniac_tools.append(label)
+            # If conda recipes
+            if match := self.CONDARECIPESRE.match(recipe):
+                # The related recipe is a correct conda recipe
+                # Check if the recipes exists in the actual OS with conda search
+                for conda_recipe in match.groupdict().get("recipes").split(" "):
+                    if (
+                        conda_check
+                        and self.config.getboolean("project.config", "condaCheck")
+                        and subprocess.run(
+                            ["conda", "search", conda_recipe], capture_output=True
+                        ).returncode
+                        != 0
+                    ):
+                        _logger.error(
+                            f"Conda recipe {conda_recipe} for the tool {label} does not link to an existing "
+                            f"package or build. Please look at the result of the conda search command"
+                        )
+            elif match := self.CONDAPATHRE.match(recipe):
+                if (
+                    conda_path := Path(
+                        self.project_dir / match.groupdict().get("basepath")
+                    )
+                ) and not conda_path.exists():
+                    _logger.warning(
+                        f"Conda file {conda_path} related to {label} tool does not exists."
+                    )
+            # else check if it's a valid path
+            else:
+                _logger.error(
+                    f"Value {recipe} of {label} tool does not look like a valid conda file or recipe"
+                )
+
+        return labels_geniac_tools
 
     def check_process_config(self):
         """Check the content of a process config file
