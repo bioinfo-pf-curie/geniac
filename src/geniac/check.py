@@ -157,7 +157,7 @@ class GCheck(GCommand):
             nxf_config (NextflowConfig): Nextflow configuration object
             nxf_config_scope (str): Scope checked in the Nextflow configuration
         """
-        _logger.debug(f"Checking {nxf_config_scope} in {nxf_config_path}")
+        _logger.info(f"Checking {nxf_config_scope} scope in {nxf_config_path}")
 
         def get_config_list(config, scope, option):
             """Get option list from configparser object
@@ -209,7 +209,7 @@ class GCheck(GCommand):
                 if config_prop and (cfg_val := scope.get(config_prop)) != (
                     def_val := config_values.get(config_prop)
                 ):
-                    _logger.info(
+                    _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter in file {nxf_config_path} "
                         f"doesn't correspond to the default value ('{def_val}')"
                     )
@@ -228,7 +228,7 @@ class GCheck(GCommand):
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
         """
-        conda_check = True
+        conda_check = self.config.getboolean("project.config", "condaCheck")
         labels_geniac_tools = []
 
         conf_path = self.config.get("project.config", "geniac")
@@ -248,6 +248,11 @@ class GCheck(GCommand):
             conda_check = False
 
         # Check each label in params.geniac.tools
+        _logger.info(
+            "Checking conda recipes in params.geniac.tools"
+            if conda_check
+            else "Checking of conda recipes turned off"
+        )
         for label, recipe in config.get("params.geniac.tools").items():
             labels_geniac_tools.append(label)
             # If conda recipes
@@ -257,11 +262,12 @@ class GCheck(GCommand):
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
                     if (
                         conda_check
-                        and self.config.getboolean("project.config", "condaCheck")
-                        and subprocess.run(
-                            ["conda", "search", conda_recipe], capture_output=True
-                        ).returncode
-                        != 0
+                        and (
+                            conda_search := subprocess.run(
+                                ["conda", "search", conda_recipe], capture_output=True
+                            )
+                        )
+                        and (conda_search.returncode != 0)
                     ):
                         _logger.error(
                             f"Conda recipe {conda_recipe} for the tool {label} does not link to an existing "
