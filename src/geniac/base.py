@@ -47,6 +47,7 @@ class GBase(ABC):
         #  files, opt_files and exclude keys
         # TODO: remove has_section checks in GCheck after previous todo
         # Read default config file
+        config.optionxform = str
         config.read_string(
             resource_stream(__name__, self.default_config).read().decode()
         )
