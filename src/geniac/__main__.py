@@ -30,7 +30,7 @@ def check(args):
     Returns:
         :obj:`geniac.linter.GLinter`: geniac linter
     """
-    return GCheck(project_dir=args.project_dir, config_file=args.config)
+    return GCheck(args.project_dir, config_file=args.config)
 
 
 def conf(args):
