@@ -16,6 +16,10 @@ _logger = logging.getLogger(__name__)
 class GConfor(GCommand):
     """Geniac configuration file generator"""
 
+    def __init__(self, project_dir, *args, **kwargs):
+        """Init flags specific to GCheck command"""
+        super().__init__(*args, project_dir=project_dir, **kwargs)
+
     def run(self):
         """
 
