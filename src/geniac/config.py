@@ -52,13 +52,7 @@ class NextflowConfig(GBase):
         """Constructor for NextflowConfigParser"""
         super().__init__(*args, **kwargs)
         self.params = None
-        self._scopes = self._format_scopes_config()
         self._content = dotty()
-
-    @property
-    def scopes(self):
-        """Expected Nextflow config scopes"""
-        return self._scopes
 
     @property
     def content(self):
