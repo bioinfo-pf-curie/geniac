@@ -4,6 +4,7 @@
 """check.py: Linter command for geniac"""
 
 import logging
+import re
 from pathlib import Path
 
 from .base import GCommand
@@ -18,9 +19,14 @@ _logger = logging.getLogger(__name__)
 class GCheck(GCommand):
     """Linter command for geniac"""
 
-    def __init__(self, *args, **kwargs):
+    CONDARECIPESRE = re.compile(r"(?P<recipes>(([\w-]+::[\w-]+==?[\d.]+==?[\w]+) ?)+)")
+    CONDAPATHRE = re.compile(
+        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
+    )
+
+    def __init__(self, project_dir, *args, **kwargs):
         """Init flags specific to GCheck command"""
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, project_dir=project_dir, **kwargs)
         self._dir_flags = []
         self._project_tree = self._format_tree_config()
 
