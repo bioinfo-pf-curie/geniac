@@ -281,6 +281,20 @@ class GCheck(GCommand):
                 _logger.error(
                     f"Value {recipe} of {label} tool does not look like a valid conda file or recipe"
                 )
+        for extra_section in (
+            "params.geniac.containers.yum",
+            "params.geniac.containers.git",
+        ):
+            if x_section := config.get(extra_section):
+                for label in x_section:
+                    if label not in labels_geniac_tools:
+                        _logger.error(
+                            f"Label {label} of {extra_section} is not defined in params.geniac.tools"
+                        )
+            else:
+                _logger.warning(
+                    f"Section {extra_section} is not defined in params.geniac.tools"
+                )
 
         return labels_geniac_tools
 
