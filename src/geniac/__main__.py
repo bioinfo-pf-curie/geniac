@@ -51,6 +51,7 @@ def parse_args(args):
       args ([str]): command line parameters as list of strings
 
     Returns:
+      :obj:`argparse.ArgumentParser`: argument parser
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     # Top command
@@ -112,7 +113,7 @@ def parse_args(args):
     )
     parser_conf.set_defaults(func=conf, which="conf")
 
-    return parser.parse_args(args)
+    return parser, parser.parse_args(args)
 
 
 def setup_logging(loglevel):
@@ -134,10 +135,13 @@ def main(args):
     Args:
       args ([str]): command line parameter list
     """
-    args = parse_args(args)
+    parser, args = parse_args(args)
     setup_logging(args.loglevel)
-    _logger.info(f"Start geniac {args.which} command")
-    args.func(args).run()
+    if "func" in args:
+        _logger.info(f"Start geniac {args.which if 'which' in args else None} command")
+        args.func(args).run()
+    else:
+        parser.print_help()
     _logger.debug("Script ends here")
 
 
