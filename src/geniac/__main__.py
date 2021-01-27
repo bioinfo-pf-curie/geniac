@@ -30,7 +30,7 @@ def check(args):
     Returns:
         :obj:`geniac.linter.GLinter`: geniac linter
     """
-    return GCheck(args.project_dir, config_file=args.config)
+    return GCheck(**vars(args))
 
 
 def conf(args):
@@ -41,7 +41,7 @@ def conf(args):
     Returns:
         :obj:`geniac.confor.GConfor`: geniac configurator
     """
-    return GConfor(args.project_dir)
+    return GConfor(**vars(args))
 
 
 def parse_args(args):

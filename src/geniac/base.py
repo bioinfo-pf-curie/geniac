@@ -22,7 +22,7 @@ class GBase(ABC):
 
     default_config = "conf/geniac.ini"
 
-    def __init__(self, project_dir=None, config_file=None):
+    def __init__(self, project_dir=None, config_file=None, **kwargs):
         """
 
         Args:
