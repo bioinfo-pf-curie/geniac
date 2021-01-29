@@ -20,8 +20,10 @@ _logger = logging.getLogger(__name__)
 class GCheck(GCommand):
     """Linter command for geniac"""
 
-    CONDARECIPESRE = re.compile(r"(?P<recipes>(([\w-]+::[\w-]+==?[\d.]+==?[\w]+) ?)+)")
-    CONDAPATHRE = re.compile(
+    CONDA_RECIPES_RE = re.compile(
+        r"(?P<recipes>(([\w-]+::[\w-]+==?[\d.]+==?[\w]+) ?)+)"
+    )
+    CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
 
@@ -256,7 +258,7 @@ class GCheck(GCommand):
         for label, recipe in config.get("params.geniac.tools").items():
             labels_geniac_tools.append(label)
             # If conda recipes
-            if match := self.CONDARECIPESRE.match(recipe):
+            if match := self.CONDA_RECIPES_RE.match(recipe):
                 # The related recipe is a correct conda recipe
                 # Check if the recipes exists in the actual OS with conda search
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
@@ -273,7 +275,7 @@ class GCheck(GCommand):
                             f"Conda recipe {conda_recipe} for the tool {label} does not link to an existing "
                             f"package or build. Please look at the result of the conda search command"
                         )
-            elif match := self.CONDAPATHRE.match(recipe):
+            elif match := self.CONDA_PATH_RE.match(recipe):
                 if (
                     conda_path := Path(
                         self.project_dir / match.groupdict().get("basepath")
