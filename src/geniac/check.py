@@ -59,11 +59,11 @@ class GCheck(GCommand):
                 if self.config.get(tree_section, "path")
                 else Path(Path.cwd()),
                 # Path(s) to mandatory file(s)
-                "required_files": self.config_paths(tree_section, "files"),
+                "required_files": self.config_path(tree_section, "files"),
                 # Path(s) to optional file(s)
-                "optional_files": self.config_paths(tree_section, "optional"),
+                "optional_files": self.config_path(tree_section, "optional"),
                 # Path(s) to file(s) excluded from the analysis
-                "excluded_files": self.config_paths(tree_section, "exclude"),
+                "excluded_files": self.config_path(tree_section, "exclude"),
             }
             for tree_section in self.config_subsection("tree")
         }

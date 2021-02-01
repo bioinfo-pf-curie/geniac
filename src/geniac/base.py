@@ -100,8 +100,17 @@ class GBase(ABC):
         value.set("tree.base", "path", str(self.project_dir))
         self._config = value
 
-    def config_paths(self, section, option):
-        """Format config option to list of Path objects"""
+    def config_path(self, section: str, option: str, single_path: bool = False):
+        """Format config option to list of Path objects or Path object if there is only one path
+
+        Args:
+            section (str): name of config section
+            option (str): name of config option
+            single_path (bool): flag to enable the return of single path
+
+        Returns:
+            config_paths (list, Path)
+        """
         option = (
             self.config.get(section, option).split()
             if self.config.get(section, option)
@@ -109,11 +118,12 @@ class GBase(ABC):
         )
         # Get Path instance for each file in the related configparser option. Glob
         # patterns are unpacked here
-        return [
+        result = [
             Path(in_path) if "*" not in in_path else glob_path
             for in_path in option
             for glob_path in sorted(Path(dirname(in_path)).glob(basename(in_path)))
         ]
+        return result[0] if len(result) == 1 and single_path else result
 
     def config_subsection(self, subsection):
         """Filter sections to a uniq sub section"""
