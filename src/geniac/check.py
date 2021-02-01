@@ -161,10 +161,11 @@ class GCheck(GCommand):
         """
         _logger.info(f"Checking {nxf_config_scope} scope in {nxf_config_path}")
 
-        def get_config_list(config, scope, option):
+        def get_config_list(config, config_scope, option):
             """Get option list from configparser object
             Args:
-                scope:
+                config:
+                config_scope:
                 option:
 
             Returns:
@@ -172,7 +173,7 @@ class GCheck(GCommand):
             """
             return (
                 list(filter(None, config_option.split("\n")))
-                if (config_option := config.get(f"scope.{scope}", option))
+                if (config_option := config.get(f"scope.{config_scope}", option))
                 else []
             )
 
@@ -187,9 +188,10 @@ class GCheck(GCommand):
                 else []
             )
         }
+        scope = nxf_config.get(nxf_config_scope)
 
         # Check if the actual scope exists in the Nextflow config
-        if nxf_config_scope and not (scope := nxf_config.get(nxf_config_scope)):
+        if nxf_config_scope and not scope:
             _logger.error(
                 f"Config file {nxf_config_path} doesn't have {nxf_config_scope} scope"
             )

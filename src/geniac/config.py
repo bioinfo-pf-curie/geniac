@@ -176,7 +176,7 @@ class NextflowConfig(GBase):
         """Read and parse a Nextflow config file or an iterable of config files
 
         Args:
-            config_paths: path to nextflow config file
+            config_paths: path to nextflow config file(s)
             encoding (str): name of the encoding use to decode config files
 
         Returns:
