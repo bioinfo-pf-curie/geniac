@@ -11,14 +11,14 @@ from sys import argv
 
 from pkg_resources import resource_stream
 
-from . import __version__
-from .check import GCheck
-from .confor import GConfor
+from geniac import __version__
+from geniac.commands.check import GCheck
+from geniac.commands.confor import GConfor
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
 
-_logging_config = "conf/logging.json"
+_logging_config = ("geniac", "conf/logging.json")
 _logger = logging.getLogger(__name__)
 
 
@@ -125,7 +125,7 @@ def setup_logging(loglevel):
     # Set a default logger
     logging.basicConfig(level=loglevel if loglevel else logging.WARNING)
     # Update with file handlers defined in _logging_config file
-    logging_config = loads(resource_stream(__name__, _logging_config).read().decode())
+    logging_config = loads(resource_stream(*_logging_config).read().decode())
     dictConfig(logging_config)
 
 

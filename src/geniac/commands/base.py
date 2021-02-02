@@ -20,7 +20,7 @@ _logger = logging.getLogger(__name__)
 class GBase(ABC):
     """Abstract base class for Geniac commands"""
 
-    default_config = "conf/geniac.ini"
+    default_config = ("geniac", "conf/geniac.ini")
 
     def __init__(self, project_dir=None, config_file=None, **kwargs):
         """
@@ -47,9 +47,7 @@ class GBase(ABC):
         # TODO: remove has_section checks in GCheck after previous todo
         # Read default config file
         config.optionxform = str
-        config.read_string(
-            resource_stream(__name__, self.default_config).read().decode()
-        )
+        config.read_string(resource_stream(*self.default_config).read().decode())
         if config_file:
             # Read configuration file
             config.read(config_file)

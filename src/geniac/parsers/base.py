@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dotty_dict import dotty
 
-from .base import GBase
+from geniac.commands.base import GBase
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

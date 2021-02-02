@@ -8,8 +8,8 @@ import re
 import subprocess
 from pathlib import Path
 
-from .base import GCommand
-from .config import NextflowConfig
+from geniac.commands.base import GCommand
+from geniac.parsers.config import NextflowConfig
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -386,6 +386,7 @@ class GCheck(GCommand):
 
         return labels_geniac_tools, labels_process
 
+    # TODO
     def get_labels_from_folders(self, modules_dir, recipes_dir):
         """Parse information from recipes and modules folders
 
@@ -407,6 +408,7 @@ class GCheck(GCommand):
             *labels_from_docker_recipe,
         )
 
+    # TODO
     def get_labels_from_main(self):
         """Parse only the main.nf file
 
@@ -416,6 +418,7 @@ class GCheck(GCommand):
         labels_from_main = {}
         return labels_from_main
 
+    # TODO
     def check_labels(
         self,
         labels_from_main: dict,
@@ -433,6 +436,7 @@ class GCheck(GCommand):
         """
         pass
 
+    # TODO
     def check_dependencies_dir(self, dependencies_dir: Path):
         """
 
@@ -444,6 +448,7 @@ class GCheck(GCommand):
         """
         pass
 
+    # TODO
     def check_env_dir(self, env_dir: Path):
         """
 

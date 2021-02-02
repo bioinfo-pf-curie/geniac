@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from geniac.check import GCheck
+from geniac.commands.check import GCheck
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

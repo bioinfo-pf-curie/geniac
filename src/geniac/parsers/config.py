@@ -9,7 +9,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from .parser import GParser
+from geniac.parsers.base import GParser
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

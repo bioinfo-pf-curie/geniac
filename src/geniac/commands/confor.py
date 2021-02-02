@@ -5,7 +5,7 @@
 
 import logging
 
-from .base import GCommand
+from geniac.commands.base import GCommand
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

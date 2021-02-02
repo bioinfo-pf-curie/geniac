@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from geniac.base import GBase
+from geniac.commands.base import GBase
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

@@ -5,7 +5,7 @@
 
 import pytest
 
-from geniac.confor import GConfor
+from geniac.commands.confor import GConfor
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
