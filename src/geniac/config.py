@@ -7,12 +7,9 @@ import json
 import logging
 import re
 from collections import defaultdict
-from os import PathLike
 from pathlib import Path
 
-from dotty_dict import dotty
-
-from .base import GBase
+from .parser import GParser
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -25,8 +22,8 @@ def _scope_tmpl():
     return {"properties": defaultdict(dict), "selectors": ()}
 
 
-class NextflowConfig(GBase):
-    """Nextflow config file"""
+class NextflowConfig(GParser):
+    """Nextflow config file parser"""
 
     # Uniq comment line
     UCOMRE = re.compile(r"\s*//")
@@ -51,39 +48,6 @@ class NextflowConfig(GBase):
     def __init__(self, *args, **kwargs):
         """Constructor for NextflowConfigParser"""
         super().__init__(*args, **kwargs)
-        self.params = None
-        self._content = dotty()
-
-    @property
-    def content(self):
-        """Config loaded from config files with read method"""
-        return self._content
-
-    def __getitem__(self, item):
-        """Get a config option"""
-        return self._content[item]
-
-    def __setitem__(self, key, value):
-        """Set an option in config"""
-        self._content[key] = value
-
-    def __repr__(self):
-        """List only values in content dict"""
-        return repr(self.content)
-
-    def __contains__(self, item):
-        """Check if item is in content dict"""
-        return item in self._content
-
-    def __delitem__(self, key):
-        """Remove a key from content dict"""
-        del self._content[key]
-
-    def get(self, key, default=None):
-        """Get method with default option"""
-        if key in self.content:
-            return self[key]
-        return default
 
     def _read(self, config_path: Path, encoding=None):
         """Load a Nextflow config file into content property
@@ -94,7 +58,6 @@ class NextflowConfig(GBase):
         """
 
         with config_path.open(encoding=encoding) as config_file:
-            # _logger.debug(f.read())
             mcom_flag = False
             def_flag = False
             scope_idx = ""
@@ -171,25 +134,3 @@ class NextflowConfig(GBase):
         _logger.debug(
             f"LOADED {config_path} scope:\n{json.dumps(dict(self.content), indent=2)}"
         )
-
-    def read(self, config_paths, encoding=None):
-        """Read and parse a Nextflow config file or an iterable of config files
-
-        Args:
-            config_paths: path to nextflow config file(s)
-            encoding (str): name of the encoding use to decode config files
-
-        Returns:
-            read_ok (list): list of successfully read files
-        """
-        if isinstance(config_paths, (str, bytes, PathLike)):
-            config_paths = [config_paths]
-        read_ok = []
-        for filename in config_paths:
-            filename = Path(filename)
-            try:
-                self._read(filename, encoding=encoding)
-            except OSError:
-                continue
-            read_ok.append(filename)
-        return read_ok
