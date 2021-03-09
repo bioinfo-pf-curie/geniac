@@ -382,7 +382,7 @@ class GCheck(GCommand):
         pass
 
     # TODO
-    def check_dependencies_dir(self, dependencies_dir: Path):
+    def check_recipes_dependencies_dir(self, dependencies_dir: Path):
         """
 
         Args:
@@ -437,6 +437,8 @@ class GCheck(GCommand):
             labels_from_configs,
             labels_from_folders,
         )
-        self.check_dependencies_dir(geniac_dirs["dependencies"])
+
         # Optional checks
+        self.check_recipes_dependencies_dir(geniac_dirs["dependencies"])
+
         self.check_env_dir(geniac_dirs["env"])
