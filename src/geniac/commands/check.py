@@ -26,9 +26,11 @@ class GCheck(GCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
+    # Name of config sections used in this class
     TREE_SUFFIX = "tree"
     PROJECT_CONFIG = "project.config"
     GENIAC_FLAGS = "geniac.flags"
+    GENIAC_DIRS = "geniac.directories"
 
     def __init__(self, project_dir, *args, **kwargs):
         """Init flags specific to GCheck command"""
@@ -415,7 +417,9 @@ class GCheck(GCommand):
         """
         # List here directories analyzed with geniac
         geniac_dirs = {
-            config_key: self.config_path("project.config", config_key, single_path=True)
+            config_key: self.config_path(
+                GCheck.GENIAC_DIRS, config_key, single_path=True
+            )
             for config_key in ("dependencies", "env", "recipes", "modules")
         }
 
@@ -430,7 +434,8 @@ class GCheck(GCommand):
 
         # Get labels from folders
         labels_from_folders = self.get_labels_from_folders(
-            geniac_dirs["modules"], geniac_dirs["recipes"]
+            self.config_path(GCheck.GENIAC_DIRS, "modules", single_path=True),
+            self.config_path(GCheck.GENIAC_DIRS, "recipes", single_path=True),
         )
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
