@@ -26,22 +26,23 @@ class NextflowConfig(GParser):
     """Nextflow config file parser"""
 
     # Uniq comment line
-    UCOMRE = re.compile(r"\s*//")
+    UCOMRE = re.compile(r"^ *//")
     # Multi comment line
-    MCOMRE = re.compile(r"\s*/\*")
+    MCOMRE = re.compile(r"^ */\*")
     # End multi line comment
-    ECOMRE = re.compile(r"\s*\*/")
+    ECOMRE = re.compile(r"^ *\*+/")
     # Param = value
     PARAMRE = re.compile(
-        r"^\s*(?P<scope>[\w.]+(?=\.))?\.?(?P<property>[\w]+)\s*=\s*"
+        r"^ *(?P<scope>[\w.]+(?=\.))?\.?((?P<property>[\w]+)\s*=\s*"
         r"(?P<elvis>[.\w]+\s*\?:\s*)?"
-        r"(?P<value>[\"\'].*[\"\']|\d*\.?\w*|\[[\w\s\'\"/,-]*]|"
-        r"{[\w\s\'\"/,.\-*()]*})\s*$"
+        r"(?P<value>([\"\'].*[\"\'])|(\d+\.?\w*)|(\[[\w\s\'\"/,-]*])|"
+        r"({[\w\s\'\"/,.\-*()]*})))|"
+        r"((?P<includeConfig>includeConfig) +['\"](?P<confPath>[\w/.]+)['\"].*) *$"
     )
     SCOPERE = re.compile(
-        r"^\s*((?P<scope>[\w]+)(?<!try)|"
-        r"(?P<selector>[\w]+):(?P<label>[\w]+)|"
-        r"(?P<close>})?(?P<other>.+)(?<!\$))\s*{\s*$"
+        r"^ *((?P<scope>[\w]+)(?<!try)|"
+        r"(?P<selector>[\w]+) *: *(?P<label>[\w]+)|"
+        r"(?P<close>})?(?P<other>.+)(?<!\$)) *{ *$"
     )
     ESCOPERE = re.compile(r"^ *}\s*$")
 
@@ -100,17 +101,23 @@ class NextflowConfig(GParser):
                             if selector not in scope_idx
                             else ".".join((scope_idx, label))
                         )
+                    # If close pattern, remove
                     if values.get("close"):
                         scope_idx = ".".join(scope_idx.split(".").pop())
+                    # Add the rest of the line in other section
                     if scope := values.get("other"):
                         def_flag = True if "def" in scope else def_flag
                         scope_idx = (
                             "other" if not scope_idx else ".".join((scope_idx, "other"))
                         )
                     continue
+                # If we are not in a def scope and we find a parameter
                 if not def_flag and (match := self.PARAMRE.match(line)):
                     values = match.groupdict()
-                    prop = values.get("property")
+                    prop_key = "property" if values.get("property") else "includeConfig"
+                    value_key = "value" if values.get("value") else "confPath"
+                    prop = values.get(prop_key, "")
+                    value = values.get(value_key, "")
                     param_list = list(
                         filter(None, (scope_idx, values.get("scope"), prop))
                     )
@@ -118,11 +125,10 @@ class NextflowConfig(GParser):
                         ".".join(param_list) if len(param_list) > 1 else param_list[0]
                     )
                     _logger.debug(
-                        f"FOUND property {values.get('property')} "
-                        f"with value {values.get('value')} "
+                        f"FOUND property {values.get(prop_key)} "
+                        f"with value {values.get(value_key)} "
                         f"in scope {param_idx}"
                     )
-                    value = values.get("value")
                     self.content[param_idx] = (
                         value.strip('"')
                         if '"' in value
