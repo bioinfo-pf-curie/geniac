@@ -26,6 +26,9 @@ class GCheck(GCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
+    TREE_SUFFIX = "tree"
+    PROJECT_CONFIG = "project.config"
+    GENIAC_FLAGS = "geniac.flags"
 
     def __init__(self, project_dir, *args, **kwargs):
         """Init flags specific to GCheck command"""
@@ -45,7 +48,7 @@ class GCheck(GCommand):
             config_tree (dict)
         """
         config_tree = {
-            tree_section: {
+            tree_section.removeprefix(self.TREE_SUFFIX + "."): {
                 # Is the folder required ?
                 "required": self.config.getboolean(tree_section, "required")
                 if self.config.has_option(tree_section, "required")
@@ -65,7 +68,7 @@ class GCheck(GCommand):
                 # Path(s) to file(s) excluded from the analysis
                 "excluded_files": self.config_path(tree_section, "exclude"),
             }
-            for tree_section in self.config_subsection("tree")
+            for tree_section in self.config_subsection(self.TREE_SUFFIX)
         }
         return {
             tree_section: {
@@ -261,7 +264,7 @@ class GCheck(GCommand):
         for label, recipe in config.get("params.geniac.tools").items():
             labels_geniac_tools.append(label)
             # If conda recipes
-            if match := self.CONDA_RECIPES_RE.match(recipe):
+            if match := GCheck.CONDA_RECIPES_RE.match(recipe):
                 # The related recipe is a correct conda recipe
                 # Check if the recipes exists in the actual OS with conda search
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
@@ -273,7 +276,8 @@ class GCheck(GCommand):
                             f"Conda recipe {conda_recipe} for the tool {label} does not link to an existing "
                             f"package or build. Please check if this tool is still available with conda search command"
                         )
-            elif match := self.CONDA_PATH_RE.match(recipe):
+            elif match := GCheck.CONDA_PATH_RE.match(recipe):
+                # If recipe is a path to an environment file, check if the path exists
                 if (
                     conda_path := Path(
                         self.project_dir / match.groupdict().get("basepath")
