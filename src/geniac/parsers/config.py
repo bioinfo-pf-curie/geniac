@@ -61,6 +61,7 @@ class NextflowConfig(GParser):
         with config_path.open(encoding=encoding) as config_file:
             mcom_flag = False
             def_flag = False
+            selector = None
             scope_idx = ""
             for line in config_file:
                 # Skip if one line comment
@@ -70,17 +71,19 @@ class NextflowConfig(GParser):
                 if self.MCOMRE.match(line):
                     mcom_flag = True
                     continue
-                # Skip if multi line comment
-                if mcom_flag and not self.ECOMRE.match(line):
-                    continue
-                # Skip if end multi line comment
+                # Skip if we reach the end of a multi line comment
                 if self.ECOMRE.match(line):
                     mcom_flag = False
+                    continue
+                # Skip if multi line comment
+                if mcom_flag and not self.ECOMRE.match(line):
                     continue
                 # Pop scope index list if we find a curly bracket
                 # Turn off def flag if we reach the last scope in a def
                 if self.ESCOPERE.match(line):
-                    scope_idx = ".".join(scope_idx.split(".")[:-1])
+                    depth = 1 if not selector else 2
+                    scope_idx = ".".join(scope_idx.split(".")[:-depth])
+                    selector = None
                     if not scope_idx and def_flag:
                         def_flag = False
                     continue
