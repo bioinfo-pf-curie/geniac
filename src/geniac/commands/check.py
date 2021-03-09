@@ -193,11 +193,13 @@ class GCheck(GCommand):
             if match := GCheck.CONDA_RECIPES_RE.match(recipe):
                 # The related recipe is a correct conda recipe
                 # Check if the recipes exists in the actual OS with conda search
+                if not conda_check:
+                    continue
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
                     conda_search = subprocess.run(
                         ["conda", "search", conda_recipe], capture_output=True
                     )
-                    if conda_check and conda_search and (conda_search.returncode != 0):
+                    if conda_search and (conda_search.returncode != 0):
                         _logger.error(
                             f"Conda recipe {conda_recipe} for the tool {label} does not link to an existing "
                             f"package or build. Please check if this tool is still available with conda search command"
