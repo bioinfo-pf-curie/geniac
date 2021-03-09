@@ -88,7 +88,7 @@ class GCheck(GCommand):
         }
 
     def check_tree_folder(self):
-        """Check the directory d in order to set the flags"""
+        """Check the directory in order to set the flags"""
         _logger.info("Check tree folder")
 
         # TODO: rewrite get_sections to have a nested dict instead of a list
@@ -118,7 +118,7 @@ class GCheck(GCommand):
 
             # If folder exists and is not empty (excluded files are ignored)
             if path.exists() and path.is_dir() and len(current_files) >= 1:
-                _logger.debug("Add section to directory flags")
+                _logger.debug(f"Add section {tree_section} to directory flags")
                 self._dir_flags.append(tree_section)
             elif required and not path.exists():
                 _logger.error(
@@ -131,6 +131,8 @@ class GCheck(GCommand):
                     path.name,
                 )
 
+            # Trigger an error or warning for each required or optional files in the
+            # current section
             for file in current_files:
                 if not file.exists():
                     if required and file in required_files:
@@ -323,17 +325,18 @@ class GCheck(GCommand):
             labels_process (list): list of process labels in params.process with withName
         """
         labels_process = []
+
         # Parse process config files
         config.read(process_config_path)
 
         # Check parameters according to their default values
         self._check_config_scope(config, "params", nxf_config_path=process_config_path)
 
-        # for each label in process scope of config with withName directive
-        #   check if this process exists in labels_from_main keys
+        # TODO: For each label in config process scope with withName directive
+        #       check if this process exists in labels_from_main keys
 
-        # for each label in process scope of config with withLabel directive
-        #   add them to labels_process (should be a set to avoid duplicates)
+        # TODO: for each label in process scope of config with withLabel directive
+        #       add them to labels_process (should be a set to avoid duplicates)
         return labels_process
 
     def check_nextflow_config(
@@ -357,6 +360,11 @@ class GCheck(GCommand):
 
         """
         pass
+        # TODO: check for each nxf_config file if they are included in
+        #       nextflow.config
+
+        # TODO: Check if geniac.generated.config files generated with geniac are
+        #       included
 
     def get_labels_from_config_files(self, labels_from_main: dict):
         """Check the structure of the repo
@@ -370,6 +378,7 @@ class GCheck(GCommand):
         """
         config = NextflowConfig()
 
+        # Link config path to their method
         config_paths = {
             config_key: self.config_path("project.config", config_key, single_path=True)
             for config_key in ("base", "geniac", "process", "nextflow")
@@ -470,13 +479,16 @@ class GCheck(GCommand):
         Returns:
 
         """
+        # List here directories analyzed with geniac
         geniac_dirs = {
             config_key: self.config_path("project.config", config_key, single_path=True)
             for config_key in ("dependencies", "env", "recipes", "modules")
         }
 
+        # Check directory and setup directory flags
         self.check_tree_folder()
-        # Get the list of labels from main nextflow script
+
+        # Get list of labels from main nextflow script
         labels_from_main = self.get_labels_from_main()
         (
             labels_geniac_tools,
@@ -485,7 +497,8 @@ class GCheck(GCommand):
         labels_from_folders = self.get_labels_from_folders(
             geniac_dirs["modules"], geniac_dirs["recipes"]
         )
-        # Check if there is any inconsistency between the labels from configuration files and the main script
+        # Check if there is any inconsistency between the labels from configuration
+        # files and the main script
         self.check_labels(
             labels_from_main,
             labels_geniac_tools,
@@ -493,4 +506,5 @@ class GCheck(GCommand):
             labels_from_folders,
         )
         self.check_dependencies_dir(geniac_dirs["dependencies"])
+        # Optional checks
         self.check_env_dir(geniac_dirs["env"])
