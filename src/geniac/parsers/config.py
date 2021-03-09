@@ -50,6 +50,86 @@ class NextflowConfig(GParser):
         """Constructor for NextflowConfigParser"""
         super().__init__(*args, **kwargs)
 
+    @staticmethod
+    def get_config_list(config, config_scope, option):
+        """Get option list from configparser object
+        Args:
+            config:
+            config_scope:
+            option:
+
+        Returns:
+            list
+        """
+        return (
+            list(filter(None, config_option.split("\n")))
+            if (config_option := config.get(f"scope.{config_scope}", option))
+            else []
+        )
+
+    def check_config_scope(
+        self,
+        nxf_config_scope: str,
+        nxf_config_path: Path,
+    ):
+        """Check if the given scope is in an NextflowConfig instance
+
+        Args:
+            nxf_config_path (Path):
+            nxf_config_scope (str): Scope checked in the Nextflow configuration
+        """
+        _logger.info(f"Checking {nxf_config_scope} scope in {nxf_config_path}")
+
+        config_scopes = self.get_config_list(self.config, nxf_config_scope, "scopes")
+        config_paths = self.get_config_list(self.config, nxf_config_scope, "paths")
+        config_props = self.get_config_list(self.config, nxf_config_scope, "properties")
+        config_values = {
+            key: value
+            for key, value in (
+                self.config.items(f"scope.{nxf_config_scope}.values")
+                if self.config.has_section(f"scope.{nxf_config_scope}.values")
+                else []
+            )
+        }
+        scope = self.get(nxf_config_scope)
+
+        # Check if the actual scope exists in the Nextflow config
+        if nxf_config_scope and not scope:
+            _logger.error(
+                f"Config file {nxf_config_path} doesn't have {nxf_config_scope} scope"
+            )
+
+        # Check if config_paths in the Nextflow config corresponds to their default values
+        if config_paths:
+            for config_path in config_paths:
+                if config_path and (cfg_val := scope.get(config_path)) != (
+                    def_val := config_values.get(config_path)
+                ):
+                    _logger.warning(
+                        f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter"
+                        f" in file {nxf_config_path} doesn't correspond to the default "
+                        f"value {def_val}"
+                    )
+
+        # Check if config_props exists in the Nextflow config
+        if config_props:
+            for config_prop in config_props:
+                if config_prop and (cfg_val := scope.get(config_prop)) != (
+                    def_val := config_values.get(config_prop)
+                ):
+                    _logger.warning(
+                        f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
+                        f" in file {nxf_config_path} doesn't correspond to the default "
+                        f"value ('{def_val}')"
+                    )
+
+        # Call same checks on nested scopes
+        for nested_scope in config_scopes:
+            self.check_config_scope(
+                ".".join((nxf_config_scope, nested_scope)),
+                nxf_config_path=nxf_config_path,
+            )
+
     def _read(self, config_path: Path, encoding=None):
         """Load a Nextflow config file into content property
 
@@ -94,6 +174,7 @@ class NextflowConfig(GParser):
                         scope_idx = (
                             scope if not scope_idx else ".".join((scope_idx, scope))
                         )
+                    # If there is also a selector on the line add them to scope_idx
                     if (selector := values.get("selector")) and (
                         label := values.get("label")
                     ):
