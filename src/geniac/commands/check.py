@@ -257,10 +257,10 @@ class GCheck(GCommand):
         labels_process = []
 
         # Parse process config files
-        config.read(process_config_path)
+        # config.read(process_config_path)
 
         # Check parameters according to their default values
-        self._check_config_scope(config, "params", nxf_config_path=process_config_path)
+        config.check_config_scope("process", nxf_config_path=process_config_path)
 
         # TODO: For each label in config process scope with withName directive
         #       check if this process exists in labels_from_main keys
