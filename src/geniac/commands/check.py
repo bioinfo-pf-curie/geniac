@@ -360,6 +360,30 @@ class GCheck(GCommand):
         )
 
     # TODO
+    def get_labels_from_modules(self, input_dir):
+        """Get geniac labels from modules directory"""
+        labels_from_modules = []
+        return labels_from_modules
+
+    # TODO
+    def get_labels_from_recipes_conda(self, input_dir):
+        """Get geniac labels from conda recipes"""
+        labels_from_recipes_conda = []
+        return labels_from_recipes_conda
+
+    # TODO
+    def get_labels_from_recipes_singularity(self, input_dir):
+        """Get geniac labels from singularity recipes"""
+        labels_from_recipes_singularity = []
+        return labels_from_recipes_singularity
+
+    # TODO
+    def get_labels_from_recipes_docker(self, input_dir):
+        """Get geniac labels from docker recipes"""
+        labels_from_recipes_docker = []
+        return labels_from_recipes_docker
+
+    # TODO
     def get_labels_from_main(self):
         """Parse only the main.nf file
 
