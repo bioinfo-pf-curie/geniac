@@ -8,8 +8,8 @@ import re
 import subprocess
 from pathlib import Path
 
-from geniac.commands.base import GCommand
-from geniac.parsers.config import NextflowConfig
+from ..commands.base import GCommand
+from ..parsers.config import NextflowConfig
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

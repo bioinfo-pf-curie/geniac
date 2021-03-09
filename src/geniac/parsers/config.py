@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""config.py: Nextflow script parser"""
+"""config.py: Nextflow configuration file parser"""
 
 import json
 import logging
@@ -9,7 +9,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from geniac.parsers.base import GParser
+from ..parsers.base import GParser
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
