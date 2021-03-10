@@ -317,7 +317,7 @@ class GCheck(GCommand):
         # Link config path to their method
         config_paths = {
             config_key: getattr(self, f"check_{config_key}_config", None)
-            for config_key in self.config.options(self.PROJECT_CONFIG)
+            for config_key in self.config.options(GCheck.PROJECT_CONFIG)
         }
 
         # get labels from geniac.config
@@ -444,7 +444,7 @@ class GCheck(GCommand):
             config_key: self.config_path(
                 GCheck.GENIAC_DIRS, config_key, single_path=True
             )
-            for config_key in ("dependencies", "env", "recipes", "modules")
+            for config_key in self.config.options(GCheck.GENIAC_DIRS)
         }
 
         # Check directory and setup directory flags
