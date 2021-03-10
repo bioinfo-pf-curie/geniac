@@ -49,7 +49,7 @@ class NextflowScript(GParser):
             #   def_flag = False
             process = ""
             self.content["process"] = {}
-            # TODO: don't forget if condition within scripts who should break the actual
+            # TODO: add if condition within scripts who should break the actual
             #       process scope
             for line in config_file:
                 # Skip if one line comment

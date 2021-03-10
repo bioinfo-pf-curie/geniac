@@ -193,7 +193,7 @@ class GCheck(GCommand):
         )
         for label, recipe in config.get("params.geniac.tools").items():
             labels_geniac_tools.append(label)
-            # If conda recipes
+            # If the tool value is a conda recipe
             if match := GCheck.CONDA_RECIPES_RE.match(recipe):
                 # The related recipe is a correct conda recipe
                 # Check if the recipes exists in the actual OS with conda search
@@ -208,8 +208,9 @@ class GCheck(GCommand):
                             f"Conda recipe {conda_recipe} for the tool {label} does not link to an existing "
                             f"package or build. Please check if this tool is still available with conda search command"
                         )
+            # Elif the tool value is a path to an environment file (yml or yaml ext),
+            # check if the path exists
             elif match := GCheck.CONDA_PATH_RE.match(recipe):
-                # If recipe is a path to an environment file, check if the path exists
                 if (
                     conda_path := Path(
                         self.project_dir / match.groupdict().get("basepath")
@@ -229,7 +230,9 @@ class GCheck(GCommand):
             "params.geniac.containers.git",
         ):
             if x_section := config.get(extra_section):
+                # For each label in yum or git scope
                 for label in x_section:
+                    # If label is not present in geniac.tools
                     if label not in labels_geniac_tools:
                         _logger.error(
                             f"Label {label} of {extra_section} is not defined in params.geniac.tools"

@@ -137,7 +137,8 @@ class NextflowConfig(GParser):
             config_path (Path): path to nextflow config file
             encoding (str): name of the encoding use to decode config files
         """
-
+        # TODO: should we flush content dict before reading another file ?
+        #       or propose a flag if we want to overwrite content
         with config_path.open(encoding=encoding) as config_file:
             mcom_flag = False
             def_flag = False
