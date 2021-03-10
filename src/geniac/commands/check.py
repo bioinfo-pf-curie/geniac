@@ -286,13 +286,11 @@ class GCheck(GCommand):
         Returns:
             labels_process (list): list of process labels in params.process with withName
         """
-        labels_process = []
-
         # Check parameters according to their default values
         config.check_config_scope("process")
 
-        # TODO: For each process in config process scope with withName directive
-        #       check if this process exists in labels_from_main keys
+        # For each process used with withName selector, check their existence in the
+        # workflow
         for config_process in config.get("process", {}).get("withName"):
             if config_process not in processes_from_workflow:
                 _logger.error(
@@ -300,9 +298,11 @@ class GCheck(GCommand):
                     f"{config.path} does not correspond to any process in the workflow."
                 )
 
-        # TODO: for each label in process scope of config with withLabel directive
-        #       add them to labels_process (should be a set to avoid duplicates)
-        return labels_process
+        # Return list of labels defined with withLabel selector in the process.config file
+        return [
+            process_label
+            for process_label in config.get("process", {}).get("withLabel")
+        ]
 
     def check_nextflow_config(
         self,
