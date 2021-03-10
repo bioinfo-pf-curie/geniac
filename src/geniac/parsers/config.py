@@ -33,11 +33,10 @@ class NextflowConfig(GParser):
     ECOMRE = re.compile(r"^ *\*+/")
     # Param = value
     PARAMRE = re.compile(
-        r"^ *(?P<scope>[\w.]+(?=\.))?\.?((?P<property>[\w]+)\s*=\s*"
-        r"(?P<elvis>[.\w]+\s*\?:\s*)?"
-        r"(?P<value>([\"\'].*[\"\'])|(\d+\.?\w*)|(\[[\w\s\'\"/,-]*])|"
-        r"({[\w\s\'\"/,.\-*()]*})))|"
-        r"((?P<includeConfig>includeConfig) +['\"](?P<confPath>[\w/.]+)['\"].*) *$"
+        r"^ *(?P<scope>[\w.]+(?=\.))?\.?(((?P<property>[\w]+)\s*=\s*"
+        r"(?P<elvis>[.\w]+\s*\?:\s*)?(?P<value>([\"\'].*[\"\'])|(\d+\.?\w*)|"
+        r"(\[[\w\s\'\"/,-]*])|({[\w\s\'\"/,.\-*()]*})))|"
+        r"((?P<includeConfig>includeConfig) +['\"](?P<confPath>[\w/.]+))['\"].*) *$"
     )
     SCOPERE = re.compile(
         r"^ *((?P<scope>[\w]+)(?<!try)|"
