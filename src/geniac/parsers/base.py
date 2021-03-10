@@ -25,12 +25,23 @@ class GParser(GBase):
         """Constructor for GParser"""
         super().__init__(*args, **kwargs)
         self.params = None
+        self._path = ""
         self._content = dotty()
 
     @property
     def content(self):
         """Content loaded from input file with read method"""
         return self._content
+
+    @property
+    def path(self):
+        """Content loaded from input file with read method"""
+        return self._path
+
+    @path.setter
+    def path(self, value):
+        """Content loaded from input file with read method"""
+        self._path = value
 
     def __getitem__(self, item):
         """Get a content item"""
@@ -80,6 +91,7 @@ class GParser(GBase):
         Returns:
             read_ok (list): list of successfully read files
         """
+        self.path = in_paths
         if isinstance(in_paths, (str, bytes, PathLike)):
             in_paths = [in_paths]
         read_ok = []

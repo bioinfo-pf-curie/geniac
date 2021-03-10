@@ -267,7 +267,7 @@ class GCheck(GCommand):
         # config.read(process_config_path)
 
         # Check parameters according to their default values
-        config.check_config_scope("process", nxf_config_path=process_config_path)
+        config.check_config_scope("process")
 
         # TODO: For each label in config process scope with withName directive
         #       check if this process exists in labels_from_main keys
@@ -279,7 +279,6 @@ class GCheck(GCommand):
     def check_nextflow_config(
         self,
         config: NextflowConfig,
-        config_path: Path,
         nxf_config_paths: list = None,
         **kwargs,
     ):
@@ -332,9 +331,9 @@ class GCheck(GCommand):
             )
             config.read(config_path)
             if config_method:
+                _logger.info(f"Checking Nextflow configuration file {config_path}")
                 labels[config_key] = config_method(
                     config,
-                    config_path,
                     nxf_config_paths=nxf_conf_paths,
                     labels_from_main=labels_from_main,
                     conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),

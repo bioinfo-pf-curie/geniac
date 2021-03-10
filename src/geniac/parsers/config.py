@@ -67,18 +67,13 @@ class NextflowConfig(GParser):
             else []
         )
 
-    def check_config_scope(
-        self,
-        nxf_config_scope: str,
-        nxf_config_path: Path,
-    ):
+    def check_config_scope(self, nxf_config_scope: str):
         """Check if the given scope is in an NextflowConfig instance
 
         Args:
-            nxf_config_path (Path):
             nxf_config_scope (str): Scope checked in the Nextflow configuration
         """
-        _logger.info(f"Checking {nxf_config_scope} scope in {nxf_config_path}")
+        _logger.info(f"Checking {nxf_config_scope} scope in {self.path}")
 
         config_scopes = self.get_config_list(self.config, nxf_config_scope, "scopes")
         config_paths = self.get_config_list(self.config, nxf_config_scope, "paths")
@@ -96,7 +91,7 @@ class NextflowConfig(GParser):
         # Check if the actual scope exists in the Nextflow config
         if nxf_config_scope and not scope:
             _logger.error(
-                f"Config file {nxf_config_path} doesn't have {nxf_config_scope} scope"
+                f"Config file {self.path} doesn't have {nxf_config_scope} scope"
             )
 
         # Check if config_paths in the Nextflow config corresponds to their default values
@@ -107,7 +102,7 @@ class NextflowConfig(GParser):
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter"
-                        f" in file {nxf_config_path} doesn't correspond to the default "
+                        f" in file {self.path} doesn't correspond to the default "
                         f"value {def_val}"
                     )
 
@@ -119,16 +114,13 @@ class NextflowConfig(GParser):
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
-                        f" in file {nxf_config_path} doesn't correspond to the default "
+                        f" in file {self.path} doesn't correspond to the default "
                         f"value ('{def_val}')"
                     )
 
         # Call same checks on nested scopes
         for nested_scope in config_scopes:
-            self.check_config_scope(
-                ".".join((nxf_config_scope, nested_scope)),
-                nxf_config_path=nxf_config_path,
-            )
+            self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
     def _read(self, config_path: Path, encoding=None):
         """Load a Nextflow config file into content property
