@@ -156,10 +156,36 @@ class GCheck(GCommand):
 
         _logger.debug(f"Directory flags: {self._dir_flags}")
 
+    def get_processes_from_workflow(self):
+        """Parse only the main.nf file
+
+        Returns:
+            labels_from_main (dict): dictionary of processes in the main nextflow file
+        """
+        script = NextflowScript()
+
+        # Link config path to their method
+        script_paths = {
+            config_key: self.config_path(
+                GCheck.PROJECT_WORKFLOW, config_key, single_path=True
+            )
+            for config_key in self.config.options(GCheck.PROJECT_WORKFLOW)
+        }
+
+        # TODO: Check for DSL 2 support
+        for script_name, script_path in script_paths.items():
+            script.read(script_path)
+
+        # Check if there is processes without label in the actual workflow
+        for process in (processes := script.content.get("process")) :
+            if not processes.get(process).get("label"):
+                _logger.error(f"There is no label in process {process} !")
+
+        return script.content.get("process", {})
+
     def check_geniac_config(
         self,
         config: NextflowConfig,
-        config_path: Path,
         conda_check: bool = True,
         **kwargs,
     ):
@@ -176,7 +202,7 @@ class GCheck(GCommand):
         labels_geniac_tools = []
 
         # Check parameters according to their default values
-        config.check_config_scope("params", nxf_config_path=config_path)
+        config.check_config_scope("params")
 
         # Check if conda command exists
         if subprocess.run(["conda", "-h"], capture_output=True).returncode != 0:
@@ -247,8 +273,7 @@ class GCheck(GCommand):
     def check_process_config(
         self,
         config: NextflowConfig,
-        process_config_path: Path,
-        labels_from_main: dict = None,
+        processes_from_workflow: dict = None,
         **kwargs,
     ):
         """Check the content of a process config file
@@ -256,7 +281,7 @@ class GCheck(GCommand):
         Args:
             config: Nextflow config object
             process_config_path: path to the geniac configuration file in the project
-            labels_from_main: dict of processes names associated with their labels
+            processes_from_workflow: dict of processes names associated with their labels
 
         Returns:
             labels_process (list): list of process labels in params.process with withName
@@ -297,19 +322,19 @@ class GCheck(GCommand):
         """
         # config.read(config_path)
 
-        for nxf_config_path in nxf_config_paths:
-            pass
+        # for nxf_config_path in nxf_config_paths:
+        #    pass
         # TODO: check for each nxf_config file if they are included in
         #       nextflow.config
 
         # TODO: Check if geniac.generated.config files generated with geniac are
         #       included
 
-    def get_labels_from_config_files(self, labels_from_main: dict):
+    def get_labels_from_config_files(self, processes_from_workflow: dict):
         """Check the structure of the repo
 
         Args:
-            labels_from_main: dict of processes names associated with their labels
+            processes_from_workflow: dict of processes names associated with their labels
 
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
@@ -335,33 +360,11 @@ class GCheck(GCommand):
                 labels[config_key] = config_method(
                     config,
                     nxf_config_paths=nxf_conf_paths,
-                    labels_from_main=labels_from_main,
+                    processes_from_workflow=processes_from_workflow,
                     conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
                 )
 
         return labels
-
-    # TODO
-    def get_labels_from_folders(self, modules_dir, recipes_dir):
-        """Parse information from recipes and modules folders
-
-        Args:
-            modules_dir:
-            recipes_dir:
-
-        Returns:
-            labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
-        """
-        labels_from_modules = []
-        labels_from_conda_recipes = []
-        labels_from_singularity_recipe = []
-        labels_from_docker_recipe = []
-        return (
-            *labels_from_modules,
-            *labels_from_conda_recipes,
-            *labels_from_singularity_recipe,
-            *labels_from_docker_recipe,
-        )
 
     # TODO
     def get_labels_from_modules(self, input_dir):
@@ -388,26 +391,26 @@ class GCheck(GCommand):
         return labels_from_recipes_docker
 
     # TODO
-    def get_processes_from_workflow(self):
-        """Parse only the main.nf file
+    def get_labels_from_folders(self, modules_dir, recipes_dir):
+        """Parse information from recipes and modules folders
+
+        Args:
+            modules_dir:
+            recipes_dir:
 
         Returns:
-            labels_from_main (dict): dictionary of processes in the main nextflow file
+            labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
         """
-        script = NextflowScript()
-
-        # Link config path to their method
-        script_paths = {
-            config_key: self.config_path(
-                GCheck.PROJECT_WORKFLOW, config_key, single_path=True
-            )
-            for config_key in self.config.options(GCheck.PROJECT_WORKFLOW)
-        }
-
-        for script_name, script_path in script_paths.items():
-            script.read(script_path)
-
-        return script.content
+        labels_from_modules = []
+        labels_from_conda_recipes = []
+        labels_from_singularity_recipe = []
+        labels_from_docker_recipe = []
+        return (
+            *labels_from_modules,
+            *labels_from_conda_recipes,
+            *labels_from_singularity_recipe,
+            *labels_from_docker_recipe,
+        )
 
     # TODO
     def check_labels(
@@ -467,10 +470,10 @@ class GCheck(GCommand):
         self.check_tree_folder()
 
         # Get list of labels from main nextflow script
-        labels_from_main = self.get_processes_from_workflow()
+        processes_from_workflow = self.get_processes_from_workflow()
 
         # Get list of labels from project.config and geniac.config files
-        labels_from_configs = self.get_labels_from_config_files(labels_from_main)
+        labels_from_configs = self.get_labels_from_config_files(processes_from_workflow)
 
         # Get labels from folders
         labels_from_folders = self.get_labels_from_folders(
@@ -480,7 +483,7 @@ class GCheck(GCommand):
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
         self.check_labels(
-            labels_from_main,
+            processes_from_workflow,
             labels_from_configs,
             labels_from_folders,
         )
