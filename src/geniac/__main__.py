@@ -22,26 +22,38 @@ _logging_config = ("geniac", "conf/logging.json")
 _logger = logging.getLogger(__name__)
 
 
-def check(args):
+def check_cmd(args):
     """Geniac Lint subcommand
 
     Args:
 
     Returns:
-        :obj:`geniac.linter.GLinter`: geniac linter
+        :obj:`geniac.commands.check.GCheck`: geniac checker
     """
     return GCheck(**vars(args))
 
 
-def conf(args):
+def conf_cmd(args):
     """Geniac conf subcommand
 
     Args:
 
     Returns:
-        :obj:`geniac.confor.GConfor`: geniac configurator
+        :obj:`geniac.commands.confor.GConfor`: geniac configurator
     """
     return GConfor(**vars(args))
+
+
+# TODO: geniac run command
+def run_cmd(args):
+    """Geniac run subcommand
+
+    Args:
+
+    Returns:
+        :obj:`geniac.commands.run.GRun`: geniac configurator
+    """
+    pass
 
 
 def parse_args(args):
@@ -99,7 +111,7 @@ def parse_args(args):
         type=str,
         metavar="DIR",
     )
-    parser_lint.set_defaults(func=check, which="lint")
+    parser_lint.set_defaults(func=check_cmd, which="lint")
 
     # Geniac Conf
     parser_conf = subparsers.add_parser(
@@ -111,7 +123,7 @@ def parse_args(args):
         type=str,
         metavar="INT",
     )
-    parser_conf.set_defaults(func=conf, which="conf")
+    parser_conf.set_defaults(func=conf_cmd, which="conf")
 
     return parser, parser.parse_args(args)
 
