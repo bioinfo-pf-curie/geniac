@@ -209,11 +209,22 @@ class NextflowConfig(GParser):
                         f"with value {values.get(value_key)} "
                         f"in scope {param_idx}"
                     )
-                    self.content[param_idx] = (
+                    if param_idx in self.content and prop_key != "includeConfig":
+                        _logger.warning(
+                            f"Found duplicated parameter {param_idx} in {self.path}"
+                        )
+                    value = (
                         value.strip('"')
                         if '"' in value
                         else value.strip("'")
                         if "'" in value
+                        else value
+                    )
+                    self.content[param_idx] = (
+                        self.content[param_idx] + [value]
+                        if prop_key == "includeConfig" and param_idx in self.content
+                        else [value]
+                        if prop_key == "includeConfig"
                         else value
                     )
                     continue
