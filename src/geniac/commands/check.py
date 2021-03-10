@@ -10,6 +10,7 @@ from pathlib import Path
 
 from ..commands.base import GCommand
 from ..parsers.config import NextflowConfig
+from ..parsers.scripts import NextflowScript
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -29,6 +30,7 @@ class GCheck(GCommand):
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
     PROJECT_CONFIG = "project.config"
+    PROJECT_WORKFLOW = "project.workflow"
     GENIAC_FLAGS = "geniac.flags"
     GENIAC_DIRS = "geniac.directories"
 
@@ -384,14 +386,26 @@ class GCheck(GCommand):
         return labels_from_recipes_docker
 
     # TODO
-    def get_labels_from_main(self):
+    def get_processes_from_workflow(self):
         """Parse only the main.nf file
 
         Returns:
             labels_from_main (dict): dictionary of processes in the main nextflow file
         """
-        labels_from_main = {}
-        return labels_from_main
+        script = NextflowScript()
+
+        # Link config path to their method
+        script_paths = {
+            config_key: self.config_path(
+                GCheck.PROJECT_WORKFLOW, config_key, single_path=True
+            )
+            for config_key in self.config.options(GCheck.PROJECT_WORKFLOW)
+        }
+
+        for script_name, script_path in script_paths.items():
+            script.read(script_path)
+
+        return script.content
 
     # TODO
     def check_labels(
@@ -451,7 +465,7 @@ class GCheck(GCommand):
         self.check_tree_folder()
 
         # Get list of labels from main nextflow script
-        labels_from_main = self.get_labels_from_main()
+        labels_from_main = self.get_processes_from_workflow()
 
         # Get list of labels from project.config and geniac.config files
         labels_from_configs = self.get_labels_from_config_files(labels_from_main)
