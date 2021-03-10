@@ -78,6 +78,7 @@ class NextflowConfig(GParser):
         config_scopes = self.get_config_list(self.config, nxf_config_scope, "scopes")
         config_paths = self.get_config_list(self.config, nxf_config_scope, "paths")
         config_props = self.get_config_list(self.config, nxf_config_scope, "properties")
+        required_flag = self.config.getboolean(f"scope.{nxf_config_scope}", "required")
         config_values = {
             key: value
             for key, value in (
@@ -90,9 +91,11 @@ class NextflowConfig(GParser):
 
         # Check if the actual scope exists in the Nextflow config
         if nxf_config_scope and not scope:
-            _logger.error(
-                f"Config file {self.path} doesn't have {nxf_config_scope} scope"
-            )
+            msg = f"Config file {self.path} doesn't have {nxf_config_scope} scope"
+            if required_flag:
+                _logger.error(msg)
+            else:
+                _logger.warning(msg)
 
         # Check if config_paths in the Nextflow config corresponds to their default values
         if config_paths:
