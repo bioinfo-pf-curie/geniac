@@ -288,14 +288,17 @@ class GCheck(GCommand):
         """
         labels_process = []
 
-        # Parse process config files
-        # config.read(process_config_path)
-
         # Check parameters according to their default values
         config.check_config_scope("process")
 
-        # TODO: For each label in config process scope with withName directive
+        # TODO: For each process in config process scope with withName directive
         #       check if this process exists in labels_from_main keys
+        for config_process in config.get("process", {}).get("withName"):
+            if config_process not in processes_from_workflow:
+                _logger.error(
+                    f"Process {config_process} used with the withName selector in "
+                    f"{config.path} does not correspond to any process in the workflow."
+                )
 
         # TODO: for each label in process scope of config with withLabel directive
         #       add them to labels_process (should be a set to avoid duplicates)
