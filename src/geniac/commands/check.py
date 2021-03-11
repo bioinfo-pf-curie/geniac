@@ -180,7 +180,7 @@ class GCheck(GCommand):
         # Check if there is processes without label in the actual workflow
         for process in (processes := script.content.get("process")) :
             if not processes.get(process).get("label"):
-                _logger.error(f"There is no label in process {process} !")
+                _logger.error(f"Process {process} does not have any label")
 
         return script.content.get("process", {})
 
@@ -321,15 +321,35 @@ class GCheck(GCommand):
         Returns:
 
         """
-        # config.read(config_path)
+        include_config_paths = [
+            self.project_dir / Path(include_path)
+            for include_path in nxf_config.get("includeConfig")
+        ]
+        profile_config_paths = [
+            Path(conf_path)
+            for conf_profile in nxf_config.get("profiles", {})
+            for conf_path in nxf_config.get("profiles", {})
+            .get(conf_profile)
+            .get("includeConfig")
+        ]
+        for default_config_path in default_config_paths:
+            # We do not check if the path corresponds to nextflow.config path
+            # Check if config files are included
+            if (
+                default_config_path != nxf_config.path
+                and Path(default_config_path) not in include_config_paths
+            ):
+                _logger.error(
+                    f"Nextflow configuration file {nxf_config.path} does not include {default_config_path}"
+                )
 
-        # for nxf_config_path in nxf_config_paths:
-        #    pass
-        # TODO: check for each nxf_config file if they are included in
-        #       nextflow.config
-
-        # TODO: Check if geniac.generated.config files generated with geniac are
-        #       included
+        # Check if geniac config profiles are included
+        for geniac_file in default_geniac_files_paths:
+            if Path(geniac_file) not in profile_config_paths:
+                _logger.error(
+                    f"Nextflow configuration file {nxf_config.path} does not "
+                    f"include {geniac_file} within profiles"
+                )
 
     def get_labels_from_config_files(self, processes_from_workflow: dict):
         """Check the structure of the repo
