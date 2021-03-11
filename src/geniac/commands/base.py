@@ -98,7 +98,7 @@ class GBase(ABC):
         value.set("tree.base", "path", str(self.project_dir))
         self._config = value
 
-    def config_path(self, section: str, option: str, single_path: bool = False):
+    def config_path(self, section: str, option_name: str, single_path: bool = False):
         """Format config option to list of Path objects or Path object if there is only one path
 
         Args:
@@ -109,9 +109,25 @@ class GBase(ABC):
         Returns:
             config_paths (list, Path)
         """
+
+        def glob_solver(input_path):
+            """
+
+            Args:
+                input_path:
+
+            Returns:
+
+            """
+            return (
+                sorted(Path(dirname(input_path)).glob(basename(input_path)))
+                if "*" in input_path
+                else [""]
+            )
+
         option = (
-            self.config.get(section, option).split()
-            if self.config.get(section, option)
+            self.config.get(section, option_name).split()
+            if self.config.get(section, option_name)
             else []
         )
         # Get Path instance for each file in the related configparser option. Glob
@@ -119,7 +135,7 @@ class GBase(ABC):
         result = [
             Path(in_path) if "*" not in in_path else glob_path
             for in_path in option
-            for glob_path in sorted(Path(dirname(in_path)).glob(basename(in_path)))
+            for glob_path in glob_solver(in_path)
         ]
         return result[0] if len(result) == 1 and single_path else result
 
