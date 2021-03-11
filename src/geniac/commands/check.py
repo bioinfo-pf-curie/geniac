@@ -306,19 +306,16 @@ class GCheck(GCommand):
 
     def check_nextflow_config(
         self,
-        config: NextflowConfig,
-        nxf_config_paths: list = None,
+        nxf_config: NextflowConfig,
+        default_config_paths: list = (),
+        default_geniac_files_paths: list = (),
         **kwargs,
     ):
         """Check the content of a nextflow config file
 
         Args:
-            nxf_config_paths:
-            config (NextflowConfig):
-            config_path (Path):
-            base_config_path (Path):
-            process_config_path:
-            geniac_config_path:
+            nxf_config (NextflowConfig):
+            default_config_paths (list):
 
         Returns:
 
@@ -343,26 +340,47 @@ class GCheck(GCommand):
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
             labels_process (list): list of process labels in params.process with withName
         """
-        config = NextflowConfig()
+        nxf_config = NextflowConfig()
 
         labels = {}
         # Link config path to their method
-        config_paths = {
-            config_key: getattr(self, f"check_{config_key}_config", None)
-            for config_key in self.config.options(GCheck.PROJECT_CONFIG)
+        default_config_scopes = {
+            default_config_name: {
+                "path": self.config_path(
+                    GCheck.PROJECT_CONFIG, default_config_name, single_path=True
+                ),
+                "check_config": getattr(
+                    self, f"check_{default_config_name}_config", None
+                ),
+            }
+            for default_config_name in self.config.options(GCheck.PROJECT_CONFIG)
         }
 
         # get labels from geniac.config
-        for config_key, config_method in (nxf_conf_paths := config_paths.items()) :
-            config_path = self.config_path(
-                GCheck.PROJECT_CONFIG, config_key, single_path=True
+        default_config_paths = [
+            default_config_scopes[config_scope]["path"]
+            for config_scope in default_config_scopes
+        ]
+
+        default_geniac_files_paths = [
+            self.config_path(
+                GCheck.GENIAC_CONFIG_FILES, geniac_config_file, single_path=True
             )
-            config.read(config_path)
+            for geniac_config_file in self.config.options(GCheck.GENIAC_CONFIG_FILES)
+        ]
+
+        for config_key, default_config_scope in default_config_scopes.items():
+            default_config_path = default_config_scope["path"]
+            config_method = default_config_scope["check_config"]
+            nxf_config.read(default_config_path)
             if config_method:
-                _logger.info(f"Checking Nextflow configuration file {config_path}")
+                _logger.info(
+                    f"Checking Nextflow configuration file {default_config_path}"
+                )
                 labels[config_key] = config_method(
-                    config,
-                    nxf_config_paths=nxf_conf_paths,
+                    nxf_config,
+                    default_config_paths=default_config_paths,
+                    default_geniac_files_paths=default_geniac_files_paths,
                     processes_from_workflow=processes_from_workflow,
                     conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
                 )
