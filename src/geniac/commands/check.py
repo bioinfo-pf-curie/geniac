@@ -33,6 +33,7 @@ class GCheck(GCommand):
     PROJECT_WORKFLOW = "project.workflow"
     GENIAC_FLAGS = "geniac.flags"
     GENIAC_DIRS = "geniac.directories"
+    GENIAC_CONFIG_FILES = "geniac.generated.config"
 
     def __init__(self, project_dir, *args, **kwargs):
         """Init flags specific to GCheck command"""
@@ -388,28 +389,46 @@ class GCheck(GCommand):
         return labels
 
     # TODO
-    def get_labels_from_modules(self, input_dir):
+    def get_labels_from_modules_dir(self, input_dir):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
         return labels_from_modules
 
     # TODO
-    def get_labels_from_recipes_conda(self, input_dir):
-        """Get geniac labels from conda recipes"""
+    def get_labels_from_recipes_dir(self, input_dir):
+        """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes_conda = []
-        return labels_from_recipes_conda
-
-    # TODO
-    def get_labels_from_recipes_singularity(self, input_dir):
-        """Get geniac labels from singularity recipes"""
-        labels_from_recipes_singularity = []
-        return labels_from_recipes_singularity
-
-    # TODO
-    def get_labels_from_recipes_docker(self, input_dir):
-        """Get geniac labels from docker recipes"""
         labels_from_recipes_docker = []
-        return labels_from_recipes_docker
+        labels_from_recipes_singularity = []
+        return (
+            *labels_from_recipes_conda,
+            *labels_from_recipes_singularity,
+            *labels_from_recipes_docker,
+        )
+
+    # TODO
+    def check_dependencies_dir(self, dependencies_dir: Path):
+        """
+
+        Args:
+            dependencies_dir:
+
+        Returns:
+
+        """
+        pass
+
+    # TODO
+    def check_env_dir(self, env_dir: Path):
+        """
+
+        Args:
+            env_dir:
+
+        Returns:
+
+        """
+        pass
 
     # TODO
     def get_labels_from_folders(self, modules_dir, recipes_dir):
@@ -436,40 +455,16 @@ class GCheck(GCommand):
     # TODO
     def check_labels(
         self,
-        labels_from_main: dict,
+        processes_from_workflow: dict,
         labels_from_configs: dict,
         labels_from_folders: list,
     ):
         """Check lab
 
         Args:
-            labels_from_main:
+            processes_from_workflow:
             labels_from_configs:
             labels_from_folders:
-        """
-        pass
-
-    # TODO
-    def check_recipes_dependencies_dir(self, dependencies_dir: Path):
-        """
-
-        Args:
-            dependencies_dir:
-
-        Returns:
-
-        """
-        pass
-
-    # TODO
-    def check_env_dir(self, env_dir: Path):
-        """
-
-        Args:
-            env_dir:
-
-        Returns:
-
         """
         pass
 
@@ -479,13 +474,6 @@ class GCheck(GCommand):
         Returns:
 
         """
-        # List here directories analyzed with geniac
-        geniac_dirs = {
-            config_key: self.config_path(
-                GCheck.GENIAC_DIRS, config_key, single_path=True
-            )
-            for config_key in self.config.options(GCheck.GENIAC_DIRS)
-        }
 
         # Check directory and setup directory flags
         self.check_tree_folder()
@@ -501,6 +489,7 @@ class GCheck(GCommand):
             self.config_path(GCheck.GENIAC_DIRS, "modules", single_path=True),
             self.config_path(GCheck.GENIAC_DIRS, "recipes", single_path=True),
         )
+
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
         self.check_labels(
@@ -508,8 +497,3 @@ class GCheck(GCommand):
             labels_from_configs,
             labels_from_folders,
         )
-
-        # Optional checks
-        self.check_recipes_dependencies_dir(geniac_dirs["dependencies"])
-
-        self.check_env_dir(geniac_dirs["env"])
