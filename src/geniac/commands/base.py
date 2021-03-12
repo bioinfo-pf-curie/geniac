@@ -9,7 +9,7 @@ from configparser import ConfigParser, ExtendedInterpolation
 from os.path import basename, dirname, isdir, isfile
 from pathlib import Path
 
-from pkg_resources import resource_stream
+from pkg_resources import resource_filename, resource_stream
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -20,7 +20,7 @@ _logger = logging.getLogger(__name__)
 class GBase(ABC):
     """Abstract base class for Geniac commands"""
 
-    default_config = ("geniac", "conf/geniac.ini")
+    DEFAULT_CONFIG = ("geniac", "conf/geniac.ini")
 
     def __init__(self, project_dir=None, config_file=None, **kwargs):
         """
@@ -30,6 +30,7 @@ class GBase(ABC):
             config_file (str): path to a configuration file (INI format)
         """
         self.project_dir = project_dir
+        self.default_config_file = Path(resource_filename(*self.DEFAULT_CONFIG))
         self.config_file = Path(config_file) if config_file else None
         self.config = self._load_config(config_file=self.config_file)
 
@@ -47,7 +48,7 @@ class GBase(ABC):
         # TODO: remove has_section checks in GCheck after previous todo
         # Read default config file
         config.optionxform = str
-        config.read_string(resource_stream(*self.default_config).read().decode())
+        config.read_string(resource_stream(*self.DEFAULT_CONFIG).read().decode())
         if config_file:
             # Read configuration file
             config.read(config_file)
