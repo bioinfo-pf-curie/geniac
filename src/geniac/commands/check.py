@@ -183,9 +183,11 @@ class GCheck(GCommand):
             script.read(script_path)
 
         # Check if there is processes without label in the actual workflow
-        for process in (processes := script.content.get("process")) :
+        # fmt: off
+        for process in (processes := script.content.get("process")):
             if not processes.get(process).get("label"):
                 _logger.error(f"Process {process} does not have any label")
+        # fmt: on
 
         return script.content.get("process", {})
 
@@ -200,7 +202,6 @@ class GCheck(GCommand):
         Args:
             conda_check:
             config: Nextflow config object
-            config_path: path to the geniac configuration file in the project
 
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
@@ -286,7 +287,6 @@ class GCheck(GCommand):
 
         Args:
             config: Nextflow config object
-            process_config_path: path to the geniac configuration file in the project
             processes_from_workflow: dict of processes names associated with their labels
 
         Returns:
@@ -320,6 +320,7 @@ class GCheck(GCommand):
         """Check the content of a nextflow config file
 
         Args:
+            default_geniac_files_paths:
             nxf_config (NextflowConfig):
             default_config_paths (list):
 
