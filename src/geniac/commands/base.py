@@ -30,10 +30,10 @@ class GBase(ABC):
             config_file (str): path to a configuration file (INI format)
         """
         self.project_dir = project_dir
-        self.config_file = config_file
-        self.config = self._load_config(self.config_file)
+        self.config_file = Path(config_file) if config_file else None
+        self.config = self._load_config(config_file=self.config_file)
 
-    def _load_config(self, config_file=None):
+    def _load_config(self, config_file: Path = None):
         """Load default configuration file and update option with config_file
 
         Returns:

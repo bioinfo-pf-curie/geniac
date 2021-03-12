@@ -93,7 +93,7 @@ def parse_args(args):
         "-c",
         "--config",
         help="Path to geniac config file (INI format)",
-        dest="config",
+        dest="config_file",
         type=str,
         metavar="CONF.INI",
     )
