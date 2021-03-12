@@ -43,7 +43,6 @@ class GCheck(GCommand):
     def __init__(self, project_dir, *args, **kwargs):
         """Init flags specific to GCheck command"""
         super().__init__(*args, project_dir=project_dir, **kwargs)
-        self._dir_flags = []
         self._project_tree = self._format_tree_config()
 
     @property
@@ -127,18 +126,15 @@ class GCheck(GCommand):
             ]
 
             # If folder exists and is not empty (excluded files are ignored)
-            if path.exists() and path.is_dir() and len(current_files) >= 1:
-                _logger.debug(f"Add section {tree_section} to directory flags")
-                self._dir_flags.append(tree_section)
-            elif required and not path.exists():
+            if required and not path.exists():
                 _logger.error(
                     f"Directory {path.name} does not exist. Add it to you project if "
-                    f"you want to be compatible with geniac tools"
+                    f"you want your workflow to be compatible with geniac tools"
                 )
             elif recommended and not path.exists():
                 _logger.warning(
-                    "Directory %s does not exist. It is recommended to have one",
-                    path.name,
+                    f"Directory {path.name} does not exist. It is recommended to have "
+                    f"one"
                 )
 
             # Trigger an error or warning for each required or optional files in the
@@ -160,10 +156,8 @@ class GCheck(GCommand):
                             f"recommended to have one"
                         )
 
-        _logger.debug(f"Directory flags: {self._dir_flags}")
-
     def get_processes_from_workflow(self):
-        """Parse only the main.nf file
+        """Parse workflow file(s)
 
         Returns:
             labels_from_main (dict): dictionary of processes in the main nextflow file
@@ -180,7 +174,10 @@ class GCheck(GCommand):
 
         # TODO: Check for DSL 2 support
         for script_name, script_path in script_paths.items():
-            script.read(script_path)
+            if script_path.exists():
+                script.read(script_path)
+            else:
+                _logger.error(f"Worfklow script {script_path} does not exists")
 
         # Check if there is processes without label in the actual workflow
         # fmt: off
@@ -398,6 +395,11 @@ class GCheck(GCommand):
         for config_key, default_config_scope in default_config_scopes.items():
             default_config_path = default_config_scope["path"]
             config_method = default_config_scope["check_config"]
+            if not default_config_path.exists():
+                _logger.error(
+                    f"Nextflow config file {default_config_path} does not exists"
+                )
+                continue
             nxf_config.read(default_config_path)
             if config_method:
                 _logger.info(
@@ -514,6 +516,9 @@ class GCheck(GCommand):
             for geniac_dir in self.config.options(GCheck.GENIAC_DIRS)
         }
         for geniac_dirname, geniac_dir in geniac_dirs.items():
+            if not geniac_dir.get("path").exists():
+                _logger.error(f"Folder {geniac_dir.get('path')} does not exists")
+                continue
             if check_dir := geniac_dir.get("check_dir"):
                 check_dir(geniac_dir.get("path"))
             if get_label := geniac_dir.get("get_labels"):
