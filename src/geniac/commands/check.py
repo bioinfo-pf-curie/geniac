@@ -415,7 +415,7 @@ class GCheck(GCommand):
 
     def get_labels_from_modules_dir(self, input_dir: Path):
         """Get geniac labels from modules directory"""
-        labels_from_modules = []
+        labels_from_modules = {"modules": []}
         cmake_lists = input_dir / "CMakeLists.txt"
         if not input_dir.exists():
             return []
@@ -453,21 +453,19 @@ class GCheck(GCommand):
                         f"installation script ({label_script})"
                     )
                 else:
-                    labels_from_modules += [module_child.stem]
+                    labels_from_modules["modules"] += [module_child.stem]
 
         return labels_from_modules
 
     # TODO
     def get_labels_from_recipes_dir(self, input_dir):
         """Get geniac labels from conda, singularity and docker recipes"""
-        labels_from_recipes_conda = []
-        labels_from_recipes_docker = []
-        labels_from_recipes_singularity = []
-        return (
-            *labels_from_recipes_conda,
-            *labels_from_recipes_singularity,
-            *labels_from_recipes_docker,
-        )
+        labels_from_recipes = {}
+
+        for recipe_child in input_dir.iterdir():
+            pass
+
+        return labels_from_recipes
 
     # TODO
     def check_dependencies_dir(self, dependencies_dir: Path):
@@ -519,7 +517,7 @@ class GCheck(GCommand):
             if check_dir := geniac_dir.get("check_dir"):
                 check_dir(geniac_dir.get("path"))
             if get_label := geniac_dir.get("get_labels"):
-                labels_from_folders[geniac_dirname] = get_label(geniac_dir.get("path"))
+                labels_from_folders |= get_label(geniac_dir.get("path"))
 
         return labels_from_folders
 
