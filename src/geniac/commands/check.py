@@ -27,6 +27,11 @@ class GCheck(GCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
+    MODULE_CMAKE_RE_TEMP = (
+        r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
+        r"DIR +\$\{{pipeline_source_dir\}}/modules/{label}"
+    )
+
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
     PROJECT_CONFIG = "project.config"
@@ -408,10 +413,48 @@ class GCheck(GCommand):
 
         return labels
 
-    # TODO
-    def get_labels_from_modules_dir(self, input_dir):
+    def get_labels_from_modules_dir(self, input_dir: Path):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
+        cmake_lists = input_dir / "CMakeLists.txt"
+        if not input_dir.exists():
+            return []
+        elif not cmake_lists.exists():
+            # TODO: initialize CmakeLists.txt from the template ?
+            _logger.error(
+                "Folder modules requires a CMakeLists.txt file in order to have the "
+                "container automatically built."
+            )
+            return []
+
+        with open(cmake_lists) as cmake_file:
+            cmake_lists_content = cmake_file.read()
+
+        for module_child in input_dir.iterdir():
+            # If child correspond to a folder and the name of this folder is linked to
+            # an existing bash script
+            label_script = (module_child.parent / module_child.stem).with_suffix(".sh")
+            if module_child.is_dir():
+                _logger.debug(f"Found module directory with label {module_child.stem}")
+                # Parse the CMakeLists.txt file to see if the label is correctly defined
+                label_reg = re.compile(
+                    GCheck.MODULE_CMAKE_RE_TEMP.format(label=module_child.stem)
+                )
+                if label_reg.search(cmake_lists_content):
+                    _logger.debug(f"Found module {module_child.stem} in {cmake_lists}")
+                else:
+                    _logger.error(
+                        f"Module {module_child.stem} not found in {cmake_lists}"
+                    )
+
+                if not label_script.exists():
+                    _logger.error(
+                        f"Module {module_child.stem} does not have an "
+                        f"installation script ({label_script})"
+                    )
+                else:
+                    labels_from_modules += [module_child.stem]
+
         return labels_from_modules
 
     # TODO
@@ -461,23 +504,31 @@ class GCheck(GCommand):
         Returns:
             labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
         """
-        labels_from_modules = []
-        labels_from_conda_recipes = []
-        labels_from_singularity_recipe = []
-        labels_from_docker_recipe = []
-        return (
-            *labels_from_modules,
-            *labels_from_conda_recipes,
-            *labels_from_singularity_recipe,
-            *labels_from_docker_recipe,
-        )
+        labels_from_folders = {}
+        geniac_dirs = {
+            geniac_dir: {
+                "path": self.config_path(
+                    GCheck.GENIAC_DIRS, geniac_dir, single_path=True
+                ),
+                "get_labels": getattr(self, f"get_labels_from_{geniac_dir}_dir", None),
+                "check_dir": getattr(self, f"check_{geniac_dir}_dir", None),
+            }
+            for geniac_dir in self.config.options(GCheck.GENIAC_DIRS)
+        }
+        for geniac_dirname, geniac_dir in geniac_dirs.items():
+            if check_dir := geniac_dir.get("check_dir"):
+                check_dir(geniac_dir.get("path"))
+            if get_label := geniac_dir.get("get_labels"):
+                labels_from_folders[geniac_dirname] = get_label(geniac_dir.get("path"))
+
+        return labels_from_folders
 
     # TODO
     def check_labels(
         self,
         processes_from_workflow: dict,
         labels_from_configs: dict,
-        labels_from_folders: list,
+        labels_from_folders: dict,
     ):
         """Check lab
 
