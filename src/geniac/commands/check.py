@@ -419,9 +419,7 @@ class GCheck(GCommand):
         """Get geniac labels from modules directory"""
         labels_from_modules = {"modules": []}
         cmake_lists = input_dir / "CMakeLists.txt"
-        if not input_dir.exists():
-            return []
-        elif not cmake_lists.exists():
+        if not cmake_lists.exists():
             # TODO: initialize CmakeLists.txt from the template ?
             _logger.error(
                 "Folder modules requires a CMakeLists.txt file in order to have the "
@@ -493,13 +491,8 @@ class GCheck(GCommand):
         """
         pass
 
-    # TODO
-    def get_labels_from_folders(self, modules_dir, recipes_dir):
+    def get_labels_from_folders(self):
         """Parse information from recipes and modules folders
-
-        Args:
-            modules_dir:
-            recipes_dir:
 
         Returns:
             labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
@@ -559,10 +552,7 @@ class GCheck(GCommand):
         labels_from_configs = self.get_labels_from_config_files(processes_from_workflow)
 
         # Get labels from folders
-        labels_from_folders = self.get_labels_from_folders(
-            self.config_path(GCheck.GENIAC_DIRS, "modules", single_path=True),
-            self.config_path(GCheck.GENIAC_DIRS, "recipes", single_path=True),
-        )
+        labels_from_folders = self.get_labels_from_folders()
 
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
