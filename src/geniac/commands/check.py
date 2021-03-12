@@ -326,7 +326,7 @@ class GCheck(GCommand):
             for include_path in nxf_config.get("includeConfig")
         ]
         profile_config_paths = [
-            Path(conf_path)
+            self.project_dir / Path(conf_path)
             for conf_profile in nxf_config.get("profiles", {})
             for conf_path in nxf_config.get("profiles", {})
             .get(conf_profile)
