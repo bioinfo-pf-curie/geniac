@@ -216,43 +216,44 @@ class GCheck(GCommand):
             conda_check = False
 
         # Check each label in params.geniac.tools
-        if conda_check:
-            _logger.info("Checking conda recipes in params.geniac.tools")
-            for label, recipe in config.get("params.geniac.tools").items():
-                labels_geniac_tools.append(label)
-                # If the tool value is a conda recipe
-                if match := GCheck.CONDA_RECIPES_RE.match(recipe):
-                    # The related recipe is a correct conda recipe
-                    # Check if the recipes exists in the actual OS with conda search
-                    for conda_recipe in match.groupdict().get("recipes").split(" "):
-                        conda_search = subprocess.run(
-                            ["conda", "search", conda_recipe], capture_output=True
-                        )
-                        if conda_search and (conda_search.returncode != 0):
-                            _logger.error(
-                                f"Conda recipe {conda_recipe} for the tool {label} "
-                                f"does not link to an existing package or build. "
-                                f"Check if the requested build is still available on "
-                                f"conda:\n\t> conda search {conda_recipe}"
-                            )
-                # Elif the tool value is a path to an environment file (yml or yaml ext),
-                # check if the path exists
-                elif match := GCheck.CONDA_PATH_RE.match(recipe):
-                    if (
-                        conda_path := Path(
-                            self.project_dir / match.groupdict().get("basepath")
-                        )
-                    ) and not conda_path.exists():
-                        _logger.warning(
-                            f"Conda file {conda_path} related to {label} tool does not exists."
-                        )
-                # else check if it's a valid path
-                else:
-                    _logger.error(
-                        f"Value {recipe} of {label} tool does not look like a valid conda file or recipe"
+        for label, recipe in config.get("params.geniac.tools").items():
+            labels_geniac_tools.append(label)
+            if conda_check:
+                _logger.info("Checking conda recipes in params.geniac.tools")
+            else:
+                _logger.info("Checking of conda recipes turned off")
+                continue
+            # If the tool value is a conda recipe
+            if match := GCheck.CONDA_RECIPES_RE.match(recipe):
+                # The related recipe is a correct conda recipe
+                # Check if the recipes exists in the actual OS with conda search
+                for conda_recipe in match.groupdict().get("recipes").split(" "):
+                    conda_search = subprocess.run(
+                        ["conda", "search", conda_recipe], capture_output=True
                     )
-        else:
-            _logger.info("Checking of conda recipes turned off")
+                    if conda_search and (conda_search.returncode != 0):
+                        _logger.error(
+                            f"Conda recipe {conda_recipe} for the tool {label} "
+                            f"does not link to an existing package or build. "
+                            f"Check if the requested build is still available on "
+                            f"conda:\n\t> conda search {conda_recipe}"
+                        )
+            # Elif the tool value is a path to an environment file (yml or yaml ext),
+            # check if the path exists
+            elif match := GCheck.CONDA_PATH_RE.match(recipe):
+                if (
+                    conda_path := Path(
+                        self.project_dir / match.groupdict().get("basepath")
+                    )
+                ) and not conda_path.exists():
+                    _logger.warning(
+                        f"Conda file {conda_path} related to {label} tool does not exists."
+                    )
+            # else check if it's a valid path
+            else:
+                _logger.error(
+                    f"Value {recipe} of {label} tool does not look like a valid conda file or recipe"
+                )
 
         for extra_section in (
             "params.geniac.containers.yum",
