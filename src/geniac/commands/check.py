@@ -6,6 +6,7 @@
 import logging
 import re
 import subprocess
+from collections import defaultdict
 from pathlib import Path
 
 from ..commands.base import GCommand
@@ -418,7 +419,7 @@ class GCheck(GCommand):
 
     def get_labels_from_modules_dir(self, input_dir: Path):
         """Get geniac labels from modules directory"""
-        labels_from_modules = {"modules": []}
+        labels_from_modules = []
         cmake_lists = input_dir / "CMakeLists.txt"
         if not cmake_lists.exists():
             # TODO: initialize CmakeLists.txt from the template ?
@@ -454,19 +455,39 @@ class GCheck(GCommand):
                         f"installation script ({label_script})"
                     )
                 else:
-                    labels_from_modules["modules"] += [module_child.stem]
+                    labels_from_modules += [module_child.stem]
 
-        return labels_from_modules
+        return {"modules": labels_from_modules}
 
-    # TODO
-    def get_labels_from_recipes_dir(self, input_dir):
+    def get_labels_from_conda_dir(self, input_dir):
         """Get geniac labels from conda, singularity and docker recipes"""
-        labels_from_recipes = {}
+        labels_from_recipes = []
 
         for recipe_child in input_dir.iterdir():
-            pass
+            if recipe_child.is_file() and recipe_child.suffix in (".yml", ".yaml"):
+                labels_from_recipes += [recipe_child.stem]
 
-        return labels_from_recipes
+        return {"conda": labels_from_recipes}
+
+    def get_labels_from_singularity_dir(self, input_dir):
+        """Get geniac labels from conda, singularity and docker recipes"""
+        labels_from_recipes = []
+
+        for recipe_child in input_dir.iterdir():
+            if recipe_child.is_file() and recipe_child.suffix == ".def":
+                labels_from_recipes += [recipe_child.stem]
+
+        return {"singularity": labels_from_recipes}
+
+    def get_labels_from_docker_dir(self, input_dir):
+        """Get geniac labels from conda, singularity and docker recipes"""
+        labels_from_recipes = []
+
+        for recipe_child in input_dir.iterdir():
+            if recipe_child.is_file() and recipe_child.suffix == ".Dockerfile":
+                labels_from_recipes += [recipe_child.stem]
+
+        return {"docker": labels_from_recipes}
 
     # TODO
     def check_dependencies_dir(self, dependencies_dir: Path):
@@ -498,7 +519,7 @@ class GCheck(GCommand):
         Returns:
             labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
         """
-        labels_from_folders = {}
+        labels_from_folders = defaultdict(list)
         geniac_dirs = {
             geniac_dir: {
                 "path": self.config_path(
@@ -517,6 +538,10 @@ class GCheck(GCommand):
                 check_dir(geniac_dir.get("path"))
             if get_label := geniac_dir.get("get_labels"):
                 labels_from_folders |= get_label(geniac_dir.get("path"))
+
+        # Check if singularity and docker have the same labels
+        if labels_from_folders["singularity"] != labels_from_folders["docker"]:
+            _logger.warning("Some recipes are missing either in docker or singularity")
 
         return labels_from_folders
 
