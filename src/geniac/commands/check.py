@@ -545,7 +545,6 @@ class GCheck(GCommand):
 
         return labels_from_folders
 
-    # TODO
     def check_labels(
         self,
         processes_from_workflow: dict,
@@ -559,7 +558,62 @@ class GCheck(GCommand):
             labels_from_configs:
             labels_from_folders:
         """
-        pass
+        labels_from_workflow = set(
+            [
+                label
+                for process in processes_from_workflow
+                for label in processes_from_workflow[process]["label"]
+                if label is not None
+            ]
+        )
+        labels_all = set(
+            [
+                label
+                for folder, labels in (
+                    labels_from_folders
+                    | {"geniac": labels_from_configs.get("geniac", [])}
+                ).items()
+                for label in labels
+            ]
+        )
+        # Get the difference with labels from geniac tools and folders and labels used
+        # in the workflow
+        cross_labels = [
+            label for label in labels_all if label not in labels_from_workflow
+        ]
+        if len(cross_labels) >= 1:
+            _logger.warning(
+                f"You have recipes, modules or geniac.tools label(s) that are not used "
+                f"in workflow scripts {cross_labels}"
+            )
+
+        labels_from_process_config = set(
+            [label for label in labels_from_configs.get("process")]
+        )
+        for process, process_scope in processes_from_workflow.items():
+            # Get the diff of process labels not present in process scope in config
+            # files and present within geniac tools scope
+            matched_labels = [
+                label
+                for label in process_scope.get("label")
+                if label not in labels_from_process_config and label in labels_all
+            ]
+            if len(matched_labels) > 1:
+                _logger.error(
+                    f"Use only one recipes, modules or geniac.tools label for "
+                    f"the process {process} {matched_labels}. A process should"
+                    f" have only one label for its tool."
+                )
+            unmatched_labels = [
+                label
+                for label in process_scope.get("label")
+                if label not in labels_all and label not in labels_from_process_config
+            ]
+            if len(unmatched_labels) >= 1:
+                _logger.error(
+                    f"Label(s) {unmatched_labels} from process {process} not defined in "
+                    f"process config."
+                )
 
     def run(self):
         """Execute the main routine
