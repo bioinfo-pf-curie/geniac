@@ -32,6 +32,8 @@ class GCheck(GCommand):
         r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
         r"DIR +\$\{{pipeline_source_dir\}}/modules/{label}"
     )
+    SINGULARITY_DEP_RE_TEMP = r"\%files\s+{dependency} [\/\w.]+{dependency}"
+    DOCKER_DEP_RE_TEMP = r"ADD +{dependency} [\/\w.]+{dependency}"
 
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
@@ -489,8 +491,7 @@ class GCheck(GCommand):
 
         return {"docker": labels_from_recipes}
 
-    # TODO
-    def check_dependencies_dir(self, dependencies_dir: Path):
+    def check_dependencies_dir(self, dependencies_dir: Path, **kwargs):
         """
 
         Args:
@@ -499,10 +500,54 @@ class GCheck(GCommand):
         Returns:
 
         """
-        pass
+        for dependency_path in dependencies_dir.iterdir():
+            if dependency_path.suffix != ".md":
+                singularity_flag = False
+                docker_flag = False
+
+                # Check if the file is used in singularity files
+                for singularity_path in kwargs.get("singularity_path").iterdir():
+                    if singularity_path.suffix == ".def":
+                        dependency_reg = re.compile(
+                            GCheck.SINGULARITY_DEP_RE_TEMP.format(
+                                dependency=dependency_path.name
+                            )
+                        )
+                        with open(singularity_path) as singularity_file:
+                            singularity_flag = (
+                                True
+                                if dependency_reg.search(singularity_file.read())
+                                else singularity_flag
+                            )
+
+                # Check if the file is used in docker files
+                for docker_path in kwargs.get("docker_path").iterdir():
+                    if docker_path.suffix == ".Dockerfile":
+                        dependency_reg = re.compile(
+                            GCheck.DOCKER_DEP_RE_TEMP.format(
+                                dependency=dependency_path.name
+                            )
+                        )
+                        with open(docker_path) as docker_file:
+                            docker_flag = (
+                                True
+                                if dependency_reg.search(docker_file.read())
+                                else docker_flag
+                            )
+
+                if not singularity_flag:
+                    _logger.warning(
+                        f"Dependency file {dependency_path.name} not used in "
+                        f"singularity definition files"
+                    )
+                if not docker_flag:
+                    _logger.warning(
+                        f"Dependency file {dependency_path.name} not used in "
+                        f"docker definition files"
+                    )
 
     # TODO
-    def check_env_dir(self, env_dir: Path):
+    def check_env_dir(self, env_dir: Path, **kwargs):
         """
 
         Args:
@@ -530,12 +575,17 @@ class GCheck(GCommand):
             }
             for geniac_dir in self.config.options(GCheck.GENIAC_DIRS)
         }
+
+        geniac_paths = {
+            f"{geniac_dir}_path": geniac_scope.get("path")
+            for geniac_dir, geniac_scope in geniac_dirs.items()
+        }
         for geniac_dirname, geniac_dir in geniac_dirs.items():
             if not geniac_dir.get("path").exists():
                 _logger.error(f"Folder {geniac_dir.get('path')} does not exists")
                 continue
             if check_dir := geniac_dir.get("check_dir"):
-                check_dir(geniac_dir.get("path"))
+                check_dir(geniac_dir.get("path"), **geniac_paths)
             if get_label := geniac_dir.get("get_labels"):
                 labels_from_folders |= get_label(geniac_dir.get("path"))
 
