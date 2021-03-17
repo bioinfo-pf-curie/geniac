@@ -30,7 +30,11 @@ class NextflowScript(GParser):
     PROCESSRE = re.compile(r"^ *process +(?P<processName>\w+) {")
     # process label
     LABELRE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
-    ESCOPERE = re.compile(r"")
+    # script flag
+    SCRIPTRE = re.compile(
+        r"^ *(?P<startScript>[\"']{3})"
+        r"((?P<script>.+)(?<=(?P<endScript>[\"']{3})))? *$"
+    )
 
     def __init__(self, *args, **kwargs):
         """Constructor for NextflowScript parser"""
@@ -46,12 +50,12 @@ class NextflowScript(GParser):
 
         with config_path.open(encoding=encoding) as config_file:
             mcom_flag = False
-            #   def_flag = False
+            script_flag = False
             process = ""
             self.content["process"] = {}
             # TODO: add if condition within scripts who should break the actual
             #       process scope
-            for line in config_file:
+            for idx, line in enumerate(config_file):
                 # Skip if one line comment
                 if self.UCOMRE.match(line):
                     continue
@@ -83,6 +87,21 @@ class NextflowScript(GParser):
                     label = values.get("labelName")
                     _logger.debug(f"FOUND label {label} " f"in process {process}")
                     self.content["process"][process]["label"].append(label)
+                    continue
+                # TODO: what about conditionals nextflow scripts ?
+                if match := self.SCRIPTRE.match(line):
+                    values = match.groupdict()
+                    if process:
+                        script_flag = False if script_flag else True
+                        if values.get("script"):
+                            self.content["process"][process]["script"].append(
+                                line.strip()
+                            )
+                    continue
+                # Add to script part if script_flag
+                if process and script_flag:
+                    _logger.debug(f"Add line {idx} to process {process} scope")
+                    self.content["process"][process]["script"].append(line.strip())
                     continue
         _logger.debug(
             f"LOADED {config_path} scope:\n{json.dumps(dict(self.content), indent=2)}"
