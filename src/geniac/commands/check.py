@@ -244,7 +244,7 @@ class GCheck(GCommand):
         Returns:
             labels_from_main (dict): dictionary of processes in the main nextflow file
         """
-        script = NextflowScript()
+        script = NextflowScript(project_dir=self.project_dir)
 
         # Link config path to their method
         script_paths = {
@@ -259,7 +259,10 @@ class GCheck(GCommand):
             if script_path.exists():
                 script.read(script_path)
             else:
-                _logger.error(f"Worfklow script {script_path} does not exists")
+                _logger.error(
+                    f"Workflow script {script_path.relative_to(self.project_dir)} does"
+                    f" not exists"
+                )
 
         # Check if there is processes without label in the actual workflow
         # fmt: off
@@ -293,7 +296,8 @@ class GCheck(GCommand):
         # Check if conda command exists
         if subprocess.run(["conda", "-h"], capture_output=True).returncode != 0:
             _logger.error(
-                "Conda is not available in your path. Geniac will not check if tool recipes are correct"
+                "Conda is not available in your path. Geniac will not check if tool "
+                "recipes are correct"
             )
             conda_check = False
 
@@ -329,12 +333,14 @@ class GCheck(GCommand):
                     )
                 ) and not conda_path.exists():
                     _logger.warning(
-                        f"Conda file {conda_path} related to {label} tool does not exists."
+                        f"Conda file {conda_path.relative_to(self.project_dir)} "
+                        f"related to {label} tool does not exists."
                     )
             # else check if it's a valid path
             else:
                 _logger.error(
-                    f"Value {recipe} of {label} tool does not look like a valid conda file or recipe"
+                    f"Value {recipe} of {label} tool does not look like a valid conda "
+                    f"file or recipe"
                 )
 
         for extra_section in (
@@ -347,7 +353,8 @@ class GCheck(GCommand):
                     # If label is not present in geniac.tools
                     if label not in labels_geniac_tools:
                         _logger.error(
-                            f"Label {label} of {extra_section} is not defined in params.geniac.tools"
+                            f"Label {label} of {extra_section} is not defined in "
+                            f"params.geniac.tools"
                         )
             else:
                 _logger.warning(
@@ -377,8 +384,9 @@ class GCheck(GCommand):
         for config_process in config.get("process", {}).get("withName"):
             if config_process not in self.processes_from_workflow:
                 _logger.error(
-                    f"Process {config_process} used with the withName selector in "
-                    f"{config.path} does not correspond to any process in the workflow."
+                    f"withName:{config_process} is defined in "
+                    f"{config.path.relative_to(self.project_dir)} file but the process "
+                    f"{config_process} is not used anywhere"
                 )
 
         # Return list of labels defined with withLabel selector in the process.config file
@@ -423,14 +431,17 @@ class GCheck(GCommand):
                 and Path(default_config_path) not in include_config_paths
             ):
                 _logger.error(
-                    f"Nextflow configuration file {nxf_config.path} does not include {default_config_path}"
+                    f"Nextflow configuration file "
+                    f"{nxf_config.path.relative_to(self.project_dir)} does not include"
+                    f" {default_config_path.relative_to(self.project_dir)}"
                 )
 
         # Check if geniac config profiles are included
         for geniac_file in default_geniac_files_paths:
             if Path(geniac_file) not in profile_config_paths:
                 _logger.error(
-                    f"Nextflow configuration file {nxf_config.path} does not "
+                    f"Nextflow configuration file "
+                    f"{nxf_config.path.relative_to(self.project_dir)} does not "
                     f"include {geniac_file} within profiles"
                 )
 
@@ -441,7 +452,7 @@ class GCheck(GCommand):
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
             labels_process (list): list of process labels in params.process with withName
         """
-        nxf_config = NextflowConfig()
+        nxf_config = NextflowConfig(project_dir=self.project_dir)
 
         # Link config path to their method
         default_config_scopes = {
@@ -474,13 +485,16 @@ class GCheck(GCommand):
             config_method = default_config_scope["check_config"]
             if not default_config_path.exists():
                 _logger.error(
-                    f"Nextflow config file {default_config_path} does not exists"
+                    f"Nextflow config file "
+                    f"{default_config_path.relative_to(self.project_dir)} "
+                    f"does not exists"
                 )
                 continue
             nxf_config.read(default_config_path)
             if config_method:
                 _logger.info(
-                    f"Checking Nextflow configuration file {default_config_path}"
+                    f"Checking Nextflow configuration file "
+                    f"{default_config_path.relative_to(self.project_dir)}"
                 )
                 self.labels_from_configs[config_key] = config_method(
                     nxf_config,
@@ -706,7 +720,10 @@ class GCheck(GCommand):
         }
         for geniac_dirname, geniac_dir in geniac_dirs.items():
             if not geniac_dir.get("path").exists():
-                _logger.error(f"Folder {geniac_dir.get('path')} does not exists")
+                _logger.error(
+                    f"Folder {geniac_dir.get('path').relative_to(self.project_dir)} "
+                    f"does not exists"
+                )
                 continue
             if get_label := geniac_dir.get("get_labels"):
                 self.labels_from_folders |= get_label(geniac_dir.get("path"))

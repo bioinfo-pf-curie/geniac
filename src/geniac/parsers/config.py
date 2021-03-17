@@ -90,7 +90,10 @@ class NextflowConfig(GParser):
 
         # Check if the actual scope exists in the Nextflow config
         if nxf_config_scope and not scope:
-            msg = f"Config file {self.path} doesn't have {nxf_config_scope} scope"
+            msg = (
+                f"Config file {self.path.relative_to(self.project_dir)} doesn't "
+                f"have {nxf_config_scope} scope"
+            )
             if required_flag:
                 _logger.error(msg)
             else:
@@ -104,8 +107,8 @@ class NextflowConfig(GParser):
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter"
-                        f" in file {self.path} doesn't correspond to the default "
-                        f"value {def_val}"
+                        f" in file {self.path.relative_to(self.project_dir)} doesn't "
+                        f"correspond to the default value {def_val} {self.project_dir}"
                     )
 
         # Check if config_props exists in the Nextflow config
@@ -116,8 +119,8 @@ class NextflowConfig(GParser):
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
-                        f" in file {self.path} doesn't correspond to the default "
-                        f"value ('{def_val}')"
+                        f" in file {self.path.relative_to(self.project_dir)} doesn't "
+                        f"correspond to the default value ('{def_val}')"
                     )
 
         # Call same checks on nested scopes
@@ -210,7 +213,8 @@ class NextflowConfig(GParser):
                     )
                     if param_idx in self.content and prop_key != "includeConfig":
                         _logger.warning(
-                            f"Found duplicated parameter {param_idx} in {self.path}"
+                            f"Found duplicated parameter {param_idx} in "
+                            f"{self.path.relative_to(self.project_dir)}"
                         )
                     value = (
                         value.strip('"')
