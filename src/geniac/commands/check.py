@@ -339,8 +339,8 @@ class GCheck(GCommand):
             # else check if it's a valid path
             else:
                 _logger.error(
-                    f"Value {recipe} of {label} tool does not look like a valid conda "
-                    f"file or recipe"
+                    f"Value {recipe} of {label} tool does not follow the pattern "
+                    f"condaChannelName::softName=version=buildString"
                 )
 
         for extra_section in (
