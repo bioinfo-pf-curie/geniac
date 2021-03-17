@@ -47,11 +47,90 @@ class GCheck(GCommand):
         """Init flags specific to GCheck command"""
         super().__init__(*args, project_dir=project_dir, **kwargs)
         self._project_tree = self._format_tree_config()
+        self._labels_from_folders = {}
+        self._labels_from_configs = {}
+        self._processes_from_workflow = {}
+        self._labels_from_workflow = []
+        self._labels_all = []
 
     @property
     def project_tree(self):
         """Formatted tree configuration"""
         return self._project_tree
+
+    @property
+    def labels_from_folders(self):
+        """Geniac labels from Nextflow folders"""
+        return self._labels_from_folders
+
+    @labels_from_folders.setter
+    def labels_from_folders(self, value: dict):
+        """Merge geniac labels from Nextflow folders"""
+        self._labels_from_folders |= value
+
+    @property
+    def labels_from_configs(self):
+        """Geniac labels from Nextflow configs"""
+        return self._labels_from_configs
+
+    @labels_from_configs.setter
+    def labels_from_configs(self, value: dict):
+        """Merge geniac labels from Nextflow configs"""
+        self._labels_from_configs |= value
+
+    @property
+    def labels_from_geniac_config(self):
+        """Geniac labels from Nextflow folders"""
+        return list(
+            set([label for label in self.labels_from_configs.get("geniac", [])])
+        )
+
+    @property
+    def labels_from_process_config(self):
+        """Process config labels from Nextflow folders"""
+        return list(
+            set([label for label in self.labels_from_configs.get("process", [])])
+        )
+
+    @property
+    def processes_from_workflow(self):
+        """Workflow labels from Nextflow folders"""
+        return self._processes_from_workflow
+
+    @processes_from_workflow.setter
+    def processes_from_workflow(self, value: dict):
+        """Merge geniac labels from Nextflow configs"""
+        self._processes_from_workflow |= value
+
+    @property
+    def labels_from_workflow(self):
+        """Workflow labels from Nextflow folders"""
+        # Init labels list if empty
+        if not self._labels_from_workflow:
+            self._labels_from_workflow = set(
+                [
+                    label
+                    for process, process_scope in self.processes_from_workflow.items()
+                    for label in process_scope["label"]
+                    if label is not None
+                ]
+            )
+        return self._labels_from_workflow
+
+    @property
+    def labels_all(self):
+        """Gather labels from Nextflow folders and geniac tools"""
+        # Init labels all if empty
+        if not self._labels_all:
+            self._labels_all = set(
+                [
+                    label
+                    for folder, labels in self.labels_from_folders.items()
+                    for label in labels
+                ]
+                + self.labels_from_geniac_config
+            )
+        return self._labels_all
 
     def _format_tree_config(self):
         """Format configuration tree from ini config
@@ -189,7 +268,7 @@ class GCheck(GCommand):
                 _logger.error(f"Process {process} does not have any label")
         # fmt: on
 
-        return script.content.get("process", {})
+        self.processes_from_workflow = script.content.get("process", {})
 
     def check_geniac_config(
         self,
@@ -280,14 +359,12 @@ class GCheck(GCommand):
     def check_process_config(
         self,
         config: NextflowConfig,
-        processes_from_workflow: dict = None,
         **kwargs,
     ):
         """Check the content of a process config file
 
         Args:
             config: Nextflow config object
-            processes_from_workflow: dict of processes names associated with their labels
 
         Returns:
             labels_process (list): list of process labels in params.process with withName
@@ -298,7 +375,7 @@ class GCheck(GCommand):
         # For each process used with withName selector, check their existence in the
         # workflow
         for config_process in config.get("process", {}).get("withName"):
-            if config_process not in processes_from_workflow:
+            if config_process not in self.processes_from_workflow:
                 _logger.error(
                     f"Process {config_process} used with the withName selector in "
                     f"{config.path} does not correspond to any process in the workflow."
@@ -357,11 +434,8 @@ class GCheck(GCommand):
                     f"include {geniac_file} within profiles"
                 )
 
-    def get_labels_from_config_files(self, processes_from_workflow: dict):
+    def get_labels_from_config_files(self):
         """Check the structure of the repo
-
-        Args:
-            processes_from_workflow: dict of processes names associated with their labels
 
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
@@ -369,7 +443,6 @@ class GCheck(GCommand):
         """
         nxf_config = NextflowConfig()
 
-        labels = {}
         # Link config path to their method
         default_config_scopes = {
             default_config_name: {
@@ -409,17 +482,15 @@ class GCheck(GCommand):
                 _logger.info(
                     f"Checking Nextflow configuration file {default_config_path}"
                 )
-                labels[config_key] = config_method(
+                self.labels_from_configs[config_key] = config_method(
                     nxf_config,
                     default_config_paths=default_config_paths,
                     default_geniac_files_paths=default_geniac_files_paths,
-                    processes_from_workflow=processes_from_workflow,
                     conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
                 )
 
-        return labels
-
-    def get_labels_from_modules_dir(self, input_dir: Path):
+    @staticmethod
+    def get_labels_from_modules_dir(input_dir: Path):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
         cmake_lists = input_dir / "CMakeLists.txt"
@@ -461,7 +532,8 @@ class GCheck(GCommand):
 
         return {"modules": labels_from_modules}
 
-    def get_labels_from_conda_dir(self, input_dir):
+    @staticmethod
+    def get_labels_from_conda_dir(input_dir):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
@@ -471,7 +543,8 @@ class GCheck(GCommand):
 
         return {"conda": labels_from_recipes}
 
-    def get_labels_from_singularity_dir(self, input_dir):
+    @staticmethod
+    def get_labels_from_singularity_dir(input_dir):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
@@ -481,7 +554,8 @@ class GCheck(GCommand):
 
         return {"singularity": labels_from_recipes}
 
-    def get_labels_from_docker_dir(self, input_dir):
+    @staticmethod
+    def get_labels_from_docker_dir(input_dir):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
@@ -491,10 +565,18 @@ class GCheck(GCommand):
 
         return {"docker": labels_from_recipes}
 
-    def check_dependencies_dir(self, dependencies_dir: Path, **kwargs):
+    @staticmethod
+    def check_dependencies_dir(
+        dependencies_dir: Path,
+        docker_path: Path = None,
+        singularity_path: Path = None,
+        **kwargs,
+    ):
         """
 
         Args:
+            singularity_path:
+            docker_path:
             dependencies_dir:
 
         Returns:
@@ -506,34 +588,36 @@ class GCheck(GCommand):
                 docker_flag = False
 
                 # Check if the file is used in singularity files
-                for singularity_path in kwargs.get("singularity_path").iterdir():
-                    if singularity_path.suffix == ".def":
-                        dependency_reg = re.compile(
-                            GCheck.SINGULARITY_DEP_RE_TEMP.format(
-                                dependency=dependency_path.name
+                if singularity_path:
+                    for singularity_path in singularity_path.iterdir():
+                        if singularity_path.suffix == ".def":
+                            dependency_reg = re.compile(
+                                GCheck.SINGULARITY_DEP_RE_TEMP.format(
+                                    dependency=dependency_path.name
+                                )
                             )
-                        )
-                        with open(singularity_path) as singularity_file:
-                            singularity_flag = (
-                                True
-                                if dependency_reg.search(singularity_file.read())
-                                else singularity_flag
-                            )
+                            with open(singularity_path) as singularity_file:
+                                singularity_flag = (
+                                    True
+                                    if dependency_reg.search(singularity_file.read())
+                                    else singularity_flag
+                                )
 
                 # Check if the file is used in docker files
-                for docker_path in kwargs.get("docker_path").iterdir():
-                    if docker_path.suffix == ".Dockerfile":
-                        dependency_reg = re.compile(
-                            GCheck.DOCKER_DEP_RE_TEMP.format(
-                                dependency=dependency_path.name
+                if docker_path:
+                    for docker_path in docker_path.iterdir():
+                        if docker_path.suffix == ".Dockerfile":
+                            dependency_reg = re.compile(
+                                GCheck.DOCKER_DEP_RE_TEMP.format(
+                                    dependency=dependency_path.name
+                                )
                             )
-                        )
-                        with open(docker_path) as docker_file:
-                            docker_flag = (
-                                True
-                                if dependency_reg.search(docker_file.read())
-                                else docker_flag
-                            )
+                            with open(docker_path) as docker_file:
+                                docker_flag = (
+                                    True
+                                    if dependency_reg.search(docker_file.read())
+                                    else docker_flag
+                                )
 
                 if not singularity_flag:
                     _logger.warning(
@@ -546,7 +630,6 @@ class GCheck(GCommand):
                         f"docker definition files"
                     )
 
-    # TODO
     def check_env_dir(self, env_dir: Path, **kwargs):
         """
 
@@ -556,7 +639,48 @@ class GCheck(GCommand):
         Returns:
 
         """
-        pass
+        envs_found = []
+        envs_sourced = []
+        for env_path in env_dir.iterdir():
+            # Skip if not env file
+            if env_path.suffix != ".env":
+                continue
+            envs_found += [env_path]
+            # Check if basename of env file is present in label list
+            if env_path.stem not in self.labels_all:
+                _logger.warning(
+                    f"env file {env_path.name} does not correspond to any process label"
+                )
+            # Check if this file has been sourced in main.nf (script score in
+            # processes_from_workflow)
+            for process, process_scope in self.processes_from_workflow.items():
+                source_flag = False
+                # If basename of env file correspond to one of the labels used in process
+                if env_path.stem in process_scope.get("label", []):
+                    # If there is a script scope in the process
+                    if script := process_scope.get("script", []):
+                        for line in script:
+                            if re.search(
+                                f"{env_path.relative_to(self.project_dir)}", line
+                            ):
+                                source_flag = True
+                                envs_sourced += [env_path]
+                    # If env file not sourced in the actual process
+                    if not source_flag:
+                        _logger.warning(
+                            f"Process {process} with label {env_path.stem}"
+                            f" does not source "
+                            f"{env_path.relative_to(self.project_dir)}"
+                        )
+
+        if envs_unsourced := set(envs_found) - set(envs_sourced):
+            [
+                _logger.warning(
+                    f"Env file {env_path.relative_to(self.project_dir)} "
+                    f"not used in the workflow"
+                )
+                for env_path in envs_unsourced
+            ]
 
     def get_labels_from_folders(self):
         """Parse information from recipes and modules folders
@@ -584,52 +708,30 @@ class GCheck(GCommand):
             if not geniac_dir.get("path").exists():
                 _logger.error(f"Folder {geniac_dir.get('path')} does not exists")
                 continue
+            if get_label := geniac_dir.get("get_labels"):
+                self.labels_from_folders |= get_label(geniac_dir.get("path"))
+
+        for geniac_dirname, geniac_dir in geniac_dirs.items():
             if check_dir := geniac_dir.get("check_dir"):
                 check_dir(geniac_dir.get("path"), **geniac_paths)
-            if get_label := geniac_dir.get("get_labels"):
-                labels_from_folders |= get_label(geniac_dir.get("path"))
 
         # Check if singularity and docker have the same labels
-        if labels_from_folders["singularity"] != labels_from_folders["docker"]:
+        if (
+            self.labels_from_folders["singularity"]
+            != self.labels_from_folders["docker"]
+        ):
             _logger.warning("Some recipes are missing either in docker or singularity")
 
         return labels_from_folders
 
     def check_labels(
         self,
-        processes_from_workflow: dict,
-        labels_from_configs: dict,
-        labels_from_folders: dict,
     ):
-        """Check lab
-
-        Args:
-            processes_from_workflow:
-            labels_from_configs:
-            labels_from_folders:
-        """
-        labels_from_workflow = set(
-            [
-                label
-                for process in processes_from_workflow
-                for label in processes_from_workflow[process]["label"]
-                if label is not None
-            ]
-        )
-        labels_all = set(
-            [
-                label
-                for folder, labels in (
-                    labels_from_folders
-                    | {"geniac": labels_from_configs.get("geniac", [])}
-                ).items()
-                for label in labels
-            ]
-        )
+        """Check lab"""
         # Get the difference with labels from geniac tools and folders and labels used
         # in the workflow
         cross_labels = [
-            label for label in labels_all if label not in labels_from_workflow
+            label for label in self.labels_all if label not in self.labels_from_workflow
         ]
         if len(cross_labels) >= 1:
             _logger.warning(
@@ -637,16 +739,14 @@ class GCheck(GCommand):
                 f"in workflow scripts {cross_labels}"
             )
 
-        labels_from_process_config = set(
-            [label for label in labels_from_configs.get("process")]
-        )
-        for process, process_scope in processes_from_workflow.items():
+        for process, process_scope in self.processes_from_workflow.items():
             # Get the diff of process labels not present in process scope in config
             # files and present within geniac tools scope
             matched_labels = [
                 label
                 for label in process_scope.get("label")
-                if label not in labels_from_process_config and label in labels_all
+                if label not in self.labels_from_process_config
+                and label in self.labels_all
             ]
             if len(matched_labels) > 1:
                 _logger.error(
@@ -657,7 +757,8 @@ class GCheck(GCommand):
             unmatched_labels = [
                 label
                 for label in process_scope.get("label")
-                if label not in labels_all and label not in labels_from_process_config
+                if label not in self.labels_all
+                and label not in self.labels_from_process_config
             ]
             if len(unmatched_labels) >= 1:
                 _logger.error(
@@ -676,18 +777,14 @@ class GCheck(GCommand):
         self.check_tree_folder()
 
         # Get list of labels from main nextflow script
-        processes_from_workflow = self.get_processes_from_workflow()
+        self.get_processes_from_workflow()
 
         # Get list of labels from project.config and geniac.config files
-        labels_from_configs = self.get_labels_from_config_files(processes_from_workflow)
+        self.get_labels_from_config_files()
 
         # Get labels from folders
-        labels_from_folders = self.get_labels_from_folders()
+        self.get_labels_from_folders()
 
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
-        self.check_labels(
-            processes_from_workflow,
-            labels_from_configs,
-            labels_from_folders,
-        )
+        self.check_labels()
