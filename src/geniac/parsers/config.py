@@ -77,11 +77,17 @@ class NextflowConfig(GParser):
             f"{self.path.relative_to(self.project_dir)}"
         )
 
-        config_scopes = self.get_config_list(self.config, nxf_config_scope, "scopes")
-        config_paths = self.get_config_list(self.config, nxf_config_scope, "paths")
-        config_props = self.get_config_list(self.config, nxf_config_scope, "properties")
+        default_config_scopes = self.get_config_list(
+            self.config, nxf_config_scope, "scopes"
+        )
+        default_config_paths = self.get_config_list(
+            self.config, nxf_config_scope, "paths"
+        )
+        default_config_props = self.get_config_list(
+            self.config, nxf_config_scope, "properties"
+        )
         required_flag = self.config.getboolean(f"scope.{nxf_config_scope}", "required")
-        config_values = {
+        default_config_values = {
             key: value
             for key, value in (
                 self.config.items(f"scope.{nxf_config_scope}.values")
@@ -89,8 +95,10 @@ class NextflowConfig(GParser):
                 else []
             )
         }
-        scope = self.get(nxf_config_scope)
 
+        scope = self.get(nxf_config_scope)
+        cfg_val = None
+        def_val = None
         # Check if the actual scope exists in the Nextflow config
         if nxf_config_scope and not scope:
             msg = (
@@ -103,34 +111,43 @@ class NextflowConfig(GParser):
                 _logger.warning(msg)
 
         # Check if config_paths in the Nextflow config corresponds to their default values
-        if config_paths:
-            for config_path in config_paths:
-                if config_path and (cfg_val := scope.get(config_path)) != (
-                    def_val := config_values.get(config_path)
+        if default_config_paths:
+            for config_path in default_config_paths:
+                if (
+                    config_path
+                    and (cfg_val := scope.get(config_path))
+                    != (def_val := default_config_values.get(config_path))
+                    and def_val
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter"
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
                         f"correspond to the default value {def_val} {self.project_dir}"
+                    ) if cfg_val else _logger.error(
+                        f"Missing {nxf_config_scope}.{config_path} parameter in file "
+                        f"{self.path.relative_to(self.project_dir)}"
                     )
 
         # Check if config_props exists in the Nextflow config
-        if config_props:
-            for config_prop in config_props:
+        if default_config_props:
+            for config_prop in default_config_props:
                 if (
                     config_prop
                     and (cfg_val := scope.get(config_prop))
-                    != (def_val := config_values.get(config_prop))
+                    != (def_val := default_config_values.get(config_prop))
                     and def_val
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
                         f"correspond to the default value ('{def_val}')"
+                    ) if cfg_val else _logger.error(
+                        f"Missing {nxf_config_scope}.{config_prop} parameter in file "
+                        f"{self.path.relative_to(self.project_dir)}"
                     )
 
         # Call same checks on nested scopes
-        for nested_scope in config_scopes:
+        for nested_scope in default_config_scopes:
             self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
     def _read(self, config_path: Path, encoding="UTF-8"):
