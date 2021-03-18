@@ -81,7 +81,7 @@ class GParser(GBase):
             "This class should implement a private read method in order to fill content property"
         )
 
-    def read(self, in_paths, encoding=None):
+    def read(self, in_paths, encoding="UTF-8"):
         """Read and parse a file or an iterable of files
 
         Args:

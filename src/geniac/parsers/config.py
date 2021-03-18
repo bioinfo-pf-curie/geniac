@@ -72,7 +72,10 @@ class NextflowConfig(GParser):
         Args:
             nxf_config_scope (str): Scope checked in the Nextflow configuration
         """
-        _logger.info(f"Checking {nxf_config_scope} scope in {self.path}")
+        _logger.info(
+            f"Checking {nxf_config_scope} scope in "
+            f"{self.path.relative_to(self.project_dir)}"
+        )
 
         config_scopes = self.get_config_list(self.config, nxf_config_scope, "scopes")
         config_paths = self.get_config_list(self.config, nxf_config_scope, "paths")
@@ -127,7 +130,7 @@ class NextflowConfig(GParser):
         for nested_scope in config_scopes:
             self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
-    def _read(self, config_path: Path, encoding=None):
+    def _read(self, config_path: Path, encoding="UTF-8"):
         """Load a Nextflow config file into content property
 
         Args:
