@@ -307,7 +307,7 @@ class GCheck(GCommand):
             if conda_check
             else "Checking of conda recipes turned off"
         )
-        for label, recipe in config.get("params.geniac.tools").items():
+        for label, recipe in config.get("params.geniac.tools", {}).items():
             labels_geniac_tools.append(label)
             # If the tool value is a conda recipe
             if match := GCheck.CONDA_RECIPES_RE.match(recipe):
@@ -358,10 +358,6 @@ class GCheck(GCommand):
                             f"Label {label} of {extra_section} is not defined in "
                             f"params.geniac.tools"
                         )
-            else:
-                _logger.warning(
-                    f"Section {extra_section} is not defined in params.geniac.tools"
-                )
 
         return labels_geniac_tools
 
