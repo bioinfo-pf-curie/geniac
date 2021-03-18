@@ -117,8 +117,11 @@ class NextflowConfig(GParser):
         # Check if config_props exists in the Nextflow config
         if config_props:
             for config_prop in config_props:
-                if config_prop and (cfg_val := scope.get(config_prop)) != (
-                    def_val := config_values.get(config_prop)
+                if (
+                    config_prop
+                    and (cfg_val := scope.get(config_prop))
+                    != (def_val := config_values.get(config_prop))
+                    and def_val
                 ):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
