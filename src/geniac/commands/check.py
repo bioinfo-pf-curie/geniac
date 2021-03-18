@@ -302,15 +302,17 @@ class GCheck(GCommand):
             conda_check = False
 
         # Check each label in params.geniac.tools
+        _logger.info(
+            "Checking conda recipes in params.geniac.tools"
+            if conda_check
+            else "Checking of conda recipes turned off"
+        )
         for label, recipe in config.get("params.geniac.tools").items():
             labels_geniac_tools.append(label)
-            if conda_check:
-                _logger.info("Checking conda recipes in params.geniac.tools")
-            else:
-                _logger.info("Checking of conda recipes turned off")
-                continue
             # If the tool value is a conda recipe
             if match := GCheck.CONDA_RECIPES_RE.match(recipe):
+                if not conda_check:
+                    continue
                 # The related recipe is a correct conda recipe
                 # Check if the recipes exists in the actual OS with conda search
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
@@ -326,13 +328,13 @@ class GCheck(GCommand):
                         )
             # Elif the tool value is a path to an environment file (yml or yaml ext),
             # check if the path exists
-            elif match := GCheck.CONDA_PATH_RE.match(recipe):
+            elif match := GCheck.CONDA_PATH_RE.search(recipe):
                 if (
                     conda_path := Path(
                         self.project_dir / match.groupdict().get("basepath")
                     )
                 ) and not conda_path.exists():
-                    _logger.warning(
+                    _logger.error(
                         f"Conda file {conda_path.relative_to(self.project_dir)} "
                         f"related to {label} tool does not exists."
                     )
