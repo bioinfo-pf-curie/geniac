@@ -491,9 +491,12 @@ class GCheck(GCommand):
         for config_key, project_config_scope in project_config_scopes.items():
             project_config_path = project_config_scope["path"]
             config_method = project_config_scope["check_config"]
-            default_config_paths = self.config_path(
-                ".".join([GCheck.TREE_SUFFIX, "conf"]), "files"
-            ) + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "files")
+            default_config_paths = (
+                self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "files")
+                + self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "optional")
+                + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "files")
+                + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "optional")
+            )
             # If the project config file does not exists and does not belong to default
             # geniac files
             if not project_config_path.exists():
