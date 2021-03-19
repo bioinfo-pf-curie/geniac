@@ -796,9 +796,12 @@ class GCheck(GCommand):
                 and label not in self.labels_from_process_config
             ]
             if len(unmatched_labels) >= 1:
+                process_path = self.config_path(
+                    GCheck.PROJECT_CONFIG, "process", single_path=True
+                ).relative_to(self.project_dir)
                 _logger.error(
                     f"Label(s) {unmatched_labels} from process {process} not defined in "
-                    f"process config."
+                    f"the file {process_path}."
                 )
 
     def run(self):
