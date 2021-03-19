@@ -27,7 +27,7 @@ class NextflowScript(GParser):
     # End multi line comment
     ECOMRE = re.compile(r"^ *\*+/")
     # process flag
-    PROCESSRE = re.compile(r"^ *process +(?P<processName>\w+) {")
+    PROCESSRE = re.compile(r"^ *process +(?P<processName>\w+) *{")
     # process label
     LABELRE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
     # script flag
