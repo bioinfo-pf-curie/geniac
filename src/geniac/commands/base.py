@@ -70,7 +70,7 @@ class GBase(ABC):
         if (path := Path(value)) and path.is_dir():
             self._project_dir = path.resolve()
         else:
-            _logger.critical(f"Path {path} does not exist")
+            _logger.critical(f"Path {path} does not exist.")
             sys.exit(1)
 
     @property

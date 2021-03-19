@@ -74,7 +74,7 @@ class NextflowConfig(GParser):
         """
         _logger.info(
             f"Checking {nxf_config_scope} scope in "
-            f"{self.path.relative_to(self.project_dir)}"
+            f"{self.path.relative_to(self.project_dir)}."
         )
 
         default_config_scopes = self.get_config_list(
@@ -123,10 +123,10 @@ class NextflowConfig(GParser):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter"
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
-                        f"correspond to the default value {def_val}"
+                        f"correspond to the default value {def_val}."
                     ) if cfg_val else _logger.error(
                         f"Missing {nxf_config_scope}.{config_path} parameter in file "
-                        f"{self.path.relative_to(self.project_dir)}"
+                        f"{self.path.relative_to(self.project_dir)}."
                     )
 
         # Check if config_props exists in the Nextflow config
@@ -141,10 +141,10 @@ class NextflowConfig(GParser):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
-                        f"correspond to the default value ('{def_val}')"
+                        f"correspond to the default value ('{def_val}')."
                     ) if cfg_val else _logger.error(
                         f"Missing {nxf_config_scope}.{config_prop} parameter in file "
-                        f"{self.path.relative_to(self.project_dir)}"
+                        f"{self.path.relative_to(self.project_dir)}."
                     )
 
         # Call same checks on nested scopes
@@ -233,7 +233,7 @@ class NextflowConfig(GParser):
                     _logger.debug(
                         f"FOUND property {values.get(prop_key)} "
                         f"with value {values.get(value_key)} "
-                        f"in scope {param_idx}"
+                        f"in scope {param_idx}."
                     )
                     value = (
                         value.strip('"')
@@ -265,5 +265,5 @@ class NextflowConfig(GParser):
                     )
                     continue
         _logger.debug(
-            f"LOADED {config_path} scope:\n{json.dumps(dict(self.content), indent=2)}"
+            f"LOADED {config_path} scope:\n{json.dumps(dict(self.content), indent=2)}."
         )

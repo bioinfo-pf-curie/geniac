@@ -150,11 +150,11 @@ def main(args):
     parser, args = parse_args(args)
     setup_logging(args.loglevel)
     if "func" in args:
-        _logger.info(f"Start geniac {args.which if 'which' in args else None} command")
+        _logger.info(f"Start geniac {args.which if 'which' in args else None} command.")
         args.func(args).run()
     else:
         parser.print_help()
-    _logger.debug("Script ends here")
+    _logger.debug("Script ends here.")
 
 
 def run():
