@@ -4,9 +4,10 @@
 """base.py: CLI geniac interface"""
 
 import logging
+import sys
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, ExtendedInterpolation
-from os.path import basename, dirname, isdir, isfile
+from os.path import basename, dirname, isfile
 from pathlib import Path
 
 from pkg_resources import resource_filename, resource_stream
@@ -66,9 +67,11 @@ class GBase(ABC):
     @project_dir.setter
     def project_dir(self, value):
         """If value is not a directory, set the project dir to the current directory"""
-        self._project_dir = (
-            Path(value).resolve() if value and isdir(value) else Path().cwd()
-        )
+        if (path := Path(value)) and path.is_dir():
+            self._project_dir = path.resolve()
+        else:
+            _logger.critical(f"Path {path} does not exists")
+            sys.exit(1)
 
     @property
     def config_file(self):

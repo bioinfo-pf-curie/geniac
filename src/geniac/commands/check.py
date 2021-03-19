@@ -180,7 +180,7 @@ class GCheck(GCommand):
 
     def check_tree_folder(self):
         """Check the directory in order to set the flags"""
-        _logger.info("Check tree folder")
+        _logger.info(f"Checking tree structure of {self.project_dir}")
 
         # TODO: rewrite get_sections to have a nested dict instead of a list
         _logger.debug(f"Sections parsed from config file: {self.config.sections()}")
