@@ -344,7 +344,7 @@ class GCheck(GCommand):
                 ) and not conda_path.exists():
                     _logger.error(
                         f"Conda file {conda_path.relative_to(self.project_dir)} "
-                        f"related to {label} tool does not exists."
+                        f"related to {label} tool does not exist."
                     )
             # else check if it's a valid path
             else:
