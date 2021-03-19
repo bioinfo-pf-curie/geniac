@@ -123,7 +123,7 @@ class NextflowConfig(GParser):
                     _logger.warning(
                         f"Value {cfg_val} of {nxf_config_scope}.{config_path} parameter"
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
-                        f"correspond to the default value {def_val} {self.project_dir}"
+                        f"correspond to the default value {def_val}"
                     ) if cfg_val else _logger.error(
                         f"Missing {nxf_config_scope}.{config_path} parameter in file "
                         f"{self.path.relative_to(self.project_dir)}"

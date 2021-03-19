@@ -186,13 +186,18 @@ class GCheck(GCommand):
         _logger.debug(f"Sections parsed from config file: {self.config.sections()}")
 
         for tree_section, section in self.project_tree.items():
-            [_logger.debug(msg) for msg in ("\n", f"SECTION {tree_section}")]
+            [_logger.debug(msg) for msg in ("\n", f"Folder {tree_section}")]
 
+            # Is the actual folder required
             required = section.get("required")
+            # Is the actual folder recommended
             recommended = section.get("recommended")
             path = section.get("path")
+            # List of required files requested in configuration file(s)
             required_files = section.get("required_files")
+            # List of optional files requested in configuration file(s)
             optional_files = section.get("optional_files")
+            # List of files actually present in the directory
             current_files = section.get("current_files")
 
             [
@@ -210,33 +215,35 @@ class GCheck(GCommand):
             # If folder exists and is not empty (excluded files are ignored)
             if required and not path.exists():
                 _logger.error(
-                    f"Directory {path.name} does not exist. Add it to you project if "
-                    f"you want your workflow to be compatible with geniac tools"
+                    f"Directory {path.relative_to(self.project_dir)} does not exist. "
+                    f"Add it to your project if you want your workflow to be "
+                    f"compatible with geniac tools"
                 )
             elif recommended and not path.exists():
                 _logger.warning(
-                    f"Directory {path.name} does not exist. It is recommended to have "
-                    f"one"
+                    f"Directory {path.relative_to(self.project_dir)} does not exist. "
+                    f"It is recommended to have one in your project"
                 )
 
-            # Trigger an error or warning for each required or optional files in the
-            # current section
-            for file in current_files:
-                if not file.exists():
-                    if required and file in required_files:
-                        # TODO: if config folder check if the file has been included in
-                        #  nextflow.config
-                        # Trigger an error if a mandatory file is missing
-                        _logger.error(
-                            f"File {file.name} is missing. Add it to you project if you"
-                            f" want to be compatible with geniac tools"
-                        )
-                    elif file in optional_files:
-                        # Trigger a warning if an optional file is missing
-                        _logger.warning(
-                            f"Optional file {file.name} does not exist: it is "
-                            f"recommended to have one"
-                        )
+            # Trigger an error if a mandatory file is missing
+            for file in required_files:
+                # If the folder is actually required but the required file is not
+                # present
+                if required and file not in current_files:
+                    _logger.error(
+                        f"File {file.relative_to(self.project_dir)} is missing. Add it "
+                        f"to your project if you want to be compatible with geniac tools"
+                    )
+
+            # Trigger a warning if an optional file is missing
+            for file in optional_files:
+                # If the folder is actually required but the optional file is not
+                # present
+                if required and file not in current_files:
+                    _logger.warning(
+                        f"Optional file {file.relative_to(self.project_dir)} does not "
+                        f"exist. It is recommended to have one in your project"
+                    )
 
     def get_processes_from_workflow(self):
         """Parse workflow file(s)
