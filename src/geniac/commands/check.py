@@ -129,6 +129,7 @@ class GCheck(GCommand):
                     for label in labels
                 ]
                 + self.labels_from_geniac_config
+                + ["onlyLinux"]
             )
         return self._labels_all
 
