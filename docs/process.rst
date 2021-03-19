@@ -492,8 +492,8 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 
    process alpine {
      label 'alpine'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/alpine", mode: 'copy'
    
      input:
@@ -634,8 +634,8 @@ In your process, source the ``env/alpine.env`` and then use the variable you def
 
    process alpine {
      label 'alpine'
-     label 'smallMem'
-     label 'smallCpu'
+     label 'minMem'
+     label 'minCpu'
      publishDir "${params.outDir}/alpine", mode: 'copy'
    
      input:
