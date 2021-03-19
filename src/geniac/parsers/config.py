@@ -235,11 +235,6 @@ class NextflowConfig(GParser):
                         f"with value {values.get(value_key)} "
                         f"in scope {param_idx}"
                     )
-                    if param_idx in self.content and prop_key != "includeConfig":
-                        _logger.warning(
-                            f"Found duplicated parameter {param_idx} in "
-                            f"{self.path.relative_to(self.project_dir)}"
-                        )
                     value = (
                         value.strip('"')
                         if '"' in value
@@ -247,6 +242,20 @@ class NextflowConfig(GParser):
                         if "'" in value
                         else value
                     )
+                    # If parameter has already been defined in a previous configuration
+                    # file
+                    if (
+                        value
+                        and param_idx in self.content
+                        and self.content[param_idx]
+                        and prop_key != "includeConfig"
+                    ):
+                        _logger.warning(
+                            f"Parameter {param_idx} from "
+                            f"{self.path.relative_to(self.project_dir)} has already "
+                            f"been defined in a previous configuration file "
+                            f"{[conf_path.relative_to(self.project_dir).name for conf_path in self.loaded_paths]}"
+                        )
                     self.content[param_idx] = (
                         self.content[param_idx] + [value]
                         if prop_key == "includeConfig" and param_idx in self.content

@@ -26,6 +26,7 @@ class GParser(GBase):
         super().__init__(*args, **kwargs)
         self.params = None
         self._path = ""
+        self._loaded_paths = []
         self._content = dotty()
 
     @property
@@ -42,6 +43,16 @@ class GParser(GBase):
     def path(self, value):
         """Content loaded from input file with read method"""
         self._path = value
+
+    @property
+    def loaded_paths(self):
+        """Content(s) loaded from input file with read method"""
+        return self._loaded_paths
+
+    @loaded_paths.setter
+    def loaded_paths(self, value):
+        """Content loaded from input file with read method"""
+        self._loaded_paths = value
 
     def __getitem__(self, item):
         """Get a content item"""
@@ -99,6 +110,7 @@ class GParser(GBase):
             filename = Path(filename)
             try:
                 self._read(filename, encoding=encoding)
+                self.loaded_paths += [filename]
             except OSError:
                 continue
             read_ok.append(filename)
