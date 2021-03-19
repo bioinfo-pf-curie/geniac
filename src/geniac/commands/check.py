@@ -726,7 +726,7 @@ class GCheck(GCommand):
         }
         for geniac_dirname, geniac_dir in geniac_dirs.items():
             if not geniac_dir.get("path").exists():
-                _logger.error(
+                _logger.warning(
                     f"Folder {geniac_dir.get('path').relative_to(self.project_dir)} "
                     f"does not exists"
                 )
@@ -775,7 +775,7 @@ class GCheck(GCommand):
                 _logger.error(
                     f"Use only one recipes, modules or geniac.tools label for "
                     f"the process {process} {matched_labels}. A process should"
-                    f" have only one label for its tool."
+                    f" have only one geniac.tools label"
                 )
             unmatched_labels = [
                 label
