@@ -254,7 +254,7 @@ class NextflowConfig(GParser):
                             f"Parameter {param_idx} from "
                             f"{self.path.relative_to(self.project_dir)} has already "
                             f"been defined in a previous configuration file "
-                            f"{[conf_path.relative_to(self.project_dir).name for conf_path in self.loaded_paths]}"
+                            f"{[conf_path.relative_to(self.project_dir).name for conf_path in self.loaded_paths]}."
                         )
                     self.content[param_idx] = (
                         self.content[param_idx] + [value]
