@@ -103,8 +103,8 @@ class NextflowConfig(GParser):
         # Check if the actual scope exists in the Nextflow config
         if nxf_config_scope and not scope_flag:
             msg = (
-                f"Config file {self.path.relative_to(self.project_dir)} doesn't "
-                f"have {nxf_config_scope} scope."
+                f"Section {nxf_config_scope} is not defined in Nextflow configuration"
+                f" file {self.path.relative_to(self.project_dir)}."
             )
             if required_flag:
                 _logger.error(msg)
