@@ -6,6 +6,7 @@
 import logging
 import re
 import subprocess
+import sys
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 
@@ -862,3 +863,16 @@ class GCheck(GCommand):
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
         self.check_labels()
+
+        # End the run with exit code
+        sys.exit(
+            1
+            if (
+                (logging.ERROR in _logger._cache and _logger._cache[logging.ERROR])
+                or (
+                    logging.CRITICAL in _logger._cache
+                    and _logger._cache[logging.CRITICAL]
+                )
+            )
+            else 0
+        )
