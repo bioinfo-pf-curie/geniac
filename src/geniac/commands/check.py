@@ -82,14 +82,18 @@ class GCheck(GCommand):
     def labels_from_geniac_config(self):
         """Geniac labels from Nextflow folders"""
         return list(
-            set([label for label in self.labels_from_configs.get("geniac", [])])
+            dict.fromkeys(
+                [label for label in self.labels_from_configs.get("geniac", [])]
+            )
         )
 
     @property
     def labels_from_process_config(self):
         """Process config labels from Nextflow folders"""
         return list(
-            set([label for label in self.labels_from_configs.get("process", [])])
+            dict.fromkeys(
+                [label for label in self.labels_from_configs.get("process", [])]
+            )
         )
 
     @property
@@ -107,13 +111,15 @@ class GCheck(GCommand):
         """Workflow labels from Nextflow folders"""
         # Init labels list if empty
         if not self._labels_from_workflow:
-            self._labels_from_workflow = set(
-                [
-                    label
-                    for process, process_scope in self.processes_from_workflow.items()
-                    for label in process_scope["label"]
-                    if label is not None
-                ]
+            self._labels_from_workflow = list(
+                dict.fromkeys(
+                    [
+                        label
+                        for process, process_scope in self.processes_from_workflow.items()
+                        for label in process_scope["label"]
+                        if label is not None
+                    ]
+                )
             )
         return self._labels_from_workflow
 
@@ -122,14 +128,16 @@ class GCheck(GCommand):
         """Gather labels from Nextflow folders and geniac tools"""
         # Init labels all if empty
         if not self._labels_all:
-            self._labels_all = set(
-                [
-                    label
-                    for folder, labels in self.labels_from_folders.items()
-                    for label in labels
-                ]
-                + self.labels_from_geniac_config
-                + ["onlyLinux"]
+            self._labels_all = list(
+                dict.fromkeys(
+                    [
+                        label
+                        for folder, labels in self.labels_from_folders.items()
+                        for label in labels
+                    ]
+                    + self.labels_from_geniac_config
+                    + ["onlyLinux"]
+                )
             )
         return self._labels_all
 
@@ -729,7 +737,7 @@ class GCheck(GCommand):
                     f"Env file {env_path.relative_to(self.project_dir)} "
                     f"not used in the workflow."
                 )
-                for env_path in envs_unsourced
+                for env_path in sorted(envs_unsourced)
             ]
 
     def get_labels_from_folders(self):
