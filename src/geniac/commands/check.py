@@ -533,8 +533,7 @@ class GCheck(GCommand):
                     conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
                 )
 
-    @staticmethod
-    def get_labels_from_modules_dir(input_dir: Path):
+    def get_labels_from_modules_dir(self, input_dir: Path):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
         cmake_lists = input_dir / "CMakeLists.txt"
@@ -560,16 +559,21 @@ class GCheck(GCommand):
                     GCheck.MODULE_CMAKE_RE_TEMP.format(label=module_child.stem)
                 )
                 if label_reg.search(cmake_lists_content):
-                    _logger.debug(f"Found module {module_child.stem} in {cmake_lists}.")
+                    _logger.debug(
+                        f"Found module {module_child.stem} in "
+                        f"{cmake_lists.relative_to(self.project_dir)}."
+                    )
                 else:
                     _logger.error(
-                        f"Module {module_child.stem} not found in {cmake_lists}."
+                        f"Module {module_child.stem} not found in "
+                        f"{cmake_lists.relative_to(self.project_dir)}."
                     )
 
                 if not label_script.exists():
                     _logger.error(
                         f"Module {module_child.stem} does not have an "
-                        f"installation script ({label_script})."
+                        f"installation script "
+                        f"({label_script.relative_to(self.project_dir)})."
                     )
                 else:
                     labels_from_modules += [module_child.stem]
