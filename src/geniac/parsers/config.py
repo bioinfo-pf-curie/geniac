@@ -39,7 +39,7 @@ class NextflowConfig(GParser):
         r"((?P<includeConfig>includeConfig) +['\"](?P<confPath>[\w/.]+))['\"].*) *$"
     )
     SCOPERE = re.compile(
-        r"^ *((?P<scope>[\w]+)(?<!try)|"
+        r"^ *(['\"]?(?P<scope>[\w]+)(?<!try)['\"]?|"
         r"(?P<selector>[\w]+) *: *(?P<label>[\w]+)|"
         r"(?P<close>})?(?P<other>.+)(?<!\$)) *{ *$"
     )
