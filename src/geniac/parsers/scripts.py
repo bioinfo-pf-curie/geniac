@@ -6,7 +6,7 @@
 import json
 import logging
 import re
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 
 from geniac.parsers.base import GParser
@@ -52,7 +52,7 @@ class NextflowScript(GParser):
             mcom_flag = False
             script_flag = False
             process = ""
-            self.content["process"] = {}
+            self.content["process"] = OrderedDict()
             # TODO: add if condition within scripts who should break the actual
             #       process scope
             for idx, line in enumerate(config_file):

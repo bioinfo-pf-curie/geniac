@@ -6,7 +6,7 @@
 import logging
 import re
 import subprocess
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 
 from ..commands.base import GCommand
@@ -47,9 +47,9 @@ class GCheck(GCommand):
         """Init flags specific to GCheck command"""
         super().__init__(*args, project_dir=project_dir, **kwargs)
         self._project_tree = self._format_tree_config()
-        self._labels_from_folders = {}
-        self._labels_from_configs = {}
-        self._processes_from_workflow = {}
+        self._labels_from_folders = OrderedDict()
+        self._labels_from_configs = OrderedDict()
+        self._processes_from_workflow = OrderedDict()
         self._labels_from_workflow = []
         self._labels_all = []
 
@@ -139,45 +139,52 @@ class GCheck(GCommand):
         Returns:
             config_tree (dict)
         """
-        config_tree = {
-            tree_section.removeprefix(self.TREE_SUFFIX + "."): {
-                # Is the folder required ?
-                "required": self.config.getboolean(tree_section, "required")
-                if self.config.has_option(tree_section, "required")
-                else False,
-                # Is the folder recommended ?
-                "recommended": self.config.getboolean(tree_section, "recommended")
-                if self.config.has_option(tree_section, "recommended")
-                else False,
-                # Path to the folder
-                "path": Path(self.config.get(tree_section, "path"))
-                if self.config.get(tree_section, "path")
-                else Path(Path.cwd()),
-                # Path(s) to mandatory file(s)
-                "required_files": self.config_path(tree_section, "files"),
-                # Path(s) to optional file(s)
-                "optional_files": self.config_path(tree_section, "optional"),
-                # Path(s) to file(s) excluded from the analysis
-                "excluded_files": self.config_path(tree_section, "exclude"),
-            }
+        config_tree = OrderedDict(
+            (
+                tree_section.removeprefix(self.TREE_SUFFIX + "."),
+                {
+                    # Is the folder required ?
+                    "required": self.config.getboolean(tree_section, "required")
+                    if self.config.has_option(tree_section, "required")
+                    else False,
+                    # Is the folder recommended ?
+                    "recommended": self.config.getboolean(tree_section, "recommended")
+                    if self.config.has_option(tree_section, "recommended")
+                    else False,
+                    # Path to the folder
+                    "path": Path(self.config.get(tree_section, "path"))
+                    if self.config.get(tree_section, "path")
+                    else Path(Path.cwd()),
+                    # Path(s) to mandatory file(s)
+                    "required_files": self.config_path(tree_section, "files"),
+                    # Path(s) to optional file(s)
+                    "optional_files": self.config_path(tree_section, "optional"),
+                    # Path(s) to file(s) excluded from the analysis
+                    "excluded_files": self.config_path(tree_section, "exclude"),
+                },
+            )
             for tree_section in self.config_subsection(self.TREE_SUFFIX)
-        }
-        return {
-            tree_section: {
-                # Get a list all the files in the folder
-                "current_files": (
-                    [
-                        _
-                        for _ in config_tree.get(tree_section).get("path").iterdir()
-                        if _ not in config_tree.get(tree_section).get("excluded_files")
-                    ]
-                    if config_tree.get(tree_section).get("path").exists()
-                    else []
-                ),
-                **section,
-            }
+        )
+        return OrderedDict(
+            (
+                tree_section,
+                {
+                    # Get a list all the files in the folder
+                    "current_files": (
+                        [
+                            _
+                            for _ in config_tree.get(tree_section).get("path").iterdir()
+                            if _
+                            not in config_tree.get(tree_section).get("excluded_files")
+                        ]
+                        if config_tree.get(tree_section).get("path").exists()
+                        else []
+                    ),
+                    **section,
+                },
+            )
             for tree_section, section in config_tree.items()
-        }
+        )
 
     def check_tree_folder(self):
         """Check the directory in order to set the flags"""
@@ -255,12 +262,13 @@ class GCheck(GCommand):
         script = NextflowScript(project_dir=self.project_dir)
 
         # Link config path to their method
-        script_paths = {
-            config_key: self.config_path(
-                GCheck.PROJECT_WORKFLOW, config_key, single_path=True
+        script_paths = OrderedDict(
+            (
+                config_key,
+                self.config_path(GCheck.PROJECT_WORKFLOW, config_key, single_path=True),
             )
             for config_key in self.config.options(GCheck.PROJECT_WORKFLOW)
-        }
+        )
 
         # TODO: Check for DSL 2 support
         for script_name, script_path in script_paths.items():
@@ -279,7 +287,7 @@ class GCheck(GCommand):
                 _logger.error(f"Process {process} does not have any label.")
         # fmt: on
 
-        self.processes_from_workflow = script.content.get("process", {})
+        self.processes_from_workflow = script.content.get("process", OrderedDict())
 
     def check_geniac_config(
         self,
@@ -315,7 +323,7 @@ class GCheck(GCommand):
             if conda_check
             else "Checking of conda recipes turned off."
         )
-        for label, recipe in config.get("params.geniac.tools", {}).items():
+        for label, recipe in config.get("params.geniac.tools", OrderedDict()).items():
             labels_geniac_tools.append(label)
             # If the tool value is a conda recipe
             if match := GCheck.CONDA_RECIPES_RE.match(recipe):
@@ -387,7 +395,7 @@ class GCheck(GCommand):
 
         # For each process used with withName selector, check their existence in the
         # workflow
-        for config_process in config.get("process", {}).get("withName"):
+        for config_process in config.get("process", OrderedDict()).get("withName"):
             if config_process not in self.processes_from_workflow:
                 _logger.error(
                     f"withName:{config_process} is defined in "
@@ -398,7 +406,7 @@ class GCheck(GCommand):
         # Return list of labels defined with withLabel selector in the process.config file
         return [
             process_label
-            for process_label in config.get("process", {}).get("withLabel")
+            for process_label in config.get("process", OrderedDict()).get("withLabel")
         ]
 
     def check_nextflow_config(
@@ -424,8 +432,8 @@ class GCheck(GCommand):
         ]
         profile_config_paths = [
             self.project_dir / Path(conf_path)
-            for conf_profile in nxf_config.get("profiles", {})
-            for conf_path in nxf_config.get("profiles", {})
+            for conf_profile in nxf_config.get("profiles", OrderedDict())
+            for conf_path in nxf_config.get("profiles", OrderedDict())
             .get(conf_profile)
             .get("includeConfig")
         ]
@@ -462,17 +470,20 @@ class GCheck(GCommand):
         nxf_config = NextflowConfig(project_dir=self.project_dir)
 
         # Link config path to their method
-        project_config_scopes = {
-            default_config_name: {
-                "path": self.config_path(
-                    GCheck.PROJECT_CONFIG, default_config_name, single_path=True
-                ),
-                "check_config": getattr(
-                    self, f"check_{default_config_name}_config", None
-                ),
-            }
+        project_config_scopes = OrderedDict(
+            (
+                default_config_name,
+                {
+                    "path": self.config_path(
+                        GCheck.PROJECT_CONFIG, default_config_name, single_path=True
+                    ),
+                    "check_config": getattr(
+                        self, f"check_{default_config_name}_config", None
+                    ),
+                },
+            )
             for default_config_name in self.config.options(GCheck.PROJECT_CONFIG)
-        }
+        )
 
         # Configuration files analyzed
         project_config_paths = [
@@ -560,8 +571,7 @@ class GCheck(GCommand):
                     )
                 else:
                     labels_from_modules += [module_child.stem]
-
-        return {"modules": labels_from_modules}
+        return OrderedDict([("modules", labels_from_modules)])
 
     @staticmethod
     def get_labels_from_conda_dir(input_dir):
@@ -572,7 +582,7 @@ class GCheck(GCommand):
             if recipe_child.is_file() and recipe_child.suffix in (".yml", ".yaml"):
                 labels_from_recipes += [recipe_child.stem]
 
-        return {"conda": labels_from_recipes}
+        return OrderedDict([("conda", labels_from_recipes)])
 
     @staticmethod
     def get_labels_from_singularity_dir(input_dir):
@@ -583,7 +593,7 @@ class GCheck(GCommand):
             if recipe_child.is_file() and recipe_child.suffix == ".def":
                 labels_from_recipes += [recipe_child.stem]
 
-        return {"singularity": labels_from_recipes}
+        return OrderedDict([("singularity", labels_from_recipes)])
 
     @staticmethod
     def get_labels_from_docker_dir(input_dir):
@@ -594,7 +604,7 @@ class GCheck(GCommand):
             if recipe_child.is_file() and recipe_child.suffix == ".Dockerfile":
                 labels_from_recipes += [recipe_child.stem]
 
-        return {"docker": labels_from_recipes}
+        return OrderedDict([("docker", labels_from_recipes)])
 
     @staticmethod
     def check_dependencies_dir(
@@ -721,21 +731,27 @@ class GCheck(GCommand):
             labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
         """
         labels_from_folders = defaultdict(list)
-        geniac_dirs = {
-            geniac_dir: {
-                "path": self.config_path(
-                    GCheck.GENIAC_DIRS, geniac_dir, single_path=True
-                ),
-                "get_labels": getattr(self, f"get_labels_from_{geniac_dir}_dir", None),
-                "check_dir": getattr(self, f"check_{geniac_dir}_dir", None),
-            }
+        geniac_dirs = OrderedDict(
+            (
+                geniac_dir,
+                {
+                    "path": self.config_path(
+                        GCheck.GENIAC_DIRS, geniac_dir, single_path=True
+                    ),
+                    "get_labels": getattr(
+                        self, f"get_labels_from_{geniac_dir}_dir", None
+                    ),
+                    "check_dir": getattr(self, f"check_{geniac_dir}_dir", None),
+                },
+            )
             for geniac_dir in self.config.options(GCheck.GENIAC_DIRS)
-        }
+        )
 
-        geniac_paths = {
-            f"{geniac_dir}_path": geniac_scope.get("path")
+        geniac_paths = OrderedDict(
+            (f"{geniac_dir}_path", geniac_scope.get("path"))
             for geniac_dir, geniac_scope in geniac_dirs.items()
-        }
+        )
+
         for geniac_dirname, geniac_dir in geniac_dirs.items():
             if not geniac_dir.get("path").exists():
                 _logger.warning(

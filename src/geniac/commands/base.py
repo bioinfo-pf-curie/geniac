@@ -145,11 +145,11 @@ class GBase(ABC):
 
     def config_subsection(self, subsection):
         """Filter sections to a uniq sub section"""
-        return {
+        return (
             section
             for section in self.config.sections()
             if section.startswith(f"{subsection}.")
-        }
+        )
 
 
 class GCommand(GBase):

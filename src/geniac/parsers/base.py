@@ -5,6 +5,7 @@
 
 import logging
 from abc import abstractmethod
+from collections import OrderedDict
 from os import PathLike
 from pathlib import Path
 
@@ -27,7 +28,7 @@ class GParser(GBase):
         self.params = None
         self._path = ""
         self._loaded_paths = []
-        self._content = dotty()
+        self._content = dotty(OrderedDict())
 
     @property
     def content(self):
