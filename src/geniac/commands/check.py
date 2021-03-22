@@ -395,7 +395,9 @@ class GCheck(GCommand):
 
         # For each process used with withName selector, check their existence in the
         # workflow
-        for config_process in config.get("process", OrderedDict()).get("withName"):
+        for config_process in config.get("process", OrderedDict()).get(
+            "withName", OrderedDict()
+        ):
             if config_process not in self.processes_from_workflow:
                 _logger.error(
                     f"withName:{config_process} is defined in "
