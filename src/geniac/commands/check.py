@@ -753,7 +753,7 @@ class GCheck(GCommand):
             (f"{geniac_dir}_path", geniac_scope.get("path"))
             for geniac_dir, geniac_scope in geniac_dirs.items()
         )
-
+        # Get labels first
         for geniac_dirname, geniac_dir in geniac_dirs.items():
             if not geniac_dir.get("path").exists():
                 _logger.warning(
@@ -764,14 +764,16 @@ class GCheck(GCommand):
             if get_label := geniac_dir.get("get_labels"):
                 self.labels_from_folders |= get_label(geniac_dir.get("path"))
 
+        # Then check directories
         for geniac_dirname, geniac_dir in geniac_dirs.items():
+            if not geniac_dir.get("path").exists():
+                continue
             if check_dir := geniac_dir.get("check_dir"):
                 check_dir(geniac_dir.get("path"), **geniac_paths)
 
         # Check if singularity and docker have the same labels
-        if (
-            self.labels_from_folders["singularity"]
-            != self.labels_from_folders["docker"]
+        if self.labels_from_folders.get("singularity") != self.labels_from_folders.get(
+            "docker"
         ):
             _logger.warning("Some recipes are missing either in docker or singularity.")
 
