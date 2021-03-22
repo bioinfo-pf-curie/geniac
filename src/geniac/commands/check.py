@@ -786,7 +786,9 @@ class GCheck(GCommand):
         # Get the difference with labels from geniac tools and folders and labels used
         # in the workflow
         cross_labels = [
-            label for label in self.labels_all if label not in self.labels_from_workflow
+            label
+            for label in self.labels_all
+            if label not in self.labels_from_workflow and label != "onlyLinux"
         ]
         if len(cross_labels) >= 1:
             _logger.warning(
