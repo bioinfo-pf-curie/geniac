@@ -6,7 +6,7 @@
 import json
 import logging
 import re
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 
 from ..parsers.base import GParser
@@ -96,10 +96,10 @@ class NextflowConfig(GParser):
             )
         }
 
-        scope = self.get(nxf_config_scope)
+        scope = self.get(nxf_config_scope, None)
         cfg_val = None
         def_val = None
-        scope_flag = True if scope else False
+        scope_flag = True if scope is not None else False
         # Check if the actual scope exists in the Nextflow config
         if nxf_config_scope and not scope_flag:
             msg = (
@@ -199,6 +199,7 @@ class NextflowConfig(GParser):
                         scope_idx = (
                             "other" if not scope_idx else ".".join((scope_idx, "other"))
                         )
+                    self.content[scope_idx] = OrderedDict()
                     continue
                 # If we are not in a def scope and we find a parameter
                 if not def_flag and (match := self.PARAMRE.match(line)):
