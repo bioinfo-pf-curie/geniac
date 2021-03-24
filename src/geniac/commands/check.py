@@ -454,12 +454,16 @@ class GCheck(GCommand):
             if default_config_path != nxf_config.path and (
                 default_config_path not in include_config_paths + profile_config_paths
             ):
-                _logger.error(
+                msg = (
                     f"Main configuration file "
-                    f"{nxf_config.path.relative_to(self.project_dir)} does not include"
-                    f" configuration file "
+                    f"{nxf_config.path.relative_to(self.project_dir)} does not "
+                    f"include configuration file "
                     f"{default_config_path.relative_to(self.project_dir)}."
                 )
+                # Trigger a warning if optional file. Otherwise trigger an error
+                _logger.warning(msg) if default_config_path in self.config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
+                ) else _logger.error(msg)
 
     def get_labels_from_config_files(self):
         """Check the structure of the repo
