@@ -88,7 +88,7 @@ class NextflowConfig(GParser):
         )
         required_flag = self.config.getboolean(f"scope.{nxf_config_scope}", "required")
         default_config_values = {
-            key: value
+            key: value.split()
             for key, value in (
                 self.config.items(f"scope.{nxf_config_scope}.values")
                 if self.config.has_section(f"scope.{nxf_config_scope}.values")
@@ -118,7 +118,7 @@ class NextflowConfig(GParser):
                 if (
                     config_prop
                     and (cfg_val := scope.get(config_prop))
-                    != (def_val := default_config_values.get(config_prop))
+                    not in (def_val := default_config_values.get(config_prop, []))
                     and def_val
                 ):
                     _logger.warning(
