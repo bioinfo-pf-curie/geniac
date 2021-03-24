@@ -88,7 +88,7 @@ class NextflowConfig(GParser):
         )
         required_flag = self.config.getboolean(f"scope.{nxf_config_scope}", "required")
         default_config_values = {
-            key: value.split()
+            key: value.split("\n")
             for key, value in (
                 self.config.items(f"scope.{nxf_config_scope}.values")
                 if self.config.has_section(f"scope.{nxf_config_scope}.values")
@@ -115,6 +115,7 @@ class NextflowConfig(GParser):
         # their default values
         if scope_flag:
             for config_prop in default_config_paths + default_config_props:
+                def_val = default_config_values.get(config_prop, [])
                 if (
                     config_prop
                     and (cfg_val := scope.get(config_prop))
@@ -122,10 +123,10 @@ class NextflowConfig(GParser):
                     and def_val
                 ):
                     _logger.warning(
-                        f"Value {cfg_val} of {nxf_config_scope}.{config_prop} parameter"
+                        f'Value "{cfg_val}" of {nxf_config_scope}.{config_prop} parameter'
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
-                        f"correspond to the default value ('{def_val}')."
-                    ) if cfg_val else _logger.error(
+                        f'correspond to the default value ({(",".join(def_val))}).'
+                    ) if cfg_val is not None else _logger.error(
                         f"Missing {nxf_config_scope}.{config_prop} parameter in file "
                         f"{self.path.relative_to(self.project_dir)}."
                     )
