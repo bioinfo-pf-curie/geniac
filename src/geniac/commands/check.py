@@ -759,10 +759,6 @@ class GCheck(GCommand):
         # Get labels first
         for geniac_dirname, geniac_dir in geniac_dirs.items():
             if not geniac_dir.get("path").exists():
-                _logger.warning(
-                    f"Folder {geniac_dir.get('path').relative_to(self.project_dir)} "
-                    f"does not exist."
-                )
                 continue
             if get_label := geniac_dir.get("get_labels"):
                 self.labels_from_folders |= get_label(geniac_dir.get("path"))
