@@ -66,7 +66,7 @@ class NextflowConfig(GParser):
             else []
         )
 
-    def check_config_scope(self, nxf_config_scope: str):
+    def check_config_scope(self, nxf_config_scope: str, skip_nested_scopes=[""]):
         """Check if the given scope is in an NextflowConfig instance
 
         Args:
@@ -132,7 +132,8 @@ class NextflowConfig(GParser):
 
         # Call same checks on nested scopes
         for nested_scope in default_config_scopes:
-            self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
+            if nested_scope not in skip_nested_scopes:
+                self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
     def _read(self, config_path: Path, encoding="UTF-8"):
         """Load a Nextflow config file into content property

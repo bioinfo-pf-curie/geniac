@@ -465,6 +465,21 @@ class GCheck(GCommand):
                     ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
                 ) else _logger.error(msg)
 
+    def check_base_config(
+        self,
+        nxf_config: NextflowConfig,
+        **kwargs,
+    ):
+        """Check the content of a base config file
+
+        Args:
+            nxf_config (NextflowConfig):
+
+        Returns:
+
+        """
+        nxf_config.check_config_scope("params", skip_nested_scopes=["geniac"])
+
     def get_labels_from_config_files(self):
         """Check the structure of the repo
 
