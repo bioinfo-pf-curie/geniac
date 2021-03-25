@@ -41,7 +41,7 @@ class NextflowConfig(GParser):
     SCOPERE = re.compile(
         r"^ *(['\"]?(?P<scope>[\w]+)(?<!try)['\"]?|"
         r"(?P<selector>[\w]+) *: *(?P<label>[\w]+)|"
-        r"(?P<close>})?(?P<other>.+)(?<!\$)) *{ *$"
+        r"(?P<beforeClose>})?(?P<other>.+)(?<!\$)) *{ *(?P<afterClose>})?$"
     )
     ESCOPERE = re.compile(r"^ *}\s*$")
 
@@ -200,7 +200,7 @@ class NextflowConfig(GParser):
                             else ".".join((scope_idx, label))
                         )
                     # If close pattern, remove
-                    if values.get("close"):
+                    if values.get("beforeClose"):
                         scope_idx = ".".join(scope_idx.split(".").pop())
                     # Add the rest of the line in other section
                     if scope := values.get("other"):
@@ -209,6 +209,8 @@ class NextflowConfig(GParser):
                             "other" if not scope_idx else ".".join((scope_idx, "other"))
                         )
                     self.content[scope_idx] = OrderedDict()
+                    if values.get("afterClose"):
+                        scope_idx = ".".join(scope_idx.split(".").pop())
                     continue
                 # If we are not in a def scope and we find a parameter
                 if not def_flag and (match := self.PARAMRE.match(line)):
