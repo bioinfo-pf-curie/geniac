@@ -122,11 +122,17 @@ class NextflowConfig(GParser):
                     not in (def_val := default_config_values.get(config_prop, []))
                     and def_val
                 ):
+                    def_val = ", ".join(
+                        [
+                            _ if '"' in _ or "'" in _ else f'"{_}"'
+                            for _ in filter(None, def_val)
+                        ]
+                    )
                     _logger.warning(
                         f'Value "{cfg_val}" of {nxf_config_scope}.{config_prop} parameter'
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
-                        f"""correspond to the default value """
-                        f"""{[str(_) for _ in filter(None,def_val)]}."""
+                        f"""correspond to one of the expected values """
+                        f"""[{def_val}]."""
                     ) if cfg_val is not None else _logger.error(
                         f"Missing {nxf_config_scope}.{config_prop} parameter in file "
                         f"{self.path.relative_to(self.project_dir)}."
