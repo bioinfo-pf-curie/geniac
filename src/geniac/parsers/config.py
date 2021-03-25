@@ -125,7 +125,8 @@ class NextflowConfig(GParser):
                     _logger.warning(
                         f'Value "{cfg_val}" of {nxf_config_scope}.{config_prop} parameter'
                         f" in file {self.path.relative_to(self.project_dir)} doesn't "
-                        f'correspond to the default value ({(",".join(filter(None,def_val)))}).'
+                        f"""correspond to the default value """
+                        f"""{[str(_) for _ in filter(None,def_val)]}."""
                     ) if cfg_val is not None else _logger.error(
                         f"Missing {nxf_config_scope}.{config_prop} parameter in file "
                         f"{self.path.relative_to(self.project_dir)}."
