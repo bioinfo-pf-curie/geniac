@@ -50,6 +50,7 @@ py39:
 
 
 docs:
+  image: "python:3.9"
   script:
     - tox -e docs
 
