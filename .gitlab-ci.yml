@@ -7,10 +7,13 @@
 # Only needed when using a docker container to run your tests in.
 # Check out: http://docs.gitlab.com/ce/ci/docker/using_docker_images.html#what-is-service
 
-# Avoid shallow clone
-# TODO: enable default shallow clone to speed up CI
-variables:
-  GIT_DEPTH: 0
+# services:
+#   - mysql:latest
+#   - redis:latest
+#   - postgres:latest
+
+# variables:
+#   POSTGRES_DB: database_name
 
 # Cache packages in between builds
 cache:
@@ -21,6 +24,10 @@ cache:
 # services such as redis or postgres
 before_script:
   - python -v                                   # Print out Python version for debugging
+  # Setup git
+  - apt-get install git
+  - git config --global user.email $GITLAB_USER_EMAIL
+  - git config --global user.name $GITLAB_USER_NAME
   # Install dependencies for the testing environment
   - pip install -U pip setuptools setuptools-scm wheel
   - pip install -U tox-conda
@@ -28,12 +35,36 @@ before_script:
 .test_script: &test_script
   script:
     - tox
+  # OR if you don't use tox:
+  # - pytest
 
-test:
-  image: "continuumio/miniconda3"
+# Run in different environments
+py36:
+  image: "python:3.6"
+  <<: *test_script
+
+py37:
+  image: "python:3.7"
+  <<: *test_script
+
+py38:
+  image: "python:3.8"
+  <<: *test_script
+
+py39:
+  image: "python:3.9"
   <<: *test_script
 
 
 docs:
   script:
     - tox -e docs
+
+# This deploy job uses a simple deploy flow to Heroku, other providers, e.g. AWS Elastic Beanstalk
+# are supported too: https://github.com/travis-ci/dpl
+#deploy:
+#  type: deploy
+#  environment: production
+#  script:
+#    - python setup.py
+#    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_PRODUCTION_KEY

@@ -32,6 +32,7 @@ tags
 # Unittest and coverage
 htmlcov/*
 .coverage
+.coverage.*
 .tox
 junit*.xml
 coverage.xml
@@ -49,6 +50,7 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
+.conda*/
 
 # Nextflow output results
 work/
