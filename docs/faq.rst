@@ -123,6 +123,63 @@ How can I pass specific options to run docker or singularity containers?
 If needed, you can set the ``singularityRunOptions`` and ``dockerRunOptions`` values to whatever is needed for your configuration in the  ``geniac.config`` file. This will set the ``runOption`` parameters (see `Nextflow configuration <https://www.nextflow.io/docs/latest/config.html>`_) of the |singularity|_ and |docker|_ directive respectively to the selected value when the |singularity|_ and |docker|_ profiles will be called.
 
 
+Is geniac compatible with nextflow DSL2?
+========================================
+
+
+Since version 20.07.1, |nextflow|_ provides the `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ syntax thats allow the definition of module libraries and simplifies the writing of complex data analysis pipelines. geniac is fully compatible with `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ and we provide |geniacdemodsl2|_ as an exemple. The guidelines to :ref:`process-page` remain exactly the same.
+
+
+The main difference between  |geniacdemo|_  and  |geniacdemodsl2|_ are:
+
+* each process is located in one dedicated file in the folder `nf-modules/local/process`
+* each subworkflow that combines different processes is located in the folder `nf-modules/local/subworkflow`
+* the `main.nf` includes these two folders and uses the `workflow` directive
+
+
+::
+   
+   ├── assets                       # assets needed for runtime
+   ├── bin                          # scripts or binaries for the pipeline
+   ├── conf                         # configuration files for the pipeline
+   │   ├── geniac.config            # contains the geniac scope mandatory for nextflow
+   ├── docs                         # documentation of the pipeline
+   ├── env                          # process specific environment variables
+   ├── geniac                       # geniac utilities
+   │   ├── cmake                    # source files for the configuration step
+   │   ├── docs                     # guidelines for installation
+   │   ├── install                  # scripts for the build step
+   ├── main.nf
+   ├── modules                      # tools installed from source code
+   │   ├── CMakeLists.txt
+   │   ├── helloWorld
+   ├── nextflow.config
+   ├── nf-modules                   # nextflow files for DSL2
+   │   └── local
+   │       ├── process
+   │       │   ├── alpine.nf
+   │       │   ├── checkDesign.nf
+   │       │   ├── execBinScript.nf
+   │       │   ├── fastqc.nf
+   │       │   ├── getSoftwareVersions.nf
+   │       │   ├── helloWorld.nf
+   │       │   ├── multiqc.nf
+   │       │   ├── outputDocumentation.nf
+   │       │   ├── standardUnixCommand.nf
+   │       │   ├── trickySoftware.nf
+   │       │   └── workflowSummaryMqc.nf
+   │       └── subworkflow
+   │           ├── myWorkflow0.nf
+   │           └── myWorkflow1.nf
+   ├── recipes                      # installation recipes for the tools
+   │   ├── conda
+   │   ├── dependencies
+   │   ├── docker
+   │   └── singularity
+   └── test                         # data to test the pipeline
+       └── data
+
+
 What are the @git_*@ variables?
 ===============================
 

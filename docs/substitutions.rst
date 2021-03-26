@@ -22,6 +22,9 @@
 .. |geniacdemo| replace:: geniac demo
 .. _geniacdemo: https://github.com/bioinfo-pf-curie/geniac-demo
 
+.. |geniacdemodsl2| replace:: geniac demo DSL2
+.. _geniacdemodsl2: https://github.com/bioinfo-pf-curie/geniac-demo-dsl2
+
 .. |geniacdoc| replace:: geniac documentation
 .. _geniacdoc: https://geniac.readthedocs.io/
 

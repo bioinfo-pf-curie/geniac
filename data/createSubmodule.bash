@@ -27,9 +27,9 @@
 GIT_CONTAINER_BRANCH="devel"
 
 ### information about nf-geniac
-GIT_SUBMODULE_REPO="https://github.com/bioinfo-pf-curie/"
+GIT_SUBMODULE_REPO="https://github.com/bioinfo-pf-curie/geniac"
 GIT_SUBMODULE_DIR="geniac"
-GIT_SUBMODULE_SHA1="f39ebdc4"
+GIT_SUBMODULE_SHA1="209fc1b"
 GIT_SUBMODULE_BRANCH="release"
 
 GIT_COMMIT_MSG="[MODIF] add nf-geniac as a submodule using commit ${GIT_SUBMODULE_SHA1}"
