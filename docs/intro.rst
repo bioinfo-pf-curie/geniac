@@ -51,6 +51,7 @@ Useful resources for geniac are available here:
 * |geniacdoc|_
 * |geniacrepo|_
 * |geniacdemo|_
+* |geniacdemodsl2|_
 * |geniactemplate|_
 
 
