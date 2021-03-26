@@ -18,19 +18,35 @@ __copyright__ = "Institut Curie 2020"
 _logger = logging.getLogger(__name__)
 
 
+def _path_checker(value: str):
+    """
+    Exit if the path is not correct
+    """
+    if (path := Path(value)) and path.is_dir():
+        return path.resolve()
+    else:
+        _logger.critical(f"Path {path} does not exist.")
+        sys.exit(1)
+
+
 class GBase(ABC):
     """Abstract base class for Geniac commands"""
 
     DEFAULT_CONFIG = ("geniac", "conf/geniac.ini")
 
-    def __init__(self, project_dir=None, config_file=None, **kwargs):
+    def __init__(self, project_dir=None, build_dir=None, config_file=None, **kwargs):
         """
 
         Args:
             project_dir (str): path to the Nextflow Project Dir
             config_file (str): path to a configuration file (INI format)
         """
-        self.project_dir = project_dir
+        self._project_dir = None
+        self._build_dir = None
+        if project_dir:
+            self.project_dir = project_dir
+        if build_dir:
+            self.build_dir = build_dir
         self.default_config_file = Path(resource_filename(*self.DEFAULT_CONFIG))
         self.config_file = Path(config_file) if config_file else None
         self.config = self._load_config(config_file=self.config_file)
@@ -67,11 +83,17 @@ class GBase(ABC):
     @project_dir.setter
     def project_dir(self, value):
         """If value is not a directory, set the project dir to the current directory"""
-        if (path := Path(value)) and path.is_dir():
-            self._project_dir = path.resolve()
-        else:
-            _logger.critical(f"Path {path} does not exist.")
-            sys.exit(1)
+        self._project_dir = _path_checker(value)
+
+    @property
+    def build_dir(self):
+        """Build Dir path property"""
+        return self._build_dir
+
+    @build_dir.setter
+    def build_dir(self, value):
+        """If value is not a directory, set the project dir to the current directory"""
+        self._build_dir = _path_checker(value)
 
     @property
     def config_file(self):

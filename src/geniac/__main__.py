@@ -14,6 +14,7 @@ from pkg_resources import resource_stream
 from geniac import __version__
 from geniac.commands.check import GCheck
 from geniac.commands.confor import GConfor
+from geniac.commands.deploy import GDeploy
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -45,7 +46,7 @@ def conf_cmd(args):
 
 
 # TODO: geniac run command
-def run_cmd(args):
+def deploy_cmd(args):
     """Geniac run subcommand
 
     Args:
@@ -53,7 +54,10 @@ def run_cmd(args):
     Returns:
         :obj:`geniac.commands.run.GRun`: geniac configurator
     """
-    pass
+    #
+    # Use build Dir to run make install ?
+    #
+    return GDeploy(**vars(args))
 
 
 def parse_args(args):
@@ -114,16 +118,28 @@ def parse_args(args):
     parser_lint.set_defaults(func=check_cmd, which="lint")
 
     # Geniac Conf
-    parser_conf = subparsers.add_parser(
-        "conf", help="Generate configuration files in a Nextflow project"
-    )
-    parser_conf.add_argument(
-        "project_dir",
-        help="Path to Nextflow project directory",
-        type=str,
-        metavar="INT",
-    )
-    parser_conf.set_defaults(func=conf_cmd, which="conf")
+    # parser_conf = subparsers.add_parser(
+    #     "conf", help="Generate configuration files in a Nextflow project"
+    # )
+    # parser_conf.add_argument(
+    #     "project_dir",
+    #     help="Path to Nextflow project directory",
+    #     type=str,
+    #     metavar="INT",
+    # )
+    # parser_conf.set_defaults(func=conf_cmd, which="conf")
+
+    # Geniac Conf
+    # parser_deploy = subparsers.add_parser(
+    #     "deploy", help="Deploy files in a Nextflow project"
+    # )
+    # parser_deploy.add_argument(
+    #     "build_dir",
+    #     help="Path to Geniac build directory",
+    #     type=str,
+    #     metavar="INT",
+    # )
+    # parser_deploy.set_defaults(func=deploy_cmd, which="deploy")
 
     return parser, parser.parse_args(args)
 
@@ -139,6 +155,7 @@ def setup_logging(loglevel):
     # Update with file handlers defined in _logging_config file
     logging_config = loads(resource_stream(*_logging_config).read().decode())
     dictConfig(logging_config)
+    logging.captureWarnings(True)
 
 
 def main(args):

@@ -26,4 +26,15 @@ class GConfor(GCommand):
         Returns:
 
         """
-        pass
+        # Create build dir
+        # Run cmake command with all arguments
+        # Run make command
+        # Get generated config files from result folder
+        # copy them to conf folder
+        # Get generated config files from result folder
+        # copy them to conf folder
+        # warning if file already exists
+        # ask if you want to update or not
+        # Do the same for recipe files
+        # /!\ NOT POSSIBLE FOR THE MOMENT GENIAC DOESNT ALLOW TO SAVE GENERATED RECIPES
+        print(self.project_dir)
