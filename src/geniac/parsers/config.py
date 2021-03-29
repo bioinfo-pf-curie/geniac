@@ -157,7 +157,7 @@ class NextflowConfig(GParser):
             def_flag = False
             selector = None
             scope_idx = ""
-            for line in config_file:
+            for line_idx, line in enumerate(config_file):
                 # Skip if one line comment
                 if self.UCOMRE.match(line):
                     continue
@@ -245,11 +245,19 @@ class NextflowConfig(GParser):
                         and self.content[param_idx]
                         and prop_key != "includeConfig"
                     ):
+                        history_paths = [
+                            conf_path.relative_to(self.project_dir).name
+                            for conf_path in self.loaded_paths
+                        ]
+                        extra_msg = (
+                            f" in a previous configuration file " f"{history_paths}"
+                            if self.loaded_paths
+                            else " in the same file"
+                        )
                         _logger.warning(
                             f"Parameter {param_idx} from "
-                            f"{self.path.relative_to(self.project_dir)} has already "
-                            f"been defined in a previous configuration file "
-                            f"{[conf_path.relative_to(self.project_dir).name for conf_path in self.loaded_paths]}."
+                            f"{self.path.relative_to(self.project_dir)} at line {line_idx + 1} has already "
+                            f"been defined{extra_msg}."
                         )
                     self.content[param_idx] = (
                         self.content[param_idx] + [value]
