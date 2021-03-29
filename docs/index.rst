@@ -16,6 +16,7 @@ geniac's documentation!
    intro
    overview
    process
+   check
    install
    devcycle
    run
