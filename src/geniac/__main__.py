@@ -75,7 +75,7 @@ def parse_args(args):
     parser.add_argument(
         "--version",
         action="version",
-        version=f"geniac {__version__}",
+        version=f"geniac version-{__version__}",
     )
     parser.add_argument(
         "-v",
