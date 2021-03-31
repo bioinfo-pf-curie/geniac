@@ -32,7 +32,7 @@
 .. _geniacrepo: https://github.com/bioinfo-pf-curie/geniac
 
 .. |geniactemplate| replace:: geniac template
-.. _geniactemplate: https://github.com/bioinfo-pf-curie/geniac/template
+.. _geniactemplate: https://github.com/bioinfo-pf-curie/geniac-template
 
 .. |git| replace:: git
 .. _git: https://git-scm.com/
