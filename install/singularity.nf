@@ -206,9 +206,9 @@ process buildCondaEnvFromCondaPackages {
     #   conda env create -f environment.yml
     name: pipeline_env
     channels:
-      - ${condaChanEnv} 
+      - ${condaChanEnv}
     dependencies:
-      - which 
+      - which
       - bc
       - ${condaDepEnv}${condaPipDep}
     """
@@ -266,7 +266,7 @@ process buildSingularityRecipeFromCondaFile {
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: conda/miniconda3-centos7
-    
+
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
@@ -279,7 +279,7 @@ process buildSingularityRecipeFromCondaFile {
     # real path from baseDir: ${condaFile}
     %files
         \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
-    
+
     %post
         yum install -y which ${yumPkgs} ${cplmtGit} \\\\
         && yum clean all \\\\
@@ -323,7 +323,7 @@ process buildSingularityRecipeFromCondaPackages {
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: conda/miniconda3-centos7
-    
+
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
@@ -361,36 +361,36 @@ process buildSingularityRecipeFromSourceCode {
     Bootstrap: docker
     From: centos:7
     Stage: devel
-   
+
     %setup
         mkdir -p \\\${SINGULARITY_ROOTFS}/opt/modules
- 
+
     %files
         modules/${installFile} /opt/modules
         modules/${key}/ /opt/modules
-      
+
     %post
         yum install -y epel-release which gcc gcc-c++ make \\\\
         && cd /opt/modules \\\\
         && bash ${installFile} \\\\
-    
+
     Bootstrap: docker
     From: centos:7
     Stage: final
-    
+
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
     %files from devel
         /usr/local/bin /usr/local/bin
-    
+
 
     %environment
         LC_ALL=en_US.utf-8
         LANG=en_US.utf-8
         PATH=/usr/local/bin:\\\$PATH
-    
+
     EOF
     """
 }
@@ -462,7 +462,7 @@ process mergeSingularityConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeSingularityConfigCh.collect()
+    file key from mergeSingularityConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeSingularityConfigCh")
 
   output:
     file("singularity.config") into finalSingularityConfigCh
@@ -534,7 +534,7 @@ process mergeDockerConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeDockerConfigCh.collect()
+    file key from mergeDockerConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeDockerConfigCh")
 
   output:
     file("docker.config") into finalDockerConfigCh
@@ -588,7 +588,7 @@ process mergeCondaConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeCondaConfigCh.collect()
+    file key from mergeCondaConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeCondaConfigCh")
 
   output:
     file("conda.config") into finalCondaConfigCh
@@ -638,7 +638,7 @@ process mergeMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeMulticondaConfigCh.collect()
+    file key from mergeMulticondaConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMulticondaConfigCh")
 
   output:
     file("multiconda.config") into finalMulticondaConfigCh
@@ -692,7 +692,7 @@ process mergeMultiPathConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeMultiPathConfigCh.collect()
+    file key from mergeMultiPathConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMultiPathConfigCh")
 
   output:
     file("multipath.config") into finalMultiPathConfigCh
@@ -714,15 +714,15 @@ process mergeMultiPathConfig {
         System.exit(-1)
       }
     }
-                   
+
     singularity {
       enabled = false
     }
-    
+
     docker {
       enabled = false
     }
-  
+
     EOF
     """.stripIndent()
     """
@@ -747,7 +747,7 @@ process mergeMultiPathLink {
     params.buildConfigFiles
 
   input:
-    file key from mergeMultiPathLinkCh.collect()
+    file key from mergeMultiPathLinkCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMultiPathLinkCh")
 
   output:
     file("multiPathLink.txt") into finalMultiPathLinkCh
@@ -778,7 +778,7 @@ process clusterConfig {
      *  Config the cluster profile and your scheduler
      * -------------------------------------------------
      */
-    
+
     process {
       executor = '${params.clusterExecutor}'
       queue = params.queue ?: null
@@ -819,7 +819,7 @@ process globalPathConfig {
     docker {
       enabled = false
     }
-    
+
     process {
       checkProfilePath("\\\${params.geniac.path}")
       beforeScript = "export PATH=\\\${params.geniac.path}:\\\$PATH"
