@@ -51,13 +51,14 @@ endif()
 
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir.done
-    COMMAND ${CMAKE_COMMAND} -E echo "create workDir/"
     COMMAND ${CMAKE_COMMAND}
             -Dpipeline_source_dir=${pipeline_source_dir}
             -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
             -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
             -P ${CMAKE_SOURCE_DIR}/cmake/createWorkDir.cmake
+    COMMAND ${CMAKE_COMMAND} -E echo "workDir/ has been created"
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
+    COMMENT "Creation of the workDir for cmake"
     DEPENDS ${workdir_depends_files})
 
 # ##############################################################################
@@ -78,6 +79,19 @@ add_custom_command(
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
+
+# compare the conf/*.config files that have been generated with
+# the same file in the git repo if they exist
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/comparison.done
+    COMMAND
+        ${CMAKE_COMMAND} -Dconfig_files_dir=${CMAKE_BINARY_DIR}/workDir/results/conf
+        -Dconfig_files_in_git_dir=${CMAKE_SOURCE_DIR}/../conf
+        -P ${CMAKE_SOURCE_DIR}/cmake/checkConfigFiles.cmake
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/comparison.done"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Check if config files are present in the git repository"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
 
 # generate singularity recipes
 add_custom_command(
@@ -227,7 +241,16 @@ endif()
 
 add_custom_target(install_nextflow_config ALL
                   DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
-                
+
+# check the config files
+if(ap_check_config_file_from_source)
+
+  add_custom_target(check_nextflow_config_files ALL
+                    DEPENDS ${CMAKE_BINARY_DIR}/comparison.done)
+
+endif()
+
+
 # Install generated config file(s)
 install(
     DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_conf}/"
