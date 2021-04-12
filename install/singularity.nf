@@ -597,6 +597,7 @@ process mergeCondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config
@@ -647,6 +648,7 @@ process mergeMulticondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> multiconda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multiconda.config
