@@ -53,6 +53,7 @@ Useful resources for geniac are available here:
 * |geniacdemo|_
 * |geniacdemodsl2|_
 * |geniactemplate|_
+* Example: :download:`useCases.bash <../data/useCases.bash>`
 
 
 Acknowledgements

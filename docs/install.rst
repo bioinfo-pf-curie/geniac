@@ -345,8 +345,10 @@ Install and run with singularity
    git clone --recursive ${GIT_URL} ${SRC_DIR}
    ### the option --recursive is needed if you use geniac as a submodule
 
+   cd ${BUILD_DIR}
    cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
-   make ### must be done with the root credentials
+   sudo "PATH=$PATH" make ### must be done with the root credentials
+   sudo chown -R $(id -gn):$(id -gn) ${BUILD_DIR}
    make install
 
    cd ${INSTALL_DIR}/pipeline

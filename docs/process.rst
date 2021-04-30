@@ -60,7 +60,7 @@ Having a label is essential such that it makes it possible to automatically gene
 Answer these questions first
 ============================
 
-Where the tool is available?
+Where is the tool available?
 ----------------------------
 
 
