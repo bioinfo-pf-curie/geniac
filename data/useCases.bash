@@ -61,7 +61,7 @@ geniac lint ${SRC_DIR}
 
 cd ${BUILD_DIR}
 cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
-sudo "PATH=$PATH" make
+sudo make # check that both singularity and nextflow PATHs are allowed in the secure_path option from the file /etc/sudoers
 sudo chown -R $(id -gn):$(id -gn) ${BUILD_DIR}
 
 
