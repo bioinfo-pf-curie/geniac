@@ -296,7 +296,11 @@ class GCheck(GCommand):
         # fmt: off
         for process in (processes := script.content.get("process")):
             if not processes.get(process).get("label"):
-                _logger.error(f"Process {process} does not have any label.")
+                process_path = Path(
+                    processes.get(process).get('NextflowScriptPath')
+                ).relative_to(self.project_dir)
+                _logger.error(f"Process {process} in {process_path} does not "
+                              f"have any label.")
         # fmt: on
 
         self.processes_from_workflow = script.content.get("process", OrderedDict())
@@ -793,10 +797,14 @@ class GCheck(GCommand):
                 check_dir(geniac_dir.get("path"), **geniac_paths)
 
         # Check if singularity and docker have the same labels
-        if self.labels_from_folders.get("singularity") != self.labels_from_folders.get(
-            "docker"
+        if container_diff := list(
+            set(self.labels_from_folders.get("singularity"))
+            - set(self.labels_from_folders.get("docker"))
         ):
-            _logger.warning("Some recipes are missing either in docker or singularity.")
+            _logger.warning(
+                f"Some recipes are missing either in docker or singularity folder"
+                f" {container_diff}."
+            )
 
         return labels_from_folders
 
@@ -843,8 +851,9 @@ class GCheck(GCommand):
                     GCheck.PROJECT_CONFIG, "process", single_path=True
                 ).relative_to(self.project_dir)
                 _logger.error(
-                    f"Label(s) {unmatched_labels} from process {process} not defined in "
-                    f"the file {process_path}."
+                    f"Label(s) {unmatched_labels} from process {process} in the file"
+                    f"{Path(process_scope.get('NextflowScriptPath')).relative_to(self.project_dir)} "
+                    f"not defined in the file {process_path}."
                 )
 
     def run(self):
