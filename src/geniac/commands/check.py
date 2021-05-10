@@ -273,10 +273,13 @@ class GCheck(GCommand):
         # Link config path to their method
         script_paths = OrderedDict(
             (
-                config_key,
-                self.config_path(GCheck.PROJECT_WORKFLOW, config_key, single_path=True),
+                f"{config_key}_{index}",
+                path,
             )
             for config_key in self.config.options(GCheck.PROJECT_WORKFLOW)
+            for index, path in enumerate(
+                self.config_path(GCheck.PROJECT_WORKFLOW, config_key)
+            )
         )
 
         # TODO: Check for DSL 2 support
