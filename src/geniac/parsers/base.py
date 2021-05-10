@@ -5,8 +5,11 @@
 
 import logging
 import re
+import tempfile
+import typing
 from abc import abstractmethod
 from collections import OrderedDict
+from io import StringIO
 from os import PathLike
 from pathlib import Path
 
@@ -97,18 +100,19 @@ class GParser(GBase):
         return temp_file
 
     @abstractmethod
-    def _read(self, in_path: Path, encoding=None):
+    def _read(
+        self,
+        in_file: typing.Union[typing.IO, typing.BinaryIO],
+        encoding=DEFAULT_ENCODING,
+    ):
         """Load a file into content property
 
         Args:
-            in_path (Path): path to nextflow config file
-            encoding (str): name of the encoding use to decode config files
+            in_file (TextIO): path to nextflow config file
         """
-        raise NotImplementedError(
-            "This class should implement a private read method in order to fill content property"
-        )
+        return StringIO(in_file.read().decode(encoding))
 
-    def read(self, in_paths, encoding="UTF-8"):
+    def read(self, in_paths, encoding=DEFAULT_ENCODING):
         """Read and parse a file or an iterable of files
 
         Args:
@@ -125,8 +129,12 @@ class GParser(GBase):
         for filename in in_paths:
             filename = Path(filename)
             try:
-                self._read(filename, encoding=encoding)
-                self.loaded_paths += [filename]
+                with filename.open(
+                    mode="r", encoding=encoding
+                ) as input_file, tempfile.TemporaryFile() as temp_file:
+                    temp_file = self._remove_comments(input_file, temp_file)
+                    self._read(temp_file, encoding=encoding)
+                    self.loaded_paths += [filename]
             except OSError:
                 continue
             read_ok.append(filename)
