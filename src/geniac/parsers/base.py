@@ -4,6 +4,7 @@
 """parser.py: Geniac file parser"""
 
 import logging
+import re
 from abc import abstractmethod
 from collections import OrderedDict
 from os import PathLike
@@ -17,10 +18,16 @@ __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
 
 _logger = logging.getLogger(__name__)
+DEFAULT_ENCODING = "UTF-8"
 
 
 class GParser(GBase):
     """Geniac file parser"""
+
+    # Uniq comment line
+    UCOMRE = re.compile(r"^ *//.*$", re.MULTILINE)
+    # Multi comment line
+    MCOMRE = re.compile(r"^ */\*([\s\S]*?)\*/", re.MULTILINE)
 
     def __init__(self, *args, **kwargs):
         """Constructor for GParser"""
@@ -80,6 +87,14 @@ class GParser(GBase):
         if key in self.content:
             return self[key]
         return default
+
+    def _remove_comments(self, in_file, temp_file):
+        # Remove comments for the analysis
+        input_content = self.UCOMRE.sub("", self.MCOMRE.sub("", in_file.read()))
+        # TODO: should not remove multiline and unique comment pattens if they are inside strings !
+        temp_file.write(bytes(input_content, encoding=DEFAULT_ENCODING))
+        temp_file.seek(0)
+        return temp_file
 
     @abstractmethod
     def _read(self, in_path: Path, encoding=None):
