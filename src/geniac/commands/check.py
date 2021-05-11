@@ -270,6 +270,10 @@ class GCheck(GCommand):
         """
         script = NextflowScript(project_dir=self.project_dir)
 
+        geniac_dir = Path(
+            self.config_path(GCheck.GENIAC_DIRS, "geniac", single_path=True)
+        )
+
         # Link config path to their method
         script_paths = OrderedDict(
             (
@@ -280,9 +284,9 @@ class GCheck(GCommand):
             for index, path in enumerate(
                 self.config_path(GCheck.PROJECT_WORKFLOW, config_key)
             )
+            if not path.is_relative_to(geniac_dir)
         )
 
-        # TODO: Check for DSL 2 support
         for script_name, script_path in script_paths.items():
             if script_path.exists():
                 script.read(script_path)
