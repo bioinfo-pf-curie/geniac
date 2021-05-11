@@ -82,10 +82,13 @@ class NextflowScript(GParser):
                     # If process add it to the process dict
                     process = values.get("processName")
                     self.content["process"][process] = defaultdict(list)
+                    self.content["process"][process]["NextflowScriptPath"] = str(
+                        config_path
+                    )
                 if match := self.LABELRE.match(line):
                     values = match.groupdict()
                     label = values.get("labelName")
-                    _logger.debug(f"FOUND label {label} " f"in process {process}.")
+                    _logger.debug(f"FOUND label {label} in process {process}.")
                     self.content["process"][process]["label"].append(label)
                     continue
                 # TODO: what about conditionals nextflow scripts ?
