@@ -802,8 +802,9 @@ class GCheck(GCommand):
 
         # Check if singularity and docker have the same labels
         if container_diff := list(
-            set(self.labels_from_folders.get("singularity"))
-            - set(self.labels_from_folders.get("docker"))
+            set(self.labels_from_folders.get("singularity")).symmetric_difference(
+                set(self.labels_from_folders.get("docker"))
+            )
         ):
             _logger.warning(
                 f"Some recipes are missing either in docker or singularity folder"
