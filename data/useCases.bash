@@ -60,8 +60,18 @@ geniac lint ${SRC_DIR}
 ################################################
 
 cd ${BUILD_DIR}
+
+### configure the pipeline
 cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
-sudo make # check that both singularity and nextflow PATHs are allowed in the secure_path option from the file /etc/sudoers
+
+
+### /!\ with sudo, the singularity and nextflow commands must be
+### /!\ in the secure_path option declared in the file /etc/sudoers
+
+### build the files needed by the pipeline
+sudo make
+
+### change file owner/group to the current user
 sudo chown -R $(id -gn):$(id -gn) ${BUILD_DIR}
 
 
@@ -69,6 +79,7 @@ sudo chown -R $(id -gn):$(id -gn) ${BUILD_DIR}
 # Use case: deploy the pipeline ###
 ###################################
 
+### install the pipeline
 make install
 
 
