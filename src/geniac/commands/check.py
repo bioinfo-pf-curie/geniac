@@ -855,7 +855,7 @@ class GCheck(GCommand):
                     GCheck.PROJECT_CONFIG, "process", single_path=True
                 ).relative_to(self.project_dir)
                 _logger.error(
-                    f"Label(s) {unmatched_labels} from process {process} in the file"
+                    f"Label(s) {unmatched_labels} from process {process} in the file "
                     f"{Path(process_scope.get('NextflowScriptPath')).relative_to(self.project_dir)} "
                     f"not defined in the file {process_path}."
                 )
