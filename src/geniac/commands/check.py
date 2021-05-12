@@ -801,9 +801,11 @@ class GCheck(GCommand):
                 check_dir(geniac_dir.get("path"), **geniac_paths)
 
         # Check if singularity and docker have the same labels
-        if container_diff := list(
-            set(self.labels_from_folders.get("singularity")).symmetric_difference(
-                set(self.labels_from_folders.get("docker"))
+        if container_diff := sorted(
+            list(
+                set(self.labels_from_folders.get("singularity")).symmetric_difference(
+                    set(self.labels_from_folders.get("docker"))
+                )
             )
         ):
             _logger.warning(
