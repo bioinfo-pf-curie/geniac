@@ -26,4 +26,7 @@ Launch the geniac linter
    geniac lint /PATH/TO/DIRECTORY
 
 
+.. tip::
+   The default configuration file for the geniac linter is available in the file ``src/geniac/conf/geniac.ini``. It defines which files are parsed and what is checked by the geniac linter. You can pass a custom file to the linter using the ``-c`` option.
+
 For more options run ``geniac -h`` and ``geniac lint -h``.
