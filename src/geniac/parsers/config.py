@@ -137,7 +137,10 @@ class NextflowConfig(GParser):
                 self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
     def _read(
-        self, config_file: typing.Union[typing.IO, typing.BinaryIO], encoding="UTF-8"
+        self,
+        config_file: typing.Union[typing.IO, typing.BinaryIO],
+        encoding="UTF-8",
+        config_path="",
     ):
         """Load a Nextflow config file into content property
 

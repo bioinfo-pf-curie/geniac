@@ -104,6 +104,7 @@ class GParser(GBase):
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding=DEFAULT_ENCODING,
+        config_path="",
     ):
         """Load a file into content property
 
@@ -133,7 +134,7 @@ class GParser(GBase):
                     mode="r", encoding=encoding
                 ) as input_file, tempfile.TemporaryFile() as temp_file:
                     temp_file = self._remove_comments(input_file, temp_file)
-                    self._read(temp_file, encoding=encoding)
+                    self._read(temp_file, encoding=encoding, config_path=filename)
                     self.loaded_paths += [filename]
             except OSError:
                 continue
