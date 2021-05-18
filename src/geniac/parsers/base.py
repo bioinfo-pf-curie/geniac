@@ -27,10 +27,15 @@ DEFAULT_ENCODING = "UTF-8"
 class GParser(GBase):
     """Geniac file parser"""
 
-    # Uniq comment line
-    UCOMRE = re.compile(r"^ *//.*$", re.MULTILINE)
-    # Multi comment line
-    MCOMRE = re.compile(r"^ */\*([\s\S]*?)\*/", re.MULTILINE)
+    COMRE = re.compile(
+        r"(?P<tdquote>\"{3}[\S\s]*?\"{3})|"
+        r"(?P<tquote>\'{3}[\S\s]*?\'{3})|"
+        r"(?P<squote>\'[^\']*\')|"
+        r"(?P<dquote>\"[^\"]*?\")|"
+        r"(?P<scom>//.*?$)|"
+        r"(?P<mcom>/\*([\s\S]*?)\*/)",
+        re.MULTILINE,
+    )
 
     def __init__(self, *args, **kwargs):
         """Constructor for GParser"""
@@ -93,8 +98,13 @@ class GParser(GBase):
 
     def _remove_comments(self, in_file, temp_file):
         # Remove comments for the analysis
-        input_content = self.UCOMRE.sub("", self.MCOMRE.sub("", in_file.read()))
-        # TODO: should not remove multiline and unique comment pattens if they are inside strings !
+        # input_content = self.UCOMRE.sub("", self.MCOMRE.sub("", in_file.read()))
+
+        def match_comments(match):
+            """Filter comments from match object"""
+            return "" if match.group("mcom") or match.group("scom") else match.group(0)
+
+        input_content = self.COMRE.sub(match_comments, in_file.read())
         temp_file.write(bytes(input_content, encoding=DEFAULT_ENCODING))
         temp_file.seek(0)
         return temp_file
