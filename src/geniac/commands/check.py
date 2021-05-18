@@ -111,17 +111,17 @@ class GCheck(GCommand):
     def labels_from_workflow(self):
         """Workflow labels from Nextflow folders"""
         # Init labels list if empty
-        if not self._labels_from_workflow:
-            self._labels_from_workflow = list(
-                dict.fromkeys(
-                    [
-                        label
-                        for process, process_scope in self.processes_from_workflow.items()
-                        for label in process_scope["label"]
-                        if label is not None
-                    ]
-                )
+        labels = list(
+            dict.fromkeys(
+                [
+                    label
+                    for process, process_scope in self.processes_from_workflow.items()
+                    for label in process_scope["label"]
+                    if label is not None
+                ]
             )
+        )
+        self._labels_from_workflow += set(labels + self._labels_from_workflow)
         return self._labels_from_workflow
 
     @property
