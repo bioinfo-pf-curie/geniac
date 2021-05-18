@@ -48,7 +48,7 @@ class NextflowScript(GParser):
         """
         script_flag = False
         process = ""
-        self.content["process"] = OrderedDict()
+        self.content["process"] = self.content.get("process") or OrderedDict()
         # TODO: add if condition within scripts who should break the actual
         #       process scope
         for idx, line in enumerate(super()._read(config_file, encoding=encoding)):
