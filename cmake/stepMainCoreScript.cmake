@@ -127,12 +127,16 @@ add_custom_command(
 add_custom_target(
     build_singularity_recipes
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
+    COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} -Dap_install_singularity_recipes=ON
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/deffiles.done)
 
 # allows the build of the docker recipes with "make build_docker_recipes"
 add_custom_target(
     build_docker_recipes
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
+    COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} -Dap_install_docker_recipes=ON
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
 
 # generate singularity recipes and images
