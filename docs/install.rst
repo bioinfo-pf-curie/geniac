@@ -360,3 +360,51 @@ Install and run with singularity
 
    Whenever you explicitely set an option on the command line such as ``-Dap_install_singularity_images=ON``, and then you want to reconfigure your build directory by specifying only another option on the command line such as ``-DCMAKE_INSTALL_PREFIX=${HOME}/myPipelineNewDir``, the ``ap_install_singularity_images`` will remain ``ON`` unless you specify ``-Dap_install_singularity_images=OFF``.
 
+
+.. _install-generate-recipes:
+
+Generate the recipes for the containers
+---------------------------------------
+
+As geniac automatically generates the recipes of the containers, they are not available in the git repository. However, they can be easily retrieved in several ways. We provide here an example.
+
+First, let's assume you want the Singularity definition files. Then, pass the option ``-Dap_install_singularity_recipes=ON`` to cmake during the configuration stage:
+
+
+::
+
+   export WORK_DIR="${HOME}/tmp/myPipeline"
+   export SRC_DIR="${WORK_DIR}/src"
+   export INSTALL_DIR="${WORK_DIR}/install"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
+
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+   
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   ### the option --recursive is needed if you use geniac as a submodule
+
+   cd ${BUILD_DIR}
+   cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_recipes=ON
+   make install
+
+   ### the Singularity definition files are available here:
+   ls ${INSTALL_DIR}/pipeline/recipes/singularity
+
+
+Second, let's assume you want the Dockerfiles. Then, use a custom target (see :ref:`install-target-containers`) as follows:
+
+::
+
+   make build_docker_recipes
+   make install
+
+   ### the Dockerfiles are available here:
+   ls ${INSTALL_DIR}/pipeline/recipes/docker
+
+
+Obviously, if you want both the Singularity definition files and Dockerfiles you can simply do the following during the configuration stage:
+
+::
+
+   cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_recipes=ON -Dap_install_docker_recipes=ON
