@@ -6,8 +6,8 @@
 import json
 import logging
 import re
+import typing
 from collections import OrderedDict, defaultdict
-from pathlib import Path
 
 from ..parsers.base import GParser
 
@@ -25,12 +25,6 @@ def _scope_tmpl():
 class NextflowConfig(GParser):
     """Nextflow config file parser"""
 
-    # Uniq comment line
-    UCOMRE = re.compile(r"^ *//")
-    # Multi comment line
-    MCOMRE = re.compile(r"^ */\*")
-    # End multi line comment
-    ECOMRE = re.compile(r"^ *\*+/")
     # Param = value
     PARAMRE = re.compile(
         r"^ *(?P<scope>[\w.]+(?=\.))?\.?(((?P<property>[\w]+)\s*=\s*"
@@ -142,130 +136,115 @@ class NextflowConfig(GParser):
             if nested_scope not in skip_nested_scopes:
                 self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
-    def _read(self, config_path: Path, encoding="UTF-8"):
+    def _read(
+        self,
+        config_file: typing.Union[typing.IO, typing.BinaryIO],
+        encoding="UTF-8",
+        config_path="",
+    ):
         """Load a Nextflow config file into content property
 
         Args:
-            config_path (Path): path to nextflow config file
+            config_file (BinaryIO): nextflow config file
             encoding (str): name of the encoding use to decode config files
         """
         # TODO: should we flush content dict before reading another file ?
         #       or propose a flag if we want to overwrite content
-        with config_path.open(encoding=encoding) as config_file:
-            mcom_flag = False
-            def_flag = False
-            selector = None
-            scope_idx = ""
-            for line_idx, line in enumerate(config_file):
-                # Skip if one line comment
-                if self.UCOMRE.match(line):
-                    continue
-                # Skip if new multi line comment
-                if self.MCOMRE.match(line):
-                    mcom_flag = True
-                    continue
-                # Skip if we reach the end of a multi line comment
-                if self.ECOMRE.match(line):
-                    mcom_flag = False
-                    continue
-                # Skip if multi line comment
-                if mcom_flag and not self.ECOMRE.match(line):
-                    continue
-                # Pop scope index list if we find a curly bracket
-                # Turn off def flag if we reach the last scope in a def
-                if self.ESCOPERE.match(line):
-                    depth = 1 if not selector else 2
-                    scope_idx = ".".join(scope_idx.split(".")[:-depth])
-                    selector = None
-                    if not scope_idx and def_flag:
-                        def_flag = False
-                    continue
-                if match := self.SCOPERE.match(line):
-                    values = match.groupdict()
-                    # If scope add it to the scopes dict
-                    if scope := values.get("scope"):
-                        scope_idx = (
-                            scope if not scope_idx else ".".join((scope_idx, scope))
-                        )
-                    # If there is also a selector on the line add them to scope_idx
-                    if (selector := values.get("selector")) and (
-                        label := values.get("label")
-                    ):
-                        scope_idx = (
-                            ".".join((selector, label))
-                            if not scope_idx
-                            else ".".join((scope_idx, selector, label))
-                            if selector not in scope_idx
-                            else ".".join((scope_idx, label))
-                        )
-                    # If close pattern, remove
-                    if values.get("beforeClose"):
-                        scope_idx = ".".join(scope_idx.split(".").pop())
-                    # Add the rest of the line in other section
-                    if scope := values.get("other"):
-                        def_flag = True if "def" in scope else def_flag
-                        scope_idx = (
-                            "other" if not scope_idx else ".".join((scope_idx, "other"))
-                        )
-                    self.content[scope_idx] = OrderedDict()
-                    if values.get("afterClose"):
-                        scope_idx = ".".join(scope_idx.split(".").pop())
-                    continue
-                # If we are not in a def scope and we find a parameter
-                if not def_flag and (match := self.PARAMRE.match(line)):
-                    values = match.groupdict()
-                    prop_key = "property" if values.get("property") else "includeConfig"
-                    value_key = "value" if values.get("value") else "confPath"
-                    prop = values.get(prop_key, "")
-                    value = values.get(value_key, "")
-                    param_list = list(
-                        filter(None, (scope_idx, values.get("scope"), prop))
+        def_flag = False
+        selector = None
+        scope_idx = ""
+        for line_idx, line in enumerate(super()._read(config_file, encoding=encoding)):
+            # Pop scope index list if we find a curly bracket
+            # Turn off def flag if we reach the last scope in a def
+            if self.ESCOPERE.match(line):
+                depth = 1 if not selector else 2
+                scope_idx = ".".join(scope_idx.split(".")[:-depth])
+                selector = None
+                if not scope_idx and def_flag:
+                    def_flag = False
+                continue
+            if match := self.SCOPERE.match(line):
+                values = match.groupdict()
+                # If scope add it to the scopes dict
+                if scope := values.get("scope"):
+                    scope_idx = scope if not scope_idx else ".".join((scope_idx, scope))
+                # If there is also a selector on the line add them to scope_idx
+                if (selector := values.get("selector")) and (
+                    label := values.get("label")
+                ):
+                    scope_idx = (
+                        ".".join((selector, label))
+                        if not scope_idx
+                        else ".".join((scope_idx, selector, label))
+                        if selector not in scope_idx
+                        else ".".join((scope_idx, label))
                     )
-                    param_idx = (
-                        ".".join(param_list) if len(param_list) > 1 else param_list[0]
+                # If close pattern, remove
+                if values.get("beforeClose"):
+                    scope_idx = ".".join(scope_idx.split(".").pop())
+                # Add the rest of the line in other section
+                if scope := values.get("other"):
+                    def_flag = True if "def" in scope else def_flag
+                    scope_idx = (
+                        "other" if not scope_idx else ".".join((scope_idx, "other"))
                     )
-                    _logger.debug(
-                        f"FOUND property {values.get(prop_key)} "
-                        f"with value {values.get(value_key)} "
-                        f"in scope {param_idx}."
+                self.content[scope_idx] = OrderedDict()
+                if values.get("afterClose"):
+                    scope_idx = ".".join(scope_idx.split(".").pop())
+                continue
+            # If we are not in a def scope and we find a parameter
+            if not def_flag and (match := self.PARAMRE.match(line)):
+                values = match.groupdict()
+                prop_key = "property" if values.get("property") else "includeConfig"
+                value_key = "value" if values.get("value") else "confPath"
+                prop = values.get(prop_key, "")
+                value = values.get(value_key, "")
+                param_list = list(filter(None, (scope_idx, values.get("scope"), prop)))
+                param_idx = (
+                    ".".join(param_list) if len(param_list) > 1 else param_list[0]
+                )
+                _logger.debug(
+                    f"FOUND property {values.get(prop_key)} "
+                    f"with value {values.get(value_key)} "
+                    f"in scope {param_idx}."
+                )
+                value = (
+                    value.strip('"')
+                    if '"' in value
+                    else value.strip("'")
+                    if "'" in value
+                    else value
+                )
+                # If parameter has already been defined in a previous configuration
+                # file
+                if (
+                    value
+                    and param_idx in self.content
+                    and self.content[param_idx]
+                    and prop_key != "includeConfig"
+                ):
+                    history_paths = [
+                        conf_path.relative_to(self.project_dir).name
+                        for conf_path in self.loaded_paths
+                    ]
+                    extra_msg = (
+                        f" in a previous configuration file " f"{history_paths}"
+                        if self.loaded_paths
+                        else " in the same file"
                     )
-                    value = (
-                        value.strip('"')
-                        if '"' in value
-                        else value.strip("'")
-                        if "'" in value
-                        else value
+                    _logger.warning(
+                        f"Parameter {param_idx} from "
+                        f"{self.path.relative_to(self.project_dir)} at line {line_idx + 1} has already "
+                        f"been defined{extra_msg}."
                     )
-                    # If parameter has already been defined in a previous configuration
-                    # file
-                    if (
-                        value
-                        and param_idx in self.content
-                        and self.content[param_idx]
-                        and prop_key != "includeConfig"
-                    ):
-                        history_paths = [
-                            conf_path.relative_to(self.project_dir).name
-                            for conf_path in self.loaded_paths
-                        ]
-                        extra_msg = (
-                            f" in a previous configuration file " f"{history_paths}"
-                            if self.loaded_paths
-                            else " in the same file"
-                        )
-                        _logger.warning(
-                            f"Parameter {param_idx} from "
-                            f"{self.path.relative_to(self.project_dir)} at line {line_idx + 1} has already "
-                            f"been defined{extra_msg}."
-                        )
-                    self.content[param_idx] = (
-                        self.content[param_idx] + [value]
-                        if prop_key == "includeConfig" and param_idx in self.content
-                        else [value]
-                        if prop_key == "includeConfig"
-                        else value
-                    )
-                    continue
+                self.content[param_idx] = (
+                    self.content[param_idx] + [value]
+                    if prop_key == "includeConfig" and param_idx in self.content
+                    else [value]
+                    if prop_key == "includeConfig"
+                    else value
+                )
+                continue
         _logger.debug(
-            f"LOADED {config_path} scope:\n{json.dumps(dict(self.content), indent=2)}."
+            f"LOADED {config_file} scope:\n{json.dumps(dict(self.content), indent=2)}."
         )
