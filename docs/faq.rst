@@ -19,9 +19,12 @@ The structure of the repository is based on |nfcore|_ and additional files and f
 
 All the resources for geniac are available here:
 
+* |geniacdoc|_
 * |geniacrepo|_
 * |geniacdemo|_
+* |geniacdemodsl2|_
 * |geniactemplate|_
+* Example: :download:`useCases.bash <../data/useCases.bash>`
 
 Follow the guidelines below if you want to use geniac on an existing repository. 
 
@@ -122,6 +125,10 @@ How can I pass specific options to run docker or singularity containers?
 
 If needed, you can set the ``singularityRunOptions`` and ``dockerRunOptions`` values to whatever is needed for your configuration in the  ``geniac.config`` file. This will set the ``runOption`` parameters (see `Nextflow configuration <https://www.nextflow.io/docs/latest/config.html>`_) of the |singularity|_ and |docker|_ directive respectively to the selected value when the |singularity|_ and |docker|_ profiles will be called.
 
+How can I see the recipes for the containers?
+=============================================
+
+As geniac automatically generates the recipes of the containers, they are not available in the git repository. However, they can be easily retrieved in several ways. An example to :ref:`install-generate-recipes` is provided.
 
 Is geniac compatible with nextflow DSL2?
 ========================================
@@ -195,3 +202,4 @@ The :ref:`run-profile-conda` relies on the ``environment.yml`` that is automatic
    cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_keep_envyml_from_source=ON
 
 Note that it may be impossible to have a working ``environment.yml`` file due to the incompatibility between tools. Use the :ref:`run-profile-multiconda` profile instead of the :ref:`run-profile-conda` profile.
+

@@ -39,11 +39,6 @@ before_script:
   # OR if you don't use tox:
   # - pytest
 
-# Run in different environments
-py38:
-  image: "python:3.8"
-  <<: *test_script
-
 py39:
   image: "python:3.9"
   <<: *test_script

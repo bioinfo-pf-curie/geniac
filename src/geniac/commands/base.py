@@ -128,6 +128,7 @@ class GBase(ABC):
         """Format config option to list of Path objects or Path object if there is only one path
 
         Args:
+            option_name:
             section (str): name of config section
             option (str): name of config option
             single_path (bool): flag to enable the return of single path
@@ -146,7 +147,13 @@ class GBase(ABC):
 
             """
             return (
-                sorted(Path(dirname(input_path)).glob(basename(input_path)))
+                sorted(
+                    Path(input_path[: input_path.find("**")]).glob(
+                        input_path[input_path.find("**") :]
+                    )
+                )
+                if "**" in input_path
+                else sorted(Path(dirname(input_path)).glob(basename(input_path)))
                 if "*" in input_path
                 else [""]
             )
