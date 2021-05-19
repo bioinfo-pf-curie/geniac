@@ -1,5 +1,12 @@
+version-0.2.1
+19/05/2021
+
 NEW FEATURES
    - Option ap_check_config_file_from_source
+   - Geniac linter support multiline comments in nf files
+
+DOCUMENTATION
+  - Examples to generate the containers recipes
 
 version-0.2.0
 30/03/2021
