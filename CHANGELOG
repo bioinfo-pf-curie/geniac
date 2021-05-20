@@ -1,3 +1,10 @@
+version-0.2.2
+20/05/2021
+
+NEW FEATURES
+   - Geniac linter allows params.geniac.tools, params.geniac.containers.yum
+     and params.geniac.containers.git as optional
+
 version-0.2.1
 19/05/2021
 
