@@ -90,24 +90,23 @@ class NextflowConfig(GParser):
             )
         }
 
-        scope = self.get(nxf_config_scope, None)
+        scope = self.get(nxf_config_scope, "missing")
         cfg_val = None
-        def_val = None
-        scope_flag = True if scope is not None else False
-        # Check if the actual scope exists in the Nextflow config
-        if nxf_config_scope and not scope_flag:
-            msg = (
-                f"Section {nxf_config_scope} is not defined in Nextflow configuration"
-                f" file {self.path.relative_to(self.project_dir)}."
+        # If scope is empty and required
+        if nxf_config_scope and scope == "missing" and required_flag:
+            _logger.error(
+                f"Required section {nxf_config_scope} in Nextflow configuration file "
+                f"{self.path.relative_to(self.project_dir)} is missing."
             )
-            if required_flag:
-                _logger.error(msg)
-            else:
-                _logger.warning(msg)
-
+        # Else if the scope is empty
+        elif nxf_config_scope and not scope:
+            _logger.error(
+                f"Section {nxf_config_scope} in Nextflow configuration file "
+                f"{self.path.relative_to(self.project_dir)} is empty."
+            )
         # Check if config_paths/config_props in the Nextflow config corresponds to
         # their default values
-        if scope_flag:
+        if scope != "missing":
             for config_prop in default_config_paths + default_config_props:
                 def_val = default_config_values.get(config_prop, [])
                 if (
