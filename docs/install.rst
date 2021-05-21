@@ -149,6 +149,7 @@ Set options with a file
 The file ``geniac/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``geniac/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
 
 ::
+
    cp ${SRC_DIR}/geniac/install/cmake-init-default.cmake ${SRC_DIR}/geniac/install/cmake-init.cmake
 
    # edit the file ${SRC_DIR}/geniac/install/cmake-init.cmake to set your options
@@ -185,7 +186,7 @@ Custom targets
 Build recipes and containers
 ----------------------------
 
-Assume you are in the ``build`` directory. The following custom targets allows you to build recipes and containers even you did not ask for them during the configure stage:
+Assume you are in the ``build`` directory. The following custom targets allows you to build recipes and containers even if you did not ask for them during the configure stage:
 
 * ``make build_singularity_recipes``
 * ``make build_singularity_images``
@@ -325,7 +326,7 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
 
    cd ${INSTALL_DIR}/pipeline
 
-   nextflow -c conf/test.config run main.nf -profile conda
+   nextflow -c conf/test.config run main.nf -profile multiconda
    
 
 .. note::
