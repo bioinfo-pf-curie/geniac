@@ -47,9 +47,9 @@ Create additional files and folders
 The following files are mandatory:
 
 * :download:`CMakeLists.txt <../data/modules/CMakeLists.txt>`: create a folder named ``modules`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
-* :download:`geniac.config <../data/conf/geniac.config>`: copy the file in the folder ``conf``. This file containes a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
+* :download:`geniac.config <../data/conf/geniac.config>`: copy the file in the folder ``conf``. This file contains a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
 
-Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever youd need them the following folders:
+Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever you need them the following folders:
 
 ::
 
@@ -96,7 +96,7 @@ The source code of your repository should look like this:
 How can I write the config files for the different nextflow profiles?
 =====================================================================
 
-The utilies we propose allow the automatic generation of all the config files for the nextflow :ref:`run-profiles`. However, if you really want to write them yourself follow the examples described in :ref:`profiles-page`.
+The utilities we propose allow the automatic generation of all the config files for the nextflow :ref:`run-profiles`. However, if you really want to write them yourself follow the examples described in :ref:`profiles-page`.
 
 How should I define the path to the genome annotations?
 =======================================================
@@ -134,7 +134,7 @@ Is geniac compatible with nextflow DSL2?
 ========================================
 
 
-Since version 20.07.1, |nextflow|_ provides the `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ syntax thats allow the definition of module libraries and simplifies the writing of complex data analysis pipelines. geniac is fully compatible with `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ and we provide |geniacdemodsl2|_ as an exemple. The guidelines to :ref:`process-page` remain exactly the same.
+Since version 20.07.1, |nextflow|_ provides the `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ syntax that allows the definition of module libraries and simplifies the writing of complex data analysis pipelines. geniac is fully compatible with `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ and we provide |geniacdemodsl2|_ as an example. The guidelines to :ref:`process-page` remain exactly the same.
 
 
 The main difference between  |geniacdemo|_  and  |geniacdemodsl2|_ are:
@@ -187,10 +187,34 @@ The main difference between  |geniacdemo|_  and  |geniacdemodsl2|_ are:
        └── data
 
 
+The |geniacdemodsl2|_ can be run as follows:
+
+::
+
+   export WORK_DIR="${HOME}/tmp/myPipelineDSL2"
+   export SRC_DIR="${WORK_DIR}/src"
+   export INSTALL_DIR="${WORK_DIR}/install"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo-dsl2.git"
+   
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+   
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   ### the option --recursive is needed if you use geniac as a submodule
+   
+   cd ${BUILD_DIR}
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+   make
+   make install
+   
+   cd ${INSTALL_DIR}/pipeline
+   
+   nextflow -c conf/test.config run main.nf -profile multiconda
+
 What are the @git_*@ variables?
 ===============================
 
-You will find in both the ``main.nf`` and ``nextflow.config`` some variables surrounded by ``@`` such ``as @git_repo_name@``. These variables are used during the ``cmake`` step that extacts the information from the git repository and replace them by their value. These variables are used in the nextflow manifest for example. If needed, you can remove these variables and set the value to whatever you want.
+You will find in both the ``main.nf`` and ``nextflow.config`` some variables surrounded by ``@`` such ``as @git_repo_name@``. These variables are used during the ``cmake`` step to extract the information from the git repository and replace them by their value. These variables are used in the nextflow manifest for example. If needed, you can remove these variables and set the value to whatever you want.
 
 Why the conda profile fails to build its environment or takes to much time?
 ===========================================================================

@@ -7,7 +7,7 @@
 Installation
 *********************
 
-We describe here how the analysis pipeline can be installed. The pipeline must be available from a git repository and follows the expected organisation (see :ref:`overview-source-tree`). An example of installation is provided with the |geniacdemo|_ pipeline.
+We describe here how the analysis pipeline can be installed. The pipeline must be available from a git repository and follows the expected organization (see :ref:`overview-source-tree`). An example of installation is provided with the |geniacdemo|_ pipeline.
 
 Installation requires |cmake|_ (version 3.0 or above) and consists of the following sequence.
 
@@ -150,7 +150,12 @@ The file ``geniac/install/cmake-init-default.cmake`` provides a script to set al
 
 ::
 
-   cd build
+   cp ${SRC_DIR}/geniac/install/cmake-init-default.cmake ${SRC_DIR}/geniac/install/cmake-init.cmake
+
+   # edit the file ${SRC_DIR}/geniac/install/cmake-init.cmake to set your options
+
+   cd ${BUILD_DIR}
+
    cmake -C ${SRC_DIR}/geniac/install/cmake-init.cmake ${SRC_DIR}/geniac
 
 
@@ -181,7 +186,7 @@ Custom targets
 Build recipes and containers
 ----------------------------
 
-Assume you are in the ``build`` directory. The following custom targets allows you to build recipes and containers even you did not ask for them during the configure stage:
+Assume you are in the ``build`` directory. The following custom targets allows you to build recipes and containers even if you did not ask for them during the configure stage:
 
 * ``make build_singularity_recipes``
 * ``make build_singularity_images``
@@ -321,7 +326,7 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
 
    cd ${INSTALL_DIR}/pipeline
 
-   nextflow -c conf/test.config run main.nf -profile conda
+   nextflow -c conf/test.config run main.nf -profile multiconda
    
 
 .. note::
@@ -347,8 +352,16 @@ Install and run with singularity
 
    cd ${BUILD_DIR}
    cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
-   sudo "PATH=$PATH" make ### must be done with the root credentials
+
+   ### /!\ with sudo, the singularity and nextflow commands must be
+   ### /!\ in the secure_path option declared in the file /etc/sudoers
+   
+   ### build the files needed by the pipeline
+   sudo make
+   
+   ### change file owner/group to the current user
    sudo chown -R $(id -gn):$(id -gn) ${BUILD_DIR}
+
    make install
 
    cd ${INSTALL_DIR}/pipeline
