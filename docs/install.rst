@@ -352,8 +352,16 @@ Install and run with singularity
 
    cd ${BUILD_DIR}
    cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
-   sudo "PATH=$PATH" make ### must be done with the root credentials
+
+   ### /!\ with sudo, the singularity and nextflow commands must be
+   ### /!\ in the secure_path option declared in the file /etc/sudoers
+   
+   ### build the files needed by the pipeline
+   sudo make
+   
+   ### change file owner/group to the current user
    sudo chown -R $(id -gn):$(id -gn) ${BUILD_DIR}
+
    make install
 
    cd ${INSTALL_DIR}/pipeline
