@@ -65,7 +65,7 @@ Files
 -----
 
 
-Prefer camelCase (whenever possible as some tools expect specific pattern such as |multiqc|_ like ``_mqc`` suffixe), for example ``someScript.sh``.
+Prefer camelCase (whenever possible as some tools expect specific pattern such as |multiqc|_ like ``_mqc`` suffix), for example ``someScript.sh``.
 
 For the scripts you develop and that are accessible in the ``bin/`` use the prefix **ap** (**a**\nalysis **p**\ipeline), for example ``apMyscript.sh``. This prefix makes it possible to distinguish the scripts you personally developed from those you retrieved from third parties.
 

@@ -12,7 +12,7 @@ Prototyping
 
 First, configure your repository as explained here: :ref:`install-configure-file`. In general, this has to be done only once unless you want to change the options.
 
-When prototyping the pipeline, we advice to use the :ref:`run-profile-multiconda` profile. As this stage, the containers should not be available thus making impossible to use the :ref:`run-profile-singularity` or :ref:`run-profile-docker` profiles.
+When prototyping the pipeline, we advise to use the :ref:`run-profile-multiconda` profile. At this stage, the containers should not be available thus making impossible to use the :ref:`run-profile-singularity` or :ref:`run-profile-docker` profiles.
 
 We suggest that you provide test data and a ``conf/test.config`` file such that the pipeline can be tested on any modification of the source code for validation. Whenever possible, the test data must be as small as possible such that running the test does not take too much time.
 
@@ -71,19 +71,19 @@ Branching strategy
 ------------------
 
 
-The management of the different development versions is based on different git **branches**. Each branch is used depending on the context and the stage in the developement cycle. The model we recommend is based on a central git repository that contains 4 branches:
+The management of the different development versions is based on different git **branches**. Each branch is used depending on the context and the stage in the development cycle. The model we recommend is based on a central git repository that contains 4 branches:
 
 
 * **devel**: contains the code of the current version under development
 * **release**: contains the code with the official releases
 * **hotfix** (if needed): this branch is a mirror of the **release** branch and is used to patch the code that is in production. If a critical anomaly happens in production, this branch is used to fix the issue.
-* **master**: this branch is not used for developement, it is only used to archive the code from the **release** and **hotfix** branches.
+* **master**: this branch is not used for development, it is only used to archive the code from the **release** and **hotfix** branches.
       
 
 
-The developer is encouraged to create local branches in his local developement environment whenever he/she develops new features or hotfixes.
+The developer is encouraged to create local branches in his local development environment whenever he/she develops new features or hotfixes.
 
-The workflow accross the different branches can be summarized as described in the graphic below:
+The workflow across the different branches can be summarized as described in the graphic below:
 
 
 .. |gitworkflow| image:: images/git-workflow.png
@@ -102,7 +102,7 @@ The workflow accross the different branches can be summarized as described in th
 Tag strategy
 ------------
 
-For official release that can be used in a production environnement, use a tag with the prefix **version-** (for example version-1.2.3).
+For official release that can be used in a production environment, use a tag with the prefix **version-** (for example version-1.2.3).
 
 .. warning::
 

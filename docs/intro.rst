@@ -35,7 +35,7 @@ We decided to retain this second way that we will call the *one container per to
 
 * sometimes, different tools that might be incompatible with each other are required and that just makes impossible to build a single container including all the tools for the pipeline,
 
-* building a container with all the tools can be very long and possibly tedious especially when there is a single container. Each time the pipeline changes, the single container has to be rebuilt. With the *one container per tool* strategy, you only have to update the container whose tool has changed (that is faster). Moreover, you can also parallelise the building of the containers such that it reduces the time to have the containers available.
+* building a container with all the tools can be very long and possibly tedious especially when there is a single container. Each time the pipeline changes, the single container has to be rebuilt. With the *one container per tool* strategy, you only have to update the container whose tool has changed (that is faster). Moreover, you can also parallelize the building of the containers such that it reduces the time to have the containers available.
 
 With this *one container per tool* strategy in mind, we therefore defined guidelines to implement the pipeline at the very early stage of the prototyping with very few effort from the bioinformaticians and statisticians experts such that the containers can be automatically built by parsing the source code (in most of the cases).
 

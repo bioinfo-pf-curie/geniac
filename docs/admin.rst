@@ -1,4 +1,4 @@
-.. include:: substitutions.rst
+ .. include:: substitutions.rst
 
 .. _admin-page:
 
@@ -57,12 +57,19 @@ In order to generate the pre-load a script ``geniac/install/cmake-init-default.c
 
 ::
 
-   git_repo_url=http://myGitRepoUrl
-   git_repo_name="myGitRepoName"
-   git clone ${git_repo_url}
-   mkdir build
-   cd build
-   ../${git_repo_name}/geniac/cmake/initCmakePreload.sh ../${git_repo_name} > ../${git_repo_name}/geniac/install/cmake-init-default.cmake
+   export WORK_DIR="${HOME}/tmp/myPipeline"
+   export SRC_DIR="${WORK_DIR}/src"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
+
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+
+   # clone the repository
+   # the option --recursive is needed if you use geniac as a submodule
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   
+   cd {BUILD_DIR}
+   bash ${SRC_DIR}/geniac/cmake/initCmakePreload.sh ${SRC_DIR} > cmake-init-default.cmake
 
 Containers
 ==========

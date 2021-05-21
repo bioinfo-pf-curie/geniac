@@ -62,7 +62,7 @@ geniac lint ${SRC_DIR}
 cd ${BUILD_DIR}
 
 ### configure the pipeline
-cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
+cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON -Dap_nf_executor=slurm
 
 
 ### /!\ with sudo, the singularity and nextflow commands must be
@@ -88,4 +88,9 @@ make install
 ################################
 
 cd ${INSTALL_DIR}/pipeline
+
+### locally on the computer
 nextflow -c conf/test.config run main.nf -profile singularity
+
+### on a computing cluster with slurm
+nextflow -c conf/test.config run main.nf -profile singularity,cluster
