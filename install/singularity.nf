@@ -210,6 +210,7 @@ process buildCondaEnvFromCondaPackages {
     dependencies:
       - which
       - bc
+      - pip
       - ${condaDepEnv}${condaPipDep}
     """
 }
