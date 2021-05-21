@@ -149,8 +149,12 @@ Set options with a file
 The file ``geniac/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``geniac/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
 
 ::
+   cp ${SRC_DIR}/geniac/install/cmake-init-default.cmake ${SRC_DIR}/geniac/install/cmake-init.cmake
 
-   cd build
+   # edit the file ${SRC_DIR}/geniac/install/cmake-init.cmake to set your options
+
+   cd ${BUILD_DIR}
+
    cmake -C ${SRC_DIR}/geniac/install/cmake-init.cmake ${SRC_DIR}/geniac
 
 
