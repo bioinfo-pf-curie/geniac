@@ -512,7 +512,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-This is the only case you will have to write the recipe yourself. The recipe should have the same name as the label with the suffixe being either ``.def`` for singularity and ``.Dockerfile`` for docker. For example, the ``alpine.def`` recipe looks like this:
+This is the only case you will have to write the recipe yourself. The recipe should have the same name as the label with the suffix being either ``.def`` for singularity and ``.Dockerfile`` for docker. For example, the ``alpine.def`` recipe looks like this:
 
 ::
 

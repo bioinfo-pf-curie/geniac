@@ -341,7 +341,7 @@ If the `design` file is not specified, the pipeline will run over the first step
 Results
 =======
 
-To better organize your results, we recommned that use use the variable ``${params.outDir}`` in every process with the ``publishDir`` directive. For example:
+To better organize your results, we recommend that use use the variable ``${params.outDir}`` in every process with the ``publishDir`` directive. For example:
 
 ::
 

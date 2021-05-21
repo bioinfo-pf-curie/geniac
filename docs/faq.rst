@@ -47,9 +47,9 @@ Create additional files and folders
 The following files are mandatory:
 
 * :download:`CMakeLists.txt <../data/modules/CMakeLists.txt>`: create a folder named ``modules`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
-* :download:`geniac.config <../data/conf/geniac.config>`: copy the file in the folder ``conf``. This file containes a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
+* :download:`geniac.config <../data/conf/geniac.config>`: copy the file in the folder ``conf``. This file contains a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
 
-Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever youd need them the following folders:
+Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever you need them the following folders:
 
 ::
 
@@ -96,7 +96,7 @@ The source code of your repository should look like this:
 How can I write the config files for the different nextflow profiles?
 =====================================================================
 
-The utilies we propose allow the automatic generation of all the config files for the nextflow :ref:`run-profiles`. However, if you really want to write them yourself follow the examples described in :ref:`profiles-page`.
+The utilities we propose allow the automatic generation of all the config files for the nextflow :ref:`run-profiles`. However, if you really want to write them yourself follow the examples described in :ref:`profiles-page`.
 
 How should I define the path to the genome annotations?
 =======================================================
@@ -214,7 +214,7 @@ The |geniacdemodsl2|_ can be run as follows:
 What are the @git_*@ variables?
 ===============================
 
-You will find in both the ``main.nf`` and ``nextflow.config`` some variables surrounded by ``@`` such ``as @git_repo_name@``. These variables are used during the ``cmake`` step that extacts the information from the git repository and replace them by their value. These variables are used in the nextflow manifest for example. If needed, you can remove these variables and set the value to whatever you want.
+You will find in both the ``main.nf`` and ``nextflow.config`` some variables surrounded by ``@`` such ``as @git_repo_name@``. These variables are used during the ``cmake`` step to extract the information from the git repository and replace them by their value. These variables are used in the nextflow manifest for example. If needed, you can remove these variables and set the value to whatever you want.
 
 Why the conda profile fails to build its environment or takes to much time?
 ===========================================================================

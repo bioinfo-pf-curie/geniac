@@ -7,7 +7,7 @@
 Installation
 *********************
 
-We describe here how the analysis pipeline can be installed. The pipeline must be available from a git repository and follows the expected organisation (see :ref:`overview-source-tree`). An example of installation is provided with the |geniacdemo|_ pipeline.
+We describe here how the analysis pipeline can be installed. The pipeline must be available from a git repository and follows the expected organization (see :ref:`overview-source-tree`). An example of installation is provided with the |geniacdemo|_ pipeline.
 
 Installation requires |cmake|_ (version 3.0 or above) and consists of the following sequence.
 
