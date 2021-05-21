@@ -134,7 +134,7 @@ Is geniac compatible with nextflow DSL2?
 ========================================
 
 
-Since version 20.07.1, |nextflow|_ provides the `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ syntax thats allow the definition of module libraries and simplifies the writing of complex data analysis pipelines. geniac is fully compatible with `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ and we provide |geniacdemodsl2|_ as an exemple. The guidelines to :ref:`process-page` remain exactly the same.
+Since version 20.07.1, |nextflow|_ provides the `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ syntax that allows the definition of module libraries and simplifies the writing of complex data analysis pipelines. geniac is fully compatible with `DSL2 <https://www.nextflow.io/docs/latest/dsl2.html>`_ and we provide |geniacdemodsl2|_ as an example. The guidelines to :ref:`process-page` remain exactly the same.
 
 
 The main difference between  |geniacdemo|_  and  |geniacdemodsl2|_ are:
@@ -186,6 +186,30 @@ The main difference between  |geniacdemo|_  and  |geniacdemodsl2|_ are:
    └── test                         # data to test the pipeline
        └── data
 
+
+The |geniacdemodsl2|_ can be run as follows:
+
+::
+
+   export WORK_DIR="${HOME}/tmp/myPipelineDSL2"
+   export SRC_DIR="${WORK_DIR}/src"
+   export INSTALL_DIR="${WORK_DIR}/install"
+   export BUILD_DIR="${WORK_DIR}/build"
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo-dsl2.git"
+   
+   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+   
+   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   ### the option --recursive is needed if you use geniac as a submodule
+   
+   cd ${BUILD_DIR}
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
+   make
+   make install
+   
+   cd ${INSTALL_DIR}/pipeline
+   
+   nextflow -c conf/test.config run main.nf -profile multiconda
 
 What are the @git_*@ variables?
 ===============================
