@@ -102,10 +102,6 @@ Channel
     String optionalFile = null
     if (it.simpleName == 'r') {
       optionalFile = "${baseDir}/../preconfs/renv.lock"
-    } else if (it.simpleName == 'transIndelAndSamtools') {
-      optionalFile = "${baseDir}/conda/transIndel.yml"
-    } else if (it.simpleName == 'bcl2fastq') {
-      optionalFile = "${baseDir}/tools/bcl2fastq2-v2.20.0.422-Linux-x86_64.rpm"
     } else {
       optionalFile = 'EMPTY'
     }
