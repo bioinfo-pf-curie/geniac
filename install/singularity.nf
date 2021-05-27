@@ -31,9 +31,9 @@ def addYumAndGitToCondaCh(List condaIt) {
   List<String> gitList = []
   LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
   LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-  (gitConf[condaIt[0]] ?: '')
+  (gitConf[condaIt[0]] ?:'')
     .split()
-    .each { gitList.add(it.split('::')) }
+    .each{ gitList.add(it.split('::')) }
 
   return [
     condaIt[0],
@@ -141,7 +141,7 @@ Channel
 
 
 Channel
-  .fromPath("${baseDir}/modules", type: 'dir')
+  .fromPath("${baseDir}/modules", type: 'dir', checkIfExists: true)
   .set { sourceCodeDirCh }
 
 
@@ -214,6 +214,10 @@ process buildCondaEnvFromCondaPackages {
       - ${condaDepEnv}${condaPipDep}
     """
 }
+
+/**
+ * default recipes
+ **/
 
 process buildDefaultSingularityRecipe {
   publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
