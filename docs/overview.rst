@@ -27,6 +27,7 @@ The following software are required:
 * |git|_  >= 2.0
 * |gitlfs|_
 * |cmake|_ >= 3.0
+* |make|_ >= 4.1
 
 To use the containers, at least one of the following software is required:
 
