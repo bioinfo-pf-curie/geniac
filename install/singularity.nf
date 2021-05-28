@@ -317,7 +317,7 @@ process buildSingularityRecipeFromCondaPackages {
     def cplmtConda = ''
     for (String[] tab : tools) {
       cplmtConda += """ \\\\
-      && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+        && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
     }
 
     """
