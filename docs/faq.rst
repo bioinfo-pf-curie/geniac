@@ -139,9 +139,9 @@ Since version 20.07.1, |nextflow|_ provides the `DSL2 <https://www.nextflow.io/d
 
 The main difference between  |geniacdemo|_  and  |geniacdemodsl2|_ are:
 
-* each process is located in one dedicated file in the folder `nf-modules/local/process`
-* each subworkflow that combines different processes is located in the folder `nf-modules/local/subworkflow`
-* the `main.nf` includes these two folders and uses the `workflow` directive
+* each process is located in one dedicated file in the folder ``nf-modules/local/process``
+* each subworkflow that combines different processes is located in the folder ``nf-modules/local/subworkflow``
+* the ``main.nf`` includes these two folders and uses the ``workflow`` directive
 
 
 ::
