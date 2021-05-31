@@ -31,9 +31,9 @@ def addYumAndGitToCondaCh(List condaIt) {
   List<String> gitList = []
   LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
   LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-  (gitConf[condaIt[0]] ?: '')
+  (gitConf[condaIt[0]] ?:'')
     .split()
-    .each { gitList.add(it.split('::')) }
+    .each{ gitList.add(it.split('::')) }
 
   return [
     condaIt[0],
@@ -105,10 +105,6 @@ Channel
     String optionalFile = null
     if (it.simpleName == 'r') {
       optionalFile = "${baseDir}/../preconfs/renv.lock"
-    } else if (it.simpleName == 'transIndelAndSamtools') {
-      optionalFile = "${baseDir}/conda/transIndel.yml"
-    } else if (it.simpleName == 'bcl2fastq') {
-      optionalFile = "${baseDir}/tools/bcl2fastq2-v2.20.0.422-Linux-x86_64.rpm"
     } else {
       optionalFile = 'EMPTY'
     }
@@ -141,7 +137,7 @@ Channel
 
 
 Channel
-  .fromPath("${baseDir}/modules", type: 'dir')
+  .fromPath("${baseDir}/modules", type: 'dir', checkIfExists: true)
   .set { sourceCodeDirCh }
 
 
@@ -214,6 +210,10 @@ process buildCondaEnvFromCondaPackages {
       - ${condaDepEnv}${condaPipDep}
     """
 }
+
+/**
+ * default recipes
+ **/
 
 process buildDefaultSingularityRecipe {
   publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
@@ -317,7 +317,7 @@ process buildSingularityRecipeFromCondaPackages {
     def cplmtConda = ''
     for (String[] tab : tools) {
       cplmtConda += """ \\\\
-      && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+        && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
     }
 
     """

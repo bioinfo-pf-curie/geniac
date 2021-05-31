@@ -64,13 +64,13 @@ Where is the tool available?
 ----------------------------
 
 
-`Is it just a standard unix command?`
+`Is it just a standard Unix command?`
 +++++++++++++++++++++++++++++++++++++
 
 
 * `Yes`, it is something like `grep`, `sed`, `cat`, `etc.`, then see :ref:`process-unix`.
 
-`Is it available in conda?`
+`Is it available in Conda?`
 +++++++++++++++++++++++++++
 
 * `Yes`, the tool is available in conda and can be easily installed from bioconda, conda-forge channels, then see :ref:`process-easy-conda`.
@@ -164,7 +164,7 @@ You have nothing to do, the install process will build the recipes and images fo
 
 .. _process-easy-conda:
 
-Easy install with conda
+Easy install with Conda
 -----------------------
 
 *prerequisite*
