@@ -1,8 +1,12 @@
-version-
-27/05/2021
+version-1.0.0
+31/05/2021
 
 NEW FEATURES
    - Harmonization of docker.nf / singularity.nf files
+   - Add missing indentation in singularity definition files
+
+DOCUMENTATION
+   - Update the documentation and fix typos
 
 version-0.2.3
 21/05/2021
