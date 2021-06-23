@@ -280,13 +280,13 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
             - numpy==1.19.2
 
 
-Edit the file ``conf/geniac.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
+Edit the file ``conf/geniac.config`` and add for example ``trickySoftware = "${projectDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
    geniac{
       tools {
-         trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+         trickySoftware = "${projectDir}/recipes/conda/trickySoftware.yml"
       }
    }
 
@@ -504,7 +504,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
    
      script:
      """
-     source ${baseDir}/env/alpine.env
+     source ${projectDir}/env/alpine.env
      echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
      """
    }
@@ -646,7 +646,7 @@ In your process, source the ``env/alpine.env`` and then use the variable you def
    
      script:
      """
-     source ${baseDir}/env/alpine.env
+     source ${projectDir}/env/alpine.env
      echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
      """
    }

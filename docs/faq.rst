@@ -112,7 +112,7 @@ When the pipeline is installed with `geniac`, the :ref:`install-structure-dir-tr
 
    params {
    
-     genomeAnnotationPath = params.genomeAnnotationPath ?: "${baseDir}/../annotations"
+     genomeAnnotationPath = params.genomeAnnotationPath ?: "${projectDir}/../annotations"
    
    }    
 
