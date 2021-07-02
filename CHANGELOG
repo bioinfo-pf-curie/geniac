@@ -5,6 +5,9 @@ NEW FEATURES
    - Add retry errorStrategy in the nextflow.config
    - baseDir replaced by projectDir
 
+BUGFIX
+   - Geniac linter support empty recipes folder
+
 DOCUMENTATION
    - Update the documentation and fix typos
 
