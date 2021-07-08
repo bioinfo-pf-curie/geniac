@@ -36,7 +36,7 @@ foreach(config_file ${generated_config_files})
       # TODO: use lists to have more diff patterns
       if("${config_file}" STREQUAL "cluster.config")
         execute_process(
-          COMMAND bash "-c" "! ${GIT_EXECUTABLE} diff -U0 --ignore-space-at-eol -b -w --ignore-blank-lines --color-words --no-index  ${config_files_dir}/${config_file} ${config_files_in_git_dir}/${config_file} | tee /dev/tty | tail -n +5 | grep -v -e \"${ap_nf_executor}\" -e \"@@\" > /dev/null"
+          COMMAND bash "-c" "! ${GIT_EXECUTABLE} diff -U0 --ignore-space-at-eol -b -w --ignore-blank-lines --color-words --no-index  ${config_files_dir}/${config_file} ${config_files_in_git_dir}/${config_file} | tail -n +5 | grep -v -e \"${ap_nf_executor}\" -e \"@@\" > /dev/null"
           RESULT_VARIABLE is_identical
         )
       else()
