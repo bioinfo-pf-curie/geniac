@@ -5,6 +5,9 @@ DOC
     - Reference to the article added
     - fix typos
 
+BUGFIX
+    - Fix error with tee and ssh connection without tty allocation
+
 version-1.1.1
 07/08/2021
 
