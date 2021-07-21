@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'geniac'
-copyright = u'2019-2021, Philippe Hupé'
+copyright = u'2019-2021, Institut Curie'
 author = u'Philippe Hupé'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -167,7 +167,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'geniac', u'geniac Documentation',
-     author, 'Philippe Hupé', 'Automatic Configuration GENerator and Installer for nextflow pipeline.',
+     author, 'Philippe Hupé', 'Automatic Configuration GENerator and Installer for nextflow pipelines.',
      'Miscellaneous'),
 ]
 

@@ -28,6 +28,9 @@
 .. |geniacdoc| replace:: geniac documentation
 .. _geniacdoc: https://geniac.readthedocs.io/
 
+.. |geniacref| replace:: Geniac: Automatic Configuration GENerator and Installer for nextflow pipelines (Allain et al., 2021)
+.. _geniacref: https://open-research-europe.ec.europa.eu/articles/1-76
+
 .. |geniacrepo| replace:: geniac repository
 .. _geniacrepo: https://github.com/bioinfo-pf-curie/geniac
 

@@ -89,8 +89,8 @@ Where is the tool available?
 
 * `Yes`, then see :ref:`process-source-code`.
 
-`Do you have still not answered yes?`
-+++++++++++++++++++++++++++++++++++++
+`Have you still not answered yes?`
+++++++++++++++++++++++++++++++++++
 
 Probably not, otherwise, you would not be reading this. This means that the tool can fall in any of these categories:
 
