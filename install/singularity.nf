@@ -226,7 +226,7 @@ process buildDefaultSingularityRecipe {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: centos:7
+    From: ${params.dockerRegistry}centos:7
 
     %labels
         gitUrl ${params.gitUrl}
@@ -266,7 +266,7 @@ process buildSingularityRecipeFromCondaFile {
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: conda/miniconda3-centos7
+    From: ${params.dockerRegistry}conda/miniconda3-centos7
 
     %labels
         gitUrl ${params.gitUrl}
@@ -323,7 +323,7 @@ process buildSingularityRecipeFromCondaPackages {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: conda/miniconda3-centos7
+    From: ${params.dockerRegistry}conda/miniconda3-centos7
 
     %labels
         gitUrl ${params.gitUrl}
@@ -360,7 +360,7 @@ process buildSingularityRecipeFromSourceCode {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: centos:7
+    From: ${params.dockerRegistry}centos:7
     Stage: devel
 
     %setup
@@ -376,7 +376,7 @@ process buildSingularityRecipeFromSourceCode {
         && bash ${installFile} \\\\
 
     Bootstrap: docker
-    From: centos:7
+    From: ${params.dockerRegistry}centos:7
     Stage: final
 
     %labels

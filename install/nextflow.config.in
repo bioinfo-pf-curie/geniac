@@ -46,6 +46,9 @@ params {
   gitUrl = 'unknown'
   gitCommit = 'unknown'
 
+  // docker registry
+  dockerRegistry = '@docker_registry@'
+
 }
 
 

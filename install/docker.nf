@@ -163,7 +163,7 @@ process buildDefaultDockerRecipe {
     key = 'onlyLinux'
     """
     cat << EOF > ${key}.Dockerfile
-    FROM centos:7
+    FROM ${params.dockerRegistry}centos:7
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -201,7 +201,7 @@ process buildDockerRecipeFromCondaFile {
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda3-centos7
+    FROM ${params.dockerRegistry}conda/miniconda3-centos7
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -254,7 +254,7 @@ process buildDockerRecipeFromCondaPackages {
 
     """
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda3-centos7
+    FROM ${params.dockerRegistry}conda/miniconda3-centos7
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -288,7 +288,7 @@ process buildDockerRecipeFromSourceCode {
   script:
     """
     cat << EOF > ${key}.Dockerfile
-    FROM centos:7
+    FROM ${params.dockerRegistry}centos:7
     
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
