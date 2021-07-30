@@ -3,6 +3,7 @@ version-1.1.0 (WIP)
 
 NEW FEATURES
    - Add retry errorStrategy in the nextflow.config
+   - new cmake option ap_docker_registry to bootstrap on custom registry when building the containers
    - baseDir replaced by projectDir
 
 BUGFIX
