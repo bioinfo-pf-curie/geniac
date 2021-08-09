@@ -1,4 +1,4 @@
-version-1.1.0 (WIP)
+version-1.1.0
 07/30/2021
 
 NEW FEATURES
@@ -14,6 +14,7 @@ DOCUMENTATION
    - Update the documentation and fix typos
    - Reference to the article added
    - Custom install section: add missing information where to save the custom recipes
+   - Install from source code section: add missing link to modules/CMakeLists.txt template
 
 version-1.0.0
 05/31/2021

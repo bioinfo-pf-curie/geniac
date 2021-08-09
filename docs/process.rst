@@ -395,7 +395,7 @@ Install from source code
 
 First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. Create the ``modules`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_ `(see this tutorial) <https://biogitflow.readthedocs.io/en/latest/git.html#add-a-submodule-in-a-repository>`_.
 
-Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmakeexternalproject|_  function from |cmake|_.
+Then comes the tricky part. Add in the file :download:`modules/CMakeLists.txt <../data/modules/CMakeLists.txt>` the |cmakeexternalproject|_  function from |cmake|_.
 
 
 ::
