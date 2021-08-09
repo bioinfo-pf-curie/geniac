@@ -30,11 +30,19 @@
 #  /!\  Do not use this prefix is this is not a production version /!\ 
 
 
-if(NOT EXISTS ${pipeline_source_dir}/.git)
-    message_color(FATAL_ERROR "Source directory is not a git repository")
-endif()
 
 if(GIT_FOUND)
+
+    # test if the source directory is a git repository
+    execute_process(
+        COMMAND bash "-c" "${GIT_EXECUTABLE} rev-parse --is-inside-work-tree"
+        WORKING_DIRECTORY "${pipeline_source_dir}"
+        OUTPUT_VARIABLE _is_git_repo
+        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+      if(NOT "${_is_git_repo}" STREQUAL "true")
+        message_color(FATAL_ERROR "Source directory is not a git repository")
+      endif()
 
     # extract the commid id
     execute_process(
