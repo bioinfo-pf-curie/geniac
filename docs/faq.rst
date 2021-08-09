@@ -93,6 +93,18 @@ The source code of your repository should look like this:
    └── test                         # data to test the pipeline
        └── data
 
+How can I use a custom docker registry to build the containers?
+===============================================================
+
+Geniac automatically generate recipes for Docker and Singularity. To build the containers, it bootstraps on two docker containers from the official docker hub registry: ``centos:7`` and ``miniconda3-centos7``. Instead of using the official docker hub registry, you may want to use a custom registry. In this case, make sure that both conteiners with the tags ``centos:7`` and ``miniconda3-centos7`` are available on this custom registry and use the following option at the configuration step:
+
+::
+   
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_docker_registry=my-registry-url/
+
+For example, ``my-registry-url`` could be a docker registry available in your gitlab.
+
+
 How can I write the config files for the different nextflow profiles?
 =====================================================================
 
@@ -112,7 +124,7 @@ When the pipeline is installed with `geniac`, the :ref:`install-structure-dir-tr
 
    params {
    
-     genomeAnnotationPath = params.genomeAnnotationPath ?: "${baseDir}/../annotations"
+     genomeAnnotationPath = params.genomeAnnotationPath ?: "${projectDir}/../annotations"
    
    }    
 

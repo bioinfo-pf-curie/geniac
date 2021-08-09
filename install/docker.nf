@@ -97,11 +97,11 @@ Channel
 (condaFilesCh, condaPackagesCh) = [condaForks.condaFilesCh, condaForks.condaPackagesCh]
 
 Channel
-  .fromPath("${baseDir}/recipes/docker/*.Dockerfile")
+  .fromPath("${projectDir}/recipes/docker/*.Dockerfile")
   .map {
     String optionalFile = null
     if (it.simpleName == 'r') {
-      optionalFile = "${baseDir}/../preconfs/renv.lock"
+      optionalFile = "${projectDir}/../preconfs/renv.lock"
     } else {
       optionalFile = 'EMPTY'
     }
@@ -116,7 +116,7 @@ Channel
  **/
 
 Channel
-  .fromPath("${baseDir}/recipes/conda/*.yml")
+  .fromPath("${projectDir}/recipes/conda/*.yml")
   .set { condaRecipes }
 
 
@@ -125,7 +125,7 @@ Channel
  **/
 
 Channel
-  .fromPath("${baseDir}/recipes/dependencies/*")
+  .fromPath("${projectDir}/recipes/dependencies/*")
   .set { fileDependencies }
 
 /**
@@ -134,12 +134,12 @@ Channel
 
 
 Channel
-  .fromPath("${baseDir}/modules", type: 'dir', checkIfExists: true)
+  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
   .set { sourceCodeDirCh }
 
 
 Channel
-  .fromPath("${baseDir}/modules/*.sh")
+  .fromPath("${projectDir}/modules/*.sh")
   .map {
     return [it.simpleName, it]
   }
@@ -154,7 +154,7 @@ Channel
  **/
 
 process buildDefaultDockerRecipe {
-  publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   output:
     set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh2
@@ -163,7 +163,7 @@ process buildDefaultDockerRecipe {
     key = 'onlyLinux'
     """
     cat << EOF > ${key}.Dockerfile
-    FROM centos:7
+    FROM ${params.dockerRegistry}centos:7
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -181,7 +181,7 @@ process buildDefaultDockerRecipe {
 
 process buildDockerRecipeFromCondaFile {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
     set val(key), file(condaFile), val(yum), val(git) from condaFilesCh
@@ -201,12 +201,12 @@ process buildDockerRecipeFromCondaFile {
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda3-centos7
+    FROM ${params.dockerRegistry}conda/miniconda3-centos7
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    # real path from baseDir: ${condaFile}
+    # real path from projectDir: ${condaFile}
     ADD \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
     RUN yum install -y which ${yumPkgs} ${cplmtGit} \\\\
@@ -229,7 +229,7 @@ process buildDockerRecipeFromCondaFile {
  **/
 process buildDockerRecipeFromCondaPackages {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
 
   input:
@@ -254,7 +254,7 @@ process buildDockerRecipeFromCondaPackages {
 
     """
     cat << EOF > ${key}.Dockerfile
-    FROM conda/miniconda3-centos7
+    FROM ${params.dockerRegistry}conda/miniconda3-centos7
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -277,7 +277,7 @@ process buildDockerRecipeFromCondaPackages {
 
 process buildDockerRecipeFromSourceCode {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
     set val(key), file(installFile) from sourceCodeCh
@@ -288,7 +288,7 @@ process buildDockerRecipeFromSourceCode {
   script:
     """
     cat << EOF > ${key}.Dockerfile
-    FROM centos:7
+    FROM ${params.dockerRegistry}centos:7
     
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -316,7 +316,7 @@ dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).
 
 process buildImages {
   tag "${key}"
-  // publishDir "${baseDir}/${params.publishDirDockerImages}", overwrite: true, mode: 'copy'
+  // publishDir "${projectDir}/${params.publishDirDockerImages}", overwrite: true, mode: 'copy'
 
   when:
     params.buildDockerImages

@@ -7,7 +7,7 @@ import logging
 import re
 import subprocess
 import sys
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from pathlib import Path
 
 from ..commands.base import GCommand
@@ -765,7 +765,6 @@ class GCheck(GCommand):
         Returns:
             labels_from_folders(list): list of tools related to modules, conda, singularity and docker files
         """
-        labels_from_folders = defaultdict(list)
         geniac_dirs = OrderedDict(
             (
                 geniac_dir,
@@ -803,9 +802,9 @@ class GCheck(GCommand):
         # Check if singularity and docker have the same labels
         if container_diff := sorted(
             list(
-                set(self.labels_from_folders.get("singularity")).symmetric_difference(
-                    set(self.labels_from_folders.get("docker"))
-                )
+                set(
+                    self.labels_from_folders.get("singularity", [])
+                ).symmetric_difference(set(self.labels_from_folders.get("docker", [])))
             )
         ):
             _logger.warning(
@@ -813,7 +812,7 @@ class GCheck(GCommand):
                 f" {container_diff}."
             )
 
-        return labels_from_folders
+        return self.labels_from_folders
 
     def check_labels(
         self,
