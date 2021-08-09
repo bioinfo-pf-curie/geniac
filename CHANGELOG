@@ -3,11 +3,12 @@ version-1.1.0 (WIP)
 
 NEW FEATURES
    - Add retry errorStrategy in the nextflow.config
-   - new cmake option ap_docker_registry to bootstrap on custom registry when building the containers
+   - New cmake option ap_docker_registry to bootstrap on custom registry when building the containers
    - baseDir replaced by projectDir
+   - New method to detect is the source directory is a git repository
 
 BUGFIX
-   - Geniac linter support empty recipes folder
+   - Geniac linter supports empty recipes folder
 
 DOCUMENTATION
    - Update the documentation and fix typos
