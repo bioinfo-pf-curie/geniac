@@ -13,6 +13,7 @@ BUGFIX
 DOCUMENTATION
    - Update the documentation and fix typos
    - Reference to the article added
+   - Custom install section: add missing information where to save the custom recipes
 
 version-1.0.0
 05/31/2021
