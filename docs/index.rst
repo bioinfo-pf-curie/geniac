@@ -7,7 +7,7 @@ geniac's documentation!
 =======================
 
 
-**Geniac**: **A**\u\ tomatic **C**\o\ nfiguration **GEN**\e\ rator and **I**\n\ staller for nextflow pipeline.
+**Geniac**: **A**\u\ tomatic **C**\o\ nfiguration **GEN**\e\ rator and **I**\n\ staller for nextflow pipelines.
 
 .. toctree::
    :maxdepth: 2

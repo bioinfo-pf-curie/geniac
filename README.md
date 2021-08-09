@@ -1,6 +1,6 @@
 # Geniac
 
-*Geniac* is an **A**utomatic **C**onfiguration **GEN**erator and **I**nstaller for nextflow pipeline.
+*Geniac* is an **A**utomatic **C**onfiguration **GEN**erator and **I**nstaller for nextflow pipelines.
 
 * [Documentation](#documentation)
 * [Acknowledgements](#acknowledgements)
@@ -22,4 +22,4 @@
 
 ## Citation
 
-coming soon.
+[Allain F, Roméjon J, La Rosa P et al. Geniac: Automatic Configuration GENerator and Installer for nextflow pipelines. Open Research Europe 2021, 1:76](https://open-research-europe.ec.europa.eu/articles/1-76)

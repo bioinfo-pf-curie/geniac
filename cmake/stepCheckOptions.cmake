@@ -131,3 +131,9 @@ else()
     )
 endif()
 
+
+if(NOT "${ap_docker_registry}" STREQUAL "")
+  if(NOT "${ap_docker_registry}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_registry ${ap_docker_registry} must end with '/'")
+  endif()
+endif()

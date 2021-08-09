@@ -46,7 +46,19 @@ params {
   gitUrl = 'unknown'
   gitCommit = 'unknown'
 
+  // docker registry
+  dockerRegistry = '@docker_registry@'
+
 }
+
+
+process {
+  errorStrategy = 'retry'
+  maxRetries = 3
+  maxErrors = '-1'
+}
+
+
 
 includeConfig 'conf/base.config'
 @geniac_config_string@

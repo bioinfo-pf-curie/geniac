@@ -89,8 +89,8 @@ Where is the tool available?
 
 * `Yes`, then see :ref:`process-source-code`.
 
-`Do you have still not answered yes?`
-+++++++++++++++++++++++++++++++++++++
+`Have you still not answered yes?`
+++++++++++++++++++++++++++++++++++
 
 Probably not, otherwise, you would not be reading this. This means that the tool can fall in any of these categories:
 
@@ -280,13 +280,13 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
             - numpy==1.19.2
 
 
-Edit the file ``conf/geniac.config`` and add for example ``trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
+Edit the file ``conf/geniac.config`` and add for example ``trickySoftware = "${projectDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
 
 ::
 
    geniac{
       tools {
-         trickySoftware = "${baseDir}/recipes/conda/trickySoftware.yml"
+         trickySoftware = "${projectDir}/recipes/conda/trickySoftware.yml"
       }
    }
 
@@ -395,7 +395,7 @@ Install from source code
 
 First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. Create the ``modules`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_ `(see this tutorial) <https://biogitflow.readthedocs.io/en/latest/git.html#add-a-submodule-in-a-repository>`_.
 
-Then comes the tricky part. Add in the file ``modules/CMakeLists.txt`` the |cmakeexternalproject|_  function from |cmake|_.
+Then comes the tricky part. Add in the file :download:`modules/CMakeLists.txt <../data/modules/CMakeLists.txt>` the |cmakeexternalproject|_  function from |cmake|_.
 
 
 ::
@@ -504,7 +504,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
    
      script:
      """
-     source ${baseDir}/env/alpine.env
+     source ${projectDir}/env/alpine.env
      echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
      """
    }
@@ -512,7 +512,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-This is the only case you will have to write the recipe yourself. The recipe should have the same name as the label with the suffix being either ``.def`` for singularity and ``.Dockerfile`` for docker. For example, the ``alpine.def`` recipe looks like this:
+This is the only case you will have to write the recipe yourself. The recipe should have the same name as the label with the suffix being either ``.def`` for singularity and ``.Dockerfile`` for docker. Save your recipes the folders ``recipes/singularity`` and ``recipes/docker`` respectively. For example, the ``alpine.def`` recipe looks like this:
 
 ::
 
@@ -646,7 +646,7 @@ In your process, source the ``env/alpine.env`` and then use the variable you def
    
      script:
      """
-     source ${baseDir}/env/alpine.env
+     source ${projectDir}/env/alpine.env
      echo "Hello from alpine: \$(date). This is very high here: \${PEAK_HEIGHT}!" > alpine_${x}.txt
      """
    }

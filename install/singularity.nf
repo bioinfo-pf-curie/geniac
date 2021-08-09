@@ -100,11 +100,11 @@ condaPackagesCh.into { condaPackages4SingularityRecipesCh; condaPackages4CondaEn
 condaFilesCh.into { condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh }
 
 Channel
-  .fromPath("${baseDir}/recipes/singularity/*.def")
+  .fromPath("${projectDir}/recipes/singularity/*.def")
   .map {
     String optionalFile = null
     if (it.simpleName == 'r') {
-      optionalFile = "${baseDir}/../preconfs/renv.lock"
+      optionalFile = "${projectDir}/../preconfs/renv.lock"
     } else {
       optionalFile = 'EMPTY'
     }
@@ -119,7 +119,7 @@ Channel
  **/
 
 Channel
-  .fromPath("${baseDir}/recipes/conda/*.yml")
+  .fromPath("${projectDir}/recipes/conda/*.yml")
   .set { condaRecipes }
 
 
@@ -128,7 +128,7 @@ Channel
  **/
 
 Channel
-  .fromPath("${baseDir}/recipes/dependencies/*")
+  .fromPath("${projectDir}/recipes/dependencies/*")
   .set { fileDependencies }
 
 /**
@@ -137,12 +137,12 @@ Channel
 
 
 Channel
-  .fromPath("${baseDir}/modules", type: 'dir', checkIfExists: true)
+  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
   .set { sourceCodeDirCh }
 
 
 Channel
-  .fromPath("${baseDir}/modules/*.sh")
+  .fromPath("${projectDir}/modules/*.sh")
   .map {
     return [it.simpleName, it]
   }
@@ -181,7 +181,7 @@ process buildCondaDepFromRecipes {
 
 process buildCondaEnvFromCondaPackages {
   tag "condaEnvBuild"
-  publishDir "${baseDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
 
   input:
     val condaDependencies from condaDepFromFilesCh.flatMap { it.text.split() }.mix(condaDepFromSpecsCh).unique().toSortedList()
@@ -216,7 +216,7 @@ process buildCondaEnvFromCondaPackages {
  **/
 
 process buildDefaultSingularityRecipe {
-  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   output:
     set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
@@ -226,7 +226,7 @@ process buildDefaultSingularityRecipe {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: centos:7
+    From: ${params.dockerRegistry}centos:7
 
     %labels
         gitUrl ${params.gitUrl}
@@ -245,7 +245,7 @@ process buildDefaultSingularityRecipe {
 
 process buildSingularityRecipeFromCondaFile {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
     set val(key), file(condaFile), val(yum), val(git) from condaFiles4SingularityRecipesCh
@@ -266,7 +266,7 @@ process buildSingularityRecipeFromCondaFile {
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: conda/miniconda3-centos7
+    From: ${params.dockerRegistry}conda/miniconda3-centos7
 
     %labels
         gitUrl ${params.gitUrl}
@@ -277,7 +277,7 @@ process buildSingularityRecipeFromCondaFile {
         LC_ALL=en_US.utf-8
         LANG=en_US.utf-8
 
-    # real path from baseDir: ${condaFile}
+    # real path from projectDir: ${condaFile}
     %files
         \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
@@ -297,7 +297,7 @@ process buildSingularityRecipeFromCondaFile {
  **/
 process buildSingularityRecipeFromCondaPackages {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
 
   input:
@@ -323,7 +323,7 @@ process buildSingularityRecipeFromCondaPackages {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: conda/miniconda3-centos7
+    From: ${params.dockerRegistry}conda/miniconda3-centos7
 
     %labels
         gitUrl ${params.gitUrl}
@@ -348,7 +348,7 @@ process buildSingularityRecipeFromCondaPackages {
 
 process buildSingularityRecipeFromSourceCode {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
     set val(key), file(installFile) from sourceCodeCh
@@ -360,7 +360,7 @@ process buildSingularityRecipeFromSourceCode {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: centos:7
+    From: ${params.dockerRegistry}centos:7
     Stage: devel
 
     %setup
@@ -376,7 +376,7 @@ process buildSingularityRecipeFromSourceCode {
         && bash ${installFile} \\\\
 
     Bootstrap: docker
-    From: centos:7
+    From: ${params.dockerRegistry}centos:7
     Stage: final
 
     %labels
@@ -410,7 +410,7 @@ singularityAllRecipeCh.into {
 
 process buildImages {
   tag "${key}"
-  publishDir "${baseDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
   when:
     params.buildSingularityImages
@@ -457,7 +457,7 @@ process buildSingularityConfig {
 
 process mergeSingularityConfig {
   tag "mergeSingularityConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -529,7 +529,7 @@ process buildDockerConfig {
 
 process mergeDockerConfig {
   tag "mergeDockerConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -576,14 +576,14 @@ process buildCondaConfig {
   script:
     """
     cat << EOF > "${key}CondaConfig.txt"
-      withLabel:${key} { conda = "\\\${baseDir}/environment.yml" }
+      withLabel:${key} { conda = "\\\${projectDir}/environment.yml" }
     EOF
     """
 }
 
 process mergeCondaConfig {
   tag "mergeCondaConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -598,7 +598,7 @@ process mergeCondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> conda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; \\\"export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; \\\"export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config
@@ -613,7 +613,7 @@ process mergeCondaConfig {
 
 process buildMulticondaConfig {
   tag "${key}"
-  //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
+  //publishDir "${projectDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -634,7 +634,7 @@ process buildMulticondaConfig {
 
 process mergeMulticondaConfig {
   tag "mergeMulticondaConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -649,7 +649,7 @@ process mergeMulticondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> multiconda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; \\\"export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; \\\"export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> multiconda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multiconda.config
@@ -664,7 +664,7 @@ process mergeMulticondaConfig {
 
 process buildMultiPathConfig {
   tag "${key}"
-  //publishDir "${baseDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
+  //publishDir "${projectDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -689,7 +689,7 @@ process buildMultiPathConfig {
 
 process mergeMultiPathConfig {
   tag "mergeMultiPathConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -744,7 +744,7 @@ process mergeMultiPathConfig {
 
 process mergeMultiPathLink {
   tag "mergeMultiPathLink"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   when:
     params.buildConfigFiles
@@ -768,7 +768,7 @@ process mergeMultiPathLink {
 
 process clusterConfig {
   tag "clusterConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   output:
     file("cluster.config")
@@ -791,7 +791,7 @@ process clusterConfig {
 
 process globalPathConfig {
   tag "globalPathConfig"
-  publishDir "${baseDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   output:
     file("path.config") into finalPathConfigCh
