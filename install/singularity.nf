@@ -70,83 +70,55 @@ String buildCplmtPath(List gitEntries) {
 
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
+condaEnvsCh = Channel.create()
 Channel
   .from(params.geniac.tools)
   .flatMap {
     List<String> result = []
     for (Map.Entry<String, String> entry : it.entrySet()) {
-      List<String> tab = entry.value.split()
+      if (entry.value instanceof String) {
+        List<String> tab = entry.value.split()
+        for (String s : tab) {
+          result.add([entry.key, s.split('::')])
+        }
 
-      for (String s : tab) {
-        result.add([entry.key, s.split('::')])
-      }
-
-      if (tab.size == 0) {
-        result.add([entry.key, null])
+        if (tab.size == 0) {
+          result.add([entry.key, null])
+        }
+      } else {
+        result.add([entry.key, entry.value])
       }
     }
 
     return result
   }.branch {
+  condaExistingEnvsCh:
+  (it[1] && it[1] instanceof Map)
+  return [it[0], 'ENV']
   condaFilesCh:
   (it[1] && it[1][0].endsWith('.yml'))
   return [it[0], file(it[1][0])]
   condaPackagesCh: true
   return it
 }.set { condaForks }
-(condaFilesCh, condaPackagesCh) = [condaForks.condaFilesCh, condaForks.condaPackagesCh]
+(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+condaPackagesCh.into { condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
+condaFilesCh.into { condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
 
-condaPackagesCh.into { condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh }
-condaFilesCh.into { condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh }
 
 Channel
   .fromPath("${projectDir}/recipes/singularity/*.def")
-  .map {
-    String optionalFile = null
-    if (it.simpleName == 'r') {
-      optionalFile = "${projectDir}/../preconfs/renv.lock"
-    } else {
-      optionalFile = 'EMPTY'
-    }
-
-    return [it.simpleName, it, optionalFile]
-  }
+  .map { [it.simpleName, it] }
   .set { singularityRecipeCh1 }
-
-
-/**
- * CONDA RECIPES
- **/
-
-Channel
-  .fromPath("${projectDir}/recipes/conda/*.yml")
-  .set { condaRecipes }
-
-
-/**
- * DEPENDENCIES
- **/
-
-Channel
-  .fromPath("${projectDir}/recipes/dependencies/*")
-  .set { fileDependencies }
-
-/**
- * SOURCE CODE
- **/
-
-
-Channel
-  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
-  .set { sourceCodeDirCh }
 
 
 Channel
   .fromPath("${projectDir}/modules/*.sh")
   .map {
     return [it.simpleName, it]
-  }
-  .set { sourceCodeCh }
+  }.into { sourceCodeCh1; sourceCodeCh2; sourceCodeCh3 }
+
+
 
 /**
  * PROCESSES
@@ -157,7 +129,7 @@ Channel
 // TODO: Check if order of dependencies can be an issue
 condaChannelFromSpecsCh = Channel.create()
 condaDepFromSpecsCh = Channel.create()
-condaSpecsCh = condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh) { pTool -> [pTool[1][0], pTool[1][1]] }
+condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh) { pTool -> [pTool[1][0], pTool[1][1]] }
 
 process buildCondaDepFromRecipes {
   tag { "condaDepBuild-" + key }
@@ -219,7 +191,7 @@ process buildDefaultSingularityRecipe {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   output:
-    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
+    set val(key), file("${key}.def") into singularityRecipeCh2
 
   script:
     key = 'onlyLinux'
@@ -249,11 +221,14 @@ process buildSingularityRecipeFromCondaFile {
 
   input:
     set val(key), file(condaFile), val(yum), val(git) from condaFiles4SingularityRecipesCh
+      .join(sourceCodeCh1, remainder: true)
+      .filter { it[2] == null }
+      .map { [it[0], it[1]] }
       .groupTuple()
       .map { addYumAndGitToCondaCh(it) }
 
   output:
-    set val(key), file("${key}.def"), file(condaFile) into singularityRecipeCh3
+    set val(key), file("${key}.def") into singularityRecipeCh3
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -302,11 +277,14 @@ process buildSingularityRecipeFromCondaPackages {
 
   input:
     set val(key), val(tools), val(yum), val(git) from condaPackages4SingularityRecipesCh
+      .join(sourceCodeCh2, remainder: true)
+      .filter { it[2] == null }
+      .map { [it[0], it[1]] }
       .groupTuple()
       .map { addYumAndGitToCondaCh(it) }
 
   output:
-    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh4
+    set val(key), file("${key}.def") into singularityRecipeCh4
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -351,16 +329,17 @@ process buildSingularityRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(installFile) from sourceCodeCh
+    set val(key), file(installFile) from sourceCodeCh3
 
   output:
-    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh5
+    set val(key), file("${key}.def") into singularityRecipeCh5
 
   script:
     """
+    image_name=\$(grep -q conda ${installFile} && echo "conda/miniconda3-centos7" || echo "centos:7")
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}centos:7
+    From: ${params.dockerRegistry}\${image_name}
     Stage: devel
 
     %setup
@@ -396,17 +375,22 @@ process buildSingularityRecipeFromSourceCode {
     """
 }
 
-onlyCondaRecipeCh = singularityRecipeCh3.mix(singularityRecipeCh4)
-onlyCondaRecipeCh.into {
-  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh;
-  onlyCondaRecipe4buildImagesCh
+// onlyCondaRecipeCh = condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh)
+condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
+  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh
 }
 
-singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(onlyCondaRecipe4buildImagesCh).mix(singularityRecipeCh5)
-singularityAllRecipeCh.into {
-  singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
-  singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
-}
+
+singularityRecipeCh1
+  .mix(singularityRecipeCh2)
+  .mix(singularityRecipeCh5)
+  .mix(singularityRecipeCh3)
+  .mix(singularityRecipeCh4)
+  .unique{ it[0] }
+  .into {
+    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
+    singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
+  }
 
 process buildImages {
   tag "${key}"
@@ -416,10 +400,7 @@ process buildImages {
     params.buildSingularityImages
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh
-    file condaYml from condaRecipes.collect().ifEmpty([])
-    file fileDep from fileDependencies.collect().ifEmpty([])
-    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildImagesCh
 
   output:
     file("${key.toLowerCase()}.simg")
@@ -442,7 +423,7 @@ process buildSingularityConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildSingularityCh
 
   output:
     file("${key}SingularityConfig.txt") into mergeSingularityConfigCh
@@ -514,7 +495,7 @@ process buildDockerConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildDockerCh
 
   output:
     file("${key}DockerConfig.txt") into mergeDockerConfigCh
@@ -568,7 +549,7 @@ process buildCondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildCondaCh
+    set val(key), val(singularityRecipe) from onlyCondaRecipe4buildCondaCh
 
   output:
     file("${key}CondaConfig.txt") into mergeCondaConfigCh
@@ -619,17 +600,19 @@ process buildMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildMulticondaCh
+    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsCh)
 
   output:
     file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
 
   script:
+    cplmt = condaDef == 'ENV' ? '.label' : ''
     """
     cat << EOF > "${key}MulticondaConfig.txt"
-      withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
+      withLabel:${key} { conda = "\\\${params.geniac.tools.${key}${cplmt}}" }
     EOF
     """
+    // withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
 }
 
 process mergeMulticondaConfig {
@@ -670,7 +653,7 @@ process buildMultiPathConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildPathCh
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildPathCh
 
   output:
     file("${key}MultiPathConfig.txt") into mergeMultiPathConfigCh
