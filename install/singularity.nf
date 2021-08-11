@@ -384,7 +384,7 @@ process buildSingularityRecipeFromSourceCode {
         gitCommit ${params.gitCommit}
 
     %files from devel
-        /usr/local/bin /usr/local/bin
+        /usr/local/bin/ /usr/local/
 
 
     %environment
