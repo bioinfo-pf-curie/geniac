@@ -111,6 +111,32 @@ Channel
   .map { [it.simpleName, it] }
   .set { singularityRecipeCh1 }
 
+/**
+ * CONDA RECIPES
+ **/
+
+Channel
+  .fromPath("${projectDir}/recipes/conda/*.yml")
+  .set { condaRecipes }
+
+
+/**
+ * DEPENDENCIES
+ **/
+
+Channel
+  .fromPath("${projectDir}/recipes/dependencies/*")
+  .set { fileDependencies }
+
+/**
+ * SOURCE CODE
+ **/
+
+
+Channel
+  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
+  .set { sourceCodeDirCh }
+
 
 Channel
   .fromPath("${projectDir}/modules/*.sh")
@@ -401,6 +427,9 @@ process buildImages {
 
   input:
     set val(key), file(singularityRecipe) from singularityAllRecipe4buildImagesCh
+    file condaYml from condaRecipes.collect().ifEmpty([])
+    file fileDep from fileDependencies.collect().ifEmpty([])
+    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
 
   output:
     file("${key.toLowerCase()}.simg")
