@@ -598,7 +598,7 @@ process mergeCondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
     echo "process {"  >> conda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> conda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export \\\$PATH=\\\$PATH:${projectDir}/bin/geniac\\\"\n" >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config
@@ -649,7 +649,7 @@ process mergeMulticondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> multiconda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export \\\$PATH=\\\$PATH:${projectDir}/bin/geniac\\\"\n" >> multiconda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multiconda.config

@@ -1,3 +1,10 @@
+NEW FEATURES
+   - Tools from source are installed in ${projectDir}/bin/geniac in order to allow their usage inside the containers
+
+BUGFIX
+   - Copy files in /usr/local/bin in the singularity image when the tool is built from source code
+   - Fix extra quotes in the beforeScript directive added in the conda.config and multiconda.config files
+
 version-1.1.0
 08/09/2021
 
