@@ -421,6 +421,7 @@ singularityRecipeCh1
   }
 
 process buildImages {
+  maxForks 1
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
