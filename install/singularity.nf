@@ -376,7 +376,9 @@ process buildSingularityRecipeFromSourceCode {
         modules/${key}/ /opt/modules
 
     %post
-        yum install -y epel-release which gcc gcc-c++ make \\\\
+        yum install -y which epel-release \\\\
+        && yum repolist \\\\
+        && yum install -y gcc gcc-c++ make \\\\
         && cd /opt/modules \\\\
         && bash ${installFile} \\\\
 
