@@ -27,10 +27,11 @@ of the license and that you accept its terms.
  * CUSTOM FUNCTIONS
  **/
 
-def addYumAndGitToCondaCh(List condaIt) {
+def addYumAndGitAndCmdToCondaCh(List condaIt) {
   List<String> gitList = []
   LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
   LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
+  LinkedHashMap cmdConf = params.geniac.containers.cmd ?: [:]
   (gitConf[condaIt[0]] ?:'')
     .split()
     .each{ gitList.add(it.split('::')) }
@@ -39,7 +40,8 @@ def addYumAndGitToCondaCh(List condaIt) {
     condaIt[0],
     condaIt[1],
     yumConf[condaIt[0]],
-    gitList
+    gitList,
+    cmdConf[condaIt[0]]
   ]
 }
 
@@ -138,11 +140,11 @@ Channel
   .set { sourceCodeDirCh }
 
 
-Channel
-  .fromPath("${projectDir}/modules/*.sh")
-  .map {
-    return [it.simpleName, it]
-  }.into { sourceCodeCh1; sourceCodeCh2; sourceCodeCh3 }
+// Channel
+//   .fromPath("${projectDir}/modules/*.sh")
+//   .map {
+//     return [it.simpleName, it]
+//   }.into { sourceCodeCh1; sourceCodeCh2; sourceCodeCh3 }
 
 
 
@@ -246,9 +248,12 @@ process buildSingularityRecipeFromCondaFile {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git) from condaFiles4SingularityRecipesCh
+    set val(key), file(condaFile), val(yum), val(git), val(cmd) from condaFiles4SingularityRecipesCh
+
+      // to prevent conda recipes for specific source code cases
       .join(sourceCodeCh1, remainder: true)
       .filter { it[2] == null }
+
       .map { [it[0], it[1]] }
       .groupTuple()
       .map { addYumAndGitToCondaCh(it) }
@@ -259,6 +264,7 @@ process buildSingularityRecipeFromCondaFile {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    def cplmtCmd = cmd ? '&& ' + cmd.join('\n'): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
@@ -287,7 +293,7 @@ process buildSingularityRecipeFromCondaFile {
         && yum clean all \\\\
         && conda env create -f /opt/\$(basename ${condaFile}) \\\\
         && echo "source activate \${env_name}" > ~/.bashrc \\\\
-        && conda clean -a
+        && conda clean -a ${cplmtCmd}
 
     EOF
     """
@@ -302,9 +308,12 @@ process buildSingularityRecipeFromCondaPackages {
 
 
   input:
-    set val(key), val(tools), val(yum), val(git) from condaPackages4SingularityRecipesCh
+    set val(key), val(tools), val(yum), val(git), val(cmd) from condaPackages4SingularityRecipesCh
+
+      // to prevent conda recipes for specific source code cases
       .join(sourceCodeCh2, remainder: true)
       .filter { it[2] == null }
+
       .map { [it[0], it[1]] }
       .groupTuple()
       .map { addYumAndGitToCondaCh(it) }
@@ -343,7 +352,7 @@ process buildSingularityRecipeFromCondaPackages {
         && yum clean all \\\\
         && conda create -y -n ${key}_env ${cplmtConda} \\\\
         && echo "source activate ${key}_env" > ~/.bashrc \\\\
-        && conda clean -a
+        && conda clean -a ${cplmtCmd}
 
     EOF
     """
@@ -378,7 +387,7 @@ process buildSingularityRecipeFromSourceCode {
     %post
         yum install -y which epel-release \\\\
         && yum repolist \\\\
-        && yum install -y gcc gcc-c++ make \\\\
+        && yum install -y gcc gcc-c++ make ${cplmtYum} \\\\
         && cd /opt/modules \\\\
         && bash ${installFile} \\\\
 
@@ -430,9 +439,9 @@ process buildImages {
 
   input:
     set val(key), file(singularityRecipe) from singularityAllRecipe4buildImagesCh
-    file condaYml from condaRecipes.collect().ifEmpty([])
-    file fileDep from fileDependencies.collect().ifEmpty([])
-    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
+    file fileDep from fileDependencies.collect().filter(~/${key}/).ifEmpty([])
+    file condaYml from condaRecipes.collect().filter { it.name - '.yml' == key } .ifEmpty([])
+    file moduleDir from sourceCodeDirCh.collect().filter(~/${key}/).ifEmpty([])
 
   output:
     file("${key.toLowerCase()}.simg")
