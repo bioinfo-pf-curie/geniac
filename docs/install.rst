@@ -279,7 +279,7 @@ Structure of the installation directory tree
    └── pipeline
        ├── assets
        ├── bin
-       │   └── geniac
+       │   └── fromSource
        ├── conf
        ├── docs
        ├── env
