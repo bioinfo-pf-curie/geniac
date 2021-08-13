@@ -37,10 +37,10 @@ set(workdir_depends_files
     ${CMAKE_SOURCE_DIR}/install/nextflow.config.in
     ${CMAKE_SOURCE_DIR}/install/docker.nf)
 
-if(EXISTS ${pipeline_source_dir}/modules/)
+if(EXISTS ${pipeline_source_dir}/modules/fromSource/)
     set(workdir_depends_files
         ${workdir_depends_files}
-        ${pipeline_source_dir}/modules/*)
+        ${pipeline_source_dir}/modules/fromSource/*)
 endif()
 
 if(EXISTS ${pipeline_source_dir}/recipes/)
