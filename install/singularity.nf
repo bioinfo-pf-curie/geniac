@@ -120,7 +120,7 @@ Channel
 
 Channel
   .fromPath("${projectDir}/recipes/conda/*.yml")
-  .map{ [it.name, it] }
+  .map{ [it.simpleName, it] }
   .set{ condaRecipes }
 
 
@@ -129,7 +129,7 @@ Channel
  **/
 
 Channel
-  .fromPath("${projectDir}/recipes/dependencies", type: 'dir')
+  .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
   .map{ [it.name, it] }
   .set{ fileDependencies }
 
@@ -139,7 +139,7 @@ Channel
 
 
 Channel
-  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
+  .fromPath("${projectDir}/modules/*", type: 'dir')
   .map{ [it.name, it] }
   .set{ sourceCodeDirCh }
 
@@ -269,7 +269,7 @@ process buildSingularityRecipeFromCondaFile {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n && ' + cmdPost.join(' \\\\\n && '): ''
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? cmdEnv.join('\n'): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
@@ -330,7 +330,7 @@ process buildSingularityRecipeFromCondaPackages {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n && ' + cmdPost.join(' \\\\\n && '): ''
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? cmdEnv.join('\n'): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
@@ -381,7 +381,7 @@ process buildSingularityRecipeFromSourceCode {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n && ' + cmdPost.join(' \\\\\n && '): ''
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? cmdEnv.join('\n'): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
@@ -397,12 +397,13 @@ process buildSingularityRecipeFromSourceCode {
         mkdir -p \\\${SINGULARITY_ROOTFS}/opt/modules
 
     %files
-        modules/${key}/ /opt/modules
+        ${key}/ /opt/modules
 
     %post
         yum install -y which epel-release \\\\
         && yum repolist \\\\
         && yum install -y gcc gcc-c++ make ${yumPkgs} ${cplmtGit} \\\\
+        && cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
         && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
         && make && make install ${cplmtCmdPost}
