@@ -139,17 +139,9 @@ Channel
 
 
 Channel
-  .fromPath("${projectDir}/modules/*", type: 'dir')
+  .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
   .map{ [it.name, it] }
-  .set{ sourceCodeDirCh }
-
-
-Channel
-  .from(params.geniac.fromSource)
-  .flatten()
-  .into{ mainSourceCode12; sourceCodeCh3 }
-
-mainSourceCode12.map{ [it, true] }.into{ sourceCodeCh1; sourceCodeCh2 }
+  .set{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
 
 
 
@@ -373,7 +365,7 @@ process buildSingularityRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs([it]) }
+    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs([it]) }
 
   output:
     set val(key), file("${key}.def") into singularityRecipeCh5
@@ -402,7 +394,7 @@ process buildSingularityRecipeFromSourceCode {
     %post
         yum install -y which epel-release \\\\
         && yum repolist \\\\
-        && yum install -y gcc gcc-c++ make ${yumPkgs} ${cplmtGit} \\\\
+        && yum install -y gcc gcc-c++ make cmake3 autoconf automake ${yumPkgs} ${cplmtGit} \\\\
         && cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
         && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
@@ -459,7 +451,7 @@ process buildImages {
     set val(key), file(singularityRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) from singularityAllRecipe4buildImagesCh
       .join(fileDependencies, remainder: true)
       .join(condaRecipes, remainder: true)
-      .join(sourceCodeDirCh, remainder: true)
+      .join(sourceCodeCh4, remainder: true)
       .filter{ it[1] }
 
   output:
