@@ -1,5 +1,5 @@
 NEW FEATURES
-   - Tools from source are installed in ${projectDir}/bin/geniac in order to allow their usage inside the containers
+   - Tools from source are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
 
 BUGFIX
    - Copy files in /usr/local/bin in the singularity image when the tool is built from source code
