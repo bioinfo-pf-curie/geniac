@@ -72,11 +72,11 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
+        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
@@ -101,10 +101,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
+        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/deffiles.done"
@@ -147,10 +147,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
+        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/singularityImages.done"
