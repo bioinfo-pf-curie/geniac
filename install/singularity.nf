@@ -141,7 +141,7 @@ Channel
 Channel
   .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
   .map{ [it.name, it] }
-  .set{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
+  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
 
 
 
@@ -365,7 +365,7 @@ process buildSingularityRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs([it]) }
+    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs(it) }
 
   output:
     set val(key), file("${key}.def") into singularityRecipeCh5
@@ -440,7 +440,7 @@ singularityRecipeCh1
   }
 
 process buildImages {
-  maxForks 1
+  // maxForks 1
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
@@ -522,7 +522,7 @@ process mergeSingularityConfig {
     singularity {
       enabled = true
       autoMounts = true
-      runOptions = "\\\${params.geniac.containers.singularityRunOptions}"
+      runOptions = "\\\$((params.geniac.containers.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')) -B \\\\"\\\\\\\$PWD\\\\":/tmp --containall"
     }
 
     process {
