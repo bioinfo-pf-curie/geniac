@@ -236,6 +236,7 @@ process buildDefaultSingularityRecipe {
     %environment
         LC_ALL=en_US.utf-8
         LANG=en_US.utf-8
+        export LC_ALL LANG
     EOF
     """
 }
@@ -262,7 +263,7 @@ process buildSingularityRecipeFromCondaFile {
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? cmdEnv.join('\n'): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
@@ -278,9 +279,9 @@ process buildSingularityRecipeFromCondaFile {
         gitCommit ${params.gitCommit}
 
     %environment
-        PATH=/usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
+        export PATH=/usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
         ${cplmtCmdEnv}
 
     # real path from projectDir: ${condaFile}
@@ -291,11 +292,11 @@ process buildSingularityRecipeFromCondaFile {
         yum install -y which ${yumPkgs} ${cplmtGit} \\\\
         && yum clean all \\\\
         && conda env create -f /opt/\$(basename ${condaFile}) \\\\
-        && echo "source activate \${env_name}" > ~/.bashrc \\\\
         && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
+    // && echo "source activate \${env_name}" > ~/.bashrc \\\\
 }
 
 /**
@@ -323,7 +324,7 @@ process buildSingularityRecipeFromCondaPackages {
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? cmdEnv.join('\n'): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
@@ -343,20 +344,20 @@ process buildSingularityRecipeFromCondaPackages {
         gitCommit ${params.gitCommit}
 
     %environment
-        PATH=/usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
+        export PATH=/usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
         ${cplmtCmdEnv}
 
     %post
         yum install -y which ${yumPkgs} ${cplmtGit} \\\\
         && yum clean all \\\\
         && conda create -y -n ${key}_env ${cplmtConda} \\\\
-        && echo "source activate ${key}_env" > ~/.bashrc \\\\
         && conda clean -a  ${cplmtCmdPost}
 
     EOF
     """
+    // && echo "source activate ${key}_env" > ~/.bashrc \\\\
 }
 
 
@@ -374,7 +375,7 @@ process buildSingularityRecipeFromSourceCode {
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? cmdEnv.join('\n'): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
     """
@@ -413,9 +414,9 @@ process buildSingularityRecipeFromSourceCode {
 
 
     %environment
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
-        PATH=/usr/local/bin:${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        export PATH=/usr/local/bin:${cplmtPath}\\\$PATH
         ${cplmtCmdEnv}
 
     EOF
