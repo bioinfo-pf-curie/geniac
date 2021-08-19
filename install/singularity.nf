@@ -522,7 +522,7 @@ process mergeSingularityConfig {
 
     singularity {
       enabled = true
-      autoMounts = true
+      autoMounts = false
       runOptions = "\\\${(params.geniac.containers.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')} -B \\\\"\\\\\\\$PWD\\\\":/tmp --containall"
     }
 
