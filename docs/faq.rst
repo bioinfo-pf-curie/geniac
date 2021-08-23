@@ -46,7 +46,7 @@ Create additional files and folders
 
 The following files are mandatory:
 
-* :download:`CMakeLists.txt <../data/modules/CMakeLists.txt>`: create a folder named ``modules`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
+* :download:`CMakeLists.txt <../data/modules/fromSource/CMakeLists.txt>`: create a folder named ``modules/fromSource`` and copy this file inside if your need to :ref:`process-source-code`. Check that the file is named ``CMakeLists.txt``.
 * :download:`geniac.config <../data/conf/geniac.config>`: copy the file in the folder ``conf``. This file contains a scope names ``geniac`` that defines all the nextflow variables needed to build, deploy and run the pipeline.
 
 Moreover, depending on which case your are when you :ref:`process-page`, you can create whenever you need them the following folders:
@@ -136,6 +136,11 @@ How can I pass specific options to run docker or singularity containers?
 ========================================================================
 
 If needed, you can set the ``singularityRunOptions`` and ``dockerRunOptions`` values to whatever is needed for your configuration in the  ``geniac.config`` file. This will set the ``runOption`` parameters (see `Nextflow configuration <https://www.nextflow.io/docs/latest/config.html>`_) of the |singularity|_ and |docker|_ directive respectively to the selected value when the |singularity|_ and |docker|_ profiles will be called.
+
+How can a conda environment be activated in docker or singularity containers?
+=============================================================================
+
+In order to activate a conda environment with ``conda activate myConda_env`` when a docker or singularity container is executed, some configuration are required insie the recipes. This is described in :ref:`conda-page`.
 
 How can I see the recipes for the containers?
 =============================================
