@@ -1,0 +1,10 @@
+
+*************
+Miscellaneous
+*************
+
+.. toctree::
+   conda
+   profiles
+
+

@@ -13,7 +13,7 @@ FAQ
 
 
 How can I use geniac on an existing repository?
-==================================================
+===============================================
 
 The structure of the repository is based on |nfcore|_ and additional files and folders are expected.
 
