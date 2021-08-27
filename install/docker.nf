@@ -27,20 +27,22 @@ of the license and that you accept its terms.
  * CUSTOM FUNCTIONS
  **/
 
-def addYumAndGitToCondaCh(List condaIt) {
+def addYumAndGitAndCmdConfs(List input) {
   List<String> gitList = []
   LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
   LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-  (gitConf[condaIt[0]] ?:'')
+  LinkedHashMap cmdPostConf = params.geniac.containers.cmd.post ?: [:]
+  LinkedHashMap cmdEnvConf = params.geniac.containers.cmd.envCustom ?: [:]
+  (gitConf[input[0]] ?:'')
     .split()
     .each{ gitList.add(it.split('::')) }
 
-  return [
-    condaIt[0],
-    condaIt[1],
-    yumConf[condaIt[0]],
-    gitList
-  ]
+  List result = new ArrayList<>(input)
+  result.add(yumConf[input[0]])
+  result.add(gitList)
+  result.add(cmdPostConf[input[0]])
+  result.add(cmdEnvConf[input[0]])
+  return result
 }
 
 String buildCplmtGit(def gitEntries) {
@@ -70,46 +72,48 @@ String buildCplmtPath(List gitEntries) {
 
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
+condaEnvsCh = Channel.create()
 Channel
   .from(params.geniac.tools)
   .flatMap {
     List<String> result = []
     for (Map.Entry<String, String> entry : it.entrySet()) {
-      List<String> tab = entry.value.split()
+      if (entry.value instanceof String) {
+        List<String> tab = entry.value.split()
+        for (String s : tab) {
+          result.add([entry.key, s.split('::')])
+        }
 
-      for (String s : tab) {
-        result.add([entry.key, s.split('::')])
-      }
-
-      if (tab.size == 0) {
-        result.add([entry.key, null])
+        if (tab.size == 0) {
+          result.add([entry.key, null])
+        }
+      } else {
+        result.add([entry.key, entry.value])
       }
     }
 
     return result
   }.branch {
-  condaFilesCh:
-  (it[1] && it[1][0].endsWith('.yml'))
-  return [it[0], file(it[1][0])]
-  condaPackagesCh: true
-  return it
-}.set { condaForks }
-(condaFilesCh, condaPackagesCh) = [condaForks.condaFilesCh, condaForks.condaPackagesCh]
+    condaExistingEnvsCh:
+      (it[1] && it[1] instanceof Map)
+      return [it[0], 'ENV']
+    condaFilesCh:
+      (it[1] && it[1][0].endsWith('.yml'))
+      return [it[0], file(it[1][0])]
+    condaPackagesCh: true
+      return it
+  }.set{ condaForks }
+
+(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+condaPackagesCh.into{ condaPackages4DockerRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
+condaFilesCh.into{ condaFiles4DockerRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
+
+
 
 Channel
   .fromPath("${projectDir}/recipes/docker/*.Dockerfile")
-  .map {
-    String optionalFile = null
-    if (it.simpleName == 'r') {
-      optionalFile = "${projectDir}/../preconfs/renv.lock"
-    } else {
-      optionalFile = 'EMPTY'
-    }
-
-    return [it.simpleName, it, optionalFile]
-  }
-  .set { dockerRecipeCh1 }
-
+  .map{ [it.simpleName, it] }
+  .set{ dockerRecipeCh1 }
 
 /**
  * CONDA RECIPES
@@ -117,7 +121,8 @@ Channel
 
 Channel
   .fromPath("${projectDir}/recipes/conda/*.yml")
-  .set { condaRecipes }
+  .map{ [it.simpleName, it] }
+  .set{ condaRecipes }
 
 
 /**
@@ -125,8 +130,9 @@ Channel
  **/
 
 Channel
-  .fromPath("${projectDir}/recipes/dependencies/*")
-  .set { fileDependencies }
+  .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
+  .map{ [it.name, it] }
+  .set{ fileDependencies }
 
 /**
  * SOURCE CODE
@@ -134,16 +140,11 @@ Channel
 
 
 Channel
-  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
-  .set { sourceCodeDirCh }
+  .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
+  .map{ [it.name, it] }
+  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
 
 
-Channel
-  .fromPath("${projectDir}/modules/*.sh")
-  .map {
-    return [it.simpleName, it]
-  }
-  .set { sourceCodeCh }
 
 /**
  * PROCESSES
@@ -157,7 +158,7 @@ process buildDefaultDockerRecipe {
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   output:
-    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh2
+    set val(key), file("${key}.Dockerfile") into dockerRecipeCh2
 
   script:
     key = 'onlyLinux'
@@ -177,23 +178,29 @@ process buildDefaultDockerRecipe {
     """
 }
 
-
-
 process buildDockerRecipeFromCondaFile {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git) from condaFilesCh
+    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4DockerRecipesCh
+
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh1, remainder: true)
+      .filter{ it[1] && !it[2] }
+
+      .map{ [it[0], it[1]] }
       .groupTuple()
-      .map { addYumAndGitToCondaCh(it) }
+      .map{ addYumAndGitAndCmdConfs(it) }
 
   output:
-    set val(key), file("${key}.Dockerfile"), file(condaFile) into dockerRecipeCh3
+    set val(key), file("${key}.Dockerfile") into dockerRecipeCh3
 
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
@@ -231,25 +238,32 @@ process buildDockerRecipeFromCondaPackages {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
-
   input:
-    set val(key), val(tools), val(yum), val(git) from condaPackagesCh
+    set val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaPackages4DockerRecipesCh
+
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh2, remainder: true)
+      .filter{ it[1] && !it[2] }
+
+      .map{ [it[0], it[1]] }
       .groupTuple()
-      .map { addYumAndGitToCondaCh(it) }
+      .map{ addYumAndGitAndCmdConfs(it) }
 
   output:
-    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh4
+    set val(key), file("${key}.Dockerfile") into dockerRecipeCh4
 
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
     def cplmtConda = ''
     for (String[] tab : tools) {
       cplmtConda += """ \\\\
-      && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+        && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
     }
 
     """
@@ -280,28 +294,38 @@ process buildDockerRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(installFile) from sourceCodeCh
+    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs(it) }
 
   output:
-    set val(key), file("${key}.Dockerfile"), val('EMPTY') into dockerRecipeCh5
+    set val(key), file("${key}.Dockerfile") into dockerRecipeCh5
 
   script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
     """
+    image_name=\$(grep -q conda ${cmdPost} && echo "conda/miniconda3-centos7" || echo "centos:7")
+
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}centos:7
+    FROM ${params.dockerRegistry}\${image_name}
     
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
     RUN mkdir -p /opt/modules
 
-    ADD modules/${installFile} /opt/modules
-    ADD modules/${key}/ /opt/modules/${key}
+
+    ADD ${key}/ /opt/modules/${key}
       
-    RUN yum install -y epel-release which gcc gcc-c++ make \\\\
+    RUN yum install -y which epel-release && \\\\
+        yum install -y gcc gcc-c++ make cmake3 autoconf automake ${yumPkgs} ${cplmtGit} \\\\
     && cd /opt/modules \\\\
-    && bash ${installFile} \\\\
-    && rm -r /opt/modules
+    && mkdir build && cd build || exit \\\\
+    && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
+    && make && make install ${cplmtCmdPost}
 
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
@@ -311,10 +335,25 @@ process buildDockerRecipeFromSourceCode {
     """
 }
 
-onlyCondaRecipeCh = dockerRecipeCh3.mix(dockerRecipeCh4)
-dockerAllRecipeCh = dockerRecipeCh1.mix(dockerRecipeCh2).mix(onlyCondaRecipeCh).mix(dockerRecipeCh5).dump(tag:'dockerRecipes')
+// onlyCondaRecipeCh = condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh)
+condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
+  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh
+}
+
+
+dockerRecipeCh1
+  .mix(dockerRecipeCh2)
+  .mix(dockerRecipeCh5)
+  .mix(dockerRecipeCh3)
+  .mix(dockerRecipeCh4)
+  .unique{ it[0] }
+  .into {
+    dockerAllRecipe4buildImagesCh; dockerAllRecipe4buildDockerCh;
+    dockerAllRecipe4buildPathCh
+  }
 
 process buildImages {
+  maxForks 1
   tag "${key}"
   // publishDir "${projectDir}/${params.publishDirDockerImages}", overwrite: true, mode: 'copy'
 
@@ -322,18 +361,31 @@ process buildImages {
     params.buildDockerImages
 
   input:
-    set val(key), file(dockerRecipe), val(optionalPath) from dockerAllRecipeCh
-    file condaYml from condaRecipes.collect().ifEmpty([])
-    file fileDep from fileDependencies.collect().ifEmpty([])
-    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
+    set val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) from dockerAllRecipe4buildImagesCh
+      .join(fileDependencies, remainder: true)
+      .join(condaRecipes, remainder: true)
+      .join(sourceCodeCh4, remainder: true)
+      .filter{ it[1] }
+
 
   script:
-    excludemoduleDir = moduleDir == [] ? "--exclude='modules'" : ""
+    String contextDir
+
+    if (fileDepDir.name.toString() == key) {
+      contextDir = "${projectDir}/recipes/dependencies"
+    } else
+    if (condaRecipe.name.toString().replace('.yml', '') == key) {
+        contextDir = "${projectDir}/recipes/conda"
+    } else
+    if (sourceCodeDir.name.toString() == key) {
+        contextDir = "${projectDir}/modules/fromSource"
+    } else {
+      contextDir = "."
+    }
+
+    System.println(contextDir)
     """
-    tar cvfh contextDir.tar ${excludemoduleDir} *
-    mkdir contextDir
-    tar xvf contextDir.tar --directory contextDir
-    docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} contextDir
+    docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
     """
 }
 

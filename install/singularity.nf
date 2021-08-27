@@ -394,7 +394,6 @@ process buildSingularityRecipeFromSourceCode {
 
     %post
         yum install -y which epel-release \\\\
-        && yum repolist \\\\
         && yum install -y gcc gcc-c++ make cmake3 autoconf automake ${yumPkgs} ${cplmtGit} \\\\
         && cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
