@@ -164,13 +164,10 @@ process buildDefaultDockerRecipe {
     key = 'onlyLinux'
     """
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}centos:7
+    FROM ${params.dockerRegistry}${params.dockerDistroLinux}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
-
-    RUN yum install -y which \\\\
-    && yum clean all
 
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
@@ -199,34 +196,40 @@ process buildDockerRecipeFromCondaFile {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
 
     """
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}conda/miniconda3-centos7
+    FROM ${params.dockerRegistry}${params.dockerDistroLinuxConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
+    ENV PATH /usr/local/conda/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
+    ENV LC_ALL en_US.utf-8
+    ENV LANG en_US.utf-8
+    ${cplmtCmdEnv}
+
     # real path from projectDir: ${condaFile}
     ADD \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
-    RUN yum install -y which ${yumPkgs} ${cplmtGit} \\\\
-    && yum clean all \\\\
+    RUN ${cplmtYum}yum clean all \\\\
     && conda env create -f /opt/\$(basename ${condaFile}) \\\\
-    && echo "source activate \${env_name}" > ~/.bashrc \\\\
-    && conda clean -a
+    && echo "conda activate \${env_name}" > ~/.bashrc \\\\
+    && conda clean -a  ${cplmtCmdPost}
 
 
-    ENV PATH /usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
-
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     EOF
     """
 }
@@ -255,35 +258,46 @@ process buildDockerRecipeFromCondaPackages {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
-    def cplmtConda = ''
+
+    List condaChannels = []
+    List condaPackages = []
     for (String[] tab : tools) {
-      cplmtConda += """ \\\\
-        && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+      if (!condaChannels.contains(tab[0])) {
+        condaChannels.add(tab[0])
+      }
+      condaPackages.add(tab[1])
+    }
+    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
+    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+    && """
     }
 
     """
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}conda/miniconda3-centos7
+    FROM ${params.dockerRegistry}${params.dockerDistroLinuxConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    RUN yum install -y which ${yumPkgs} ${cplmtGit} \\\\
-    && yum clean all \\\\
-    && conda create -y -n ${key}_env ${cplmtConda} \\\\
-    && echo "source activate ${key}_env" > ~/.bashrc \\\\
-    && conda clean -a
-
-
-    ENV PATH /usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
-
+    ENV PATH /usr/local/conda/envs/${key}_env/bin:${cplmtPath}\\\$PATH
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
+    ${cplmtCmdEnv}
+
+    RUN ${cplmtYum}yum clean all \\\\
+    && conda create -y -n ${key}_env \\\\
+    && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+    && conda clean -a ${cplmtCmdPost} \\\\
+    && echo "conda activate ${key}_env" > ~/.bashrc
     EOF
     """
 }
@@ -302,34 +316,39 @@ process buildDockerRecipeFromSourceCode {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
     """
-    image_name=\$(grep -q conda ${cmdPost} && echo "conda/miniconda3-centos7" || echo "centos:7")
 
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}\${image_name}
+    FROM ${params.dockerRegistry}${params.dockerDistroLinuxSdk}
     
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
     RUN mkdir -p /opt/modules
 
-
     ADD ${key}/ /opt/modules/${key}
-      
-    RUN yum install -y which epel-release && \\\\
-        yum install -y gcc gcc-c++ make cmake3 autoconf automake ${yumPkgs} ${cplmtGit} \\\\
-    && cd /opt/modules \\\\
+    
+    RUN ${cplmtYum}cd /opt/modules \\\\
     && mkdir build && cd build || exit \\\\
     && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
     && make && make install ${cplmtCmdPost}
 
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
-    ENV PATH /usr/local/bin:\\\$PATH
+    ENV PATH /usr/local/bin:${cplmtPath}\\\$PATH
+    ${cplmtCmdEnv}
 
     EOF
     """
@@ -370,7 +389,6 @@ process buildImages {
 
   script:
     String contextDir
-
     if (fileDepDir.name.toString() == key) {
       contextDir = "${projectDir}/recipes/dependencies"
     } else
@@ -382,8 +400,6 @@ process buildImages {
     } else {
       contextDir = "."
     }
-
-    System.println(contextDir)
     """
     docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
     """

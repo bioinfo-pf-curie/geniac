@@ -223,20 +223,15 @@ process buildDefaultSingularityRecipe {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}centos:7
+    From: ${params.dockerRegistry}${params.dockerDistroLinux}
 
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
-    %post
-        yum install -y which \\\\
-        && yum clean all
-
     %environment
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
-        export LC_ALL LANG
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
     EOF
     """
 }
@@ -267,19 +262,25 @@ process buildSingularityRecipeFromCondaFile {
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
     """
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}conda/miniconda3-centos7
+    From: ${params.dockerRegistry}${params.dockerDistroLinuxConda}
 
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
     %environment
-        export PATH=/usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
+        export PATH=/usr/local/conda/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
         ${cplmtCmdEnv}
@@ -289,14 +290,13 @@ process buildSingularityRecipeFromCondaFile {
         \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
     %post
-        yum install -y which ${yumPkgs} ${cplmtGit} \\\\
-        && yum clean all \\\\
+        ${cplmtYum}yum clean all \\\\
         && conda env create -f /opt/\$(basename ${condaFile}) \\\\
         && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
-    // && echo "source activate \${env_name}" > ~/.bashrc \\\\
+    // && echo "conda activate \${env_name}" > ~/.bashrc \\\\
 }
 
 /**
@@ -328,36 +328,48 @@ process buildSingularityRecipeFromCondaPackages {
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
-    def cplmtConda = ''
+
+    List condaChannels = []
+    List condaPackages = []
     for (String[] tab : tools) {
-      cplmtConda += """ \\\\
-        && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+      if (!condaChannels.contains(tab[0])) {
+        condaChannels.add(tab[0])
+      }
+      condaPackages.add(tab[1])
+    }
+    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
+    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
     }
 
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}conda/miniconda3-centos7
+    From: ${params.dockerRegistry}${params.dockerDistroLinuxConda}
 
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
     %environment
-        export PATH=/usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
+        export PATH=/usr/local/conda/envs/${key}_env/bin:${cplmtPath}\\\$PATH
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
         ${cplmtCmdEnv}
 
     %post
-        yum install -y which ${yumPkgs} ${cplmtGit} \\\\
-        && yum clean all \\\\
-        && conda create -y -n ${key}_env ${cplmtConda} \\\\
-        && conda clean -a  ${cplmtCmdPost}
+        ${cplmtYum}yum clean all \\\\
+        && conda create -y -n ${key}_env \\\\
+        && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
-    // && echo "source activate ${key}_env" > ~/.bashrc \\\\
+    // && echo "conda activate ${key}_env" > ~/.bashrc \\\\
 }
 
 
@@ -378,12 +390,19 @@ process buildSingularityRecipeFromSourceCode {
     def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
     """
-    image_name=\$(grep -q conda ${cmdPost} && echo "conda/miniconda3-centos7" || echo "centos:7")
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}\${image_name}
+    From: ${params.dockerRegistry}${params.dockerDistroLinuxSdk}
     Stage: devel
 
     %setup
@@ -393,15 +412,13 @@ process buildSingularityRecipeFromSourceCode {
         ${key}/ /opt/modules
 
     %post
-        yum install -y which epel-release \\\\
-        && yum install -y gcc gcc-c++ make cmake3 autoconf automake ${yumPkgs} ${cplmtGit} \\\\
-        && cd /opt/modules \\\\
+        ${cplmtYum}cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
         && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
         && make && make install ${cplmtCmdPost}
 
     Bootstrap: docker
-    From: ${params.dockerRegistry}centos:7
+    From: ${params.dockerRegistry}${params.dockerDistroLinux}
     Stage: final
 
     %labels
