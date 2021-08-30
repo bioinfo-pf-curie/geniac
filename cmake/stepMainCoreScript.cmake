@@ -118,9 +118,9 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerfiles true
+        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done"
@@ -164,10 +164,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
+        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/dockerImages.done"
