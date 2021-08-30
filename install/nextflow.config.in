@@ -49,9 +49,9 @@ params {
 
   // docker containers from 4geniac docker hub repository
   dockerCondaRelease = '@conda_release@'
-  dockerDistroLinux = '@distro_linux@'
-  dockerDistroLinuxConda = "${params.dockerDistroLinux}_conda-${params.dockerCondaRelease}"
-  dockerDistroLinuxSdk = "${params.dockerDistroLinux}_sdk-conda-${params.dockerCondaRelease}"
+  dockerLinuxDistro = '@linux_distro@'
+  dockerLinuxDistroConda = "${params.dockerLinuxDistro}_conda-${params.dockerCondaRelease}"
+  dockerLinuxDistroSdk = "${params.dockerLinuxDistro}_sdk-conda-${params.dockerCondaRelease}"
 
   // docker registry
   dockerRegistry = '@docker_registry@'

@@ -164,7 +164,7 @@ process buildDefaultDockerRecipe {
     key = 'onlyLinux'
     """
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerDistroLinux}
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistro}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -211,7 +211,7 @@ process buildDockerRecipeFromCondaFile {
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerDistroLinuxConda}
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -283,7 +283,7 @@ process buildDockerRecipeFromCondaPackages {
 
     """
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerDistroLinuxConda}
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -331,7 +331,7 @@ process buildDockerRecipeFromSourceCode {
     """
 
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerDistroLinuxSdk}
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
     
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"

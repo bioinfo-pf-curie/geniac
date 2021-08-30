@@ -223,7 +223,7 @@ process buildDefaultSingularityRecipe {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerDistroLinux}
+    From: ${params.dockerRegistry}${params.dockerLinuxDistro}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -273,7 +273,7 @@ process buildSingularityRecipeFromCondaFile {
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerDistroLinuxConda}
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -349,7 +349,7 @@ process buildSingularityRecipeFromCondaPackages {
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerDistroLinuxConda}
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -402,7 +402,7 @@ process buildSingularityRecipeFromSourceCode {
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerDistroLinuxSdk}
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
     Stage: devel
 
     %setup
@@ -418,7 +418,7 @@ process buildSingularityRecipeFromSourceCode {
         && make && make install ${cplmtCmdPost}
 
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerDistroLinux}
+    From: ${params.dockerRegistry}${params.dockerLinuxDistro}
     Stage: final
 
     %labels
@@ -896,8 +896,8 @@ workflow.onComplete {
   endSummary['Success']      = workflow.success
   endSummary['exit status']  = workflow.exitStatus
   endSummary['Error report'] = workflow.errorReport ?: '-'
-  endSummary['Distro Linux'] = "${params.dockerDistroLinux}"
-  endSummary['Distro Linux / Conda'] ="${params.dockerDistroLinuxConda}"
+  endSummary['Distro Linux'] = "${params.dockerLinuxDistro}"
+  endSummary['Distro Linux / Conda'] ="${params.dockerLinuxDistroConda}"
   endSummary['Docker registry'] = "${params.dockerRegistry}"
   endSummary['Cluster executor'] = "${params.clusterExecutor}"
   String endWfSummary = endSummary.collect { k,v -> "${k.padRight(30, '.')}: $v" }.join("\n")

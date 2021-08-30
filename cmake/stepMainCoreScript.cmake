@@ -56,7 +56,7 @@ add_custom_command(
             -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
             -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
             -Ddocker_registry=${ap_docker_registry}
-            -Ddistro_linux=${ap_distro_linux}
+            -Dlinux_distro=${ap_linux_distro}
             -Dconda_release=${ap_conda_release}
             -P ${CMAKE_SOURCE_DIR}/cmake/createWorkDir.cmake
     COMMAND ${CMAKE_COMMAND} -E echo "workDir/ has been created"
