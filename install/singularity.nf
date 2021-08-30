@@ -230,6 +230,10 @@ process buildDefaultSingularityRecipe {
         gitCommit ${params.gitCommit}
 
     %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
     EOF
@@ -280,6 +284,10 @@ process buildSingularityRecipeFromCondaFile {
         gitCommit ${params.gitCommit}
 
     %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
         export PATH=/usr/local/conda/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
@@ -356,6 +364,10 @@ process buildSingularityRecipeFromCondaPackages {
         gitCommit ${params.gitCommit}
 
     %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
         export PATH=/usr/local/conda/envs/${key}_env/bin:${cplmtPath}\\\$PATH
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
@@ -430,6 +442,10 @@ process buildSingularityRecipeFromSourceCode {
 
 
     %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
         export PATH=/usr/local/bin:${cplmtPath}\\\$PATH

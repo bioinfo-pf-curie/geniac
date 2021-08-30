@@ -169,6 +169,10 @@ process buildDefaultDockerRecipe {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
+    ENV R_LIBS_USER "-"
+    ENV R_PROFILE_USER "-"
+    ENV R_ENVIRON_USER "-"
+    ENV PYTHONNOUSERSITE 1
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
     EOF
@@ -216,6 +220,10 @@ process buildDockerRecipeFromCondaFile {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
+    ENV R_LIBS_USER "-"
+    ENV R_PROFILE_USER "-"
+    ENV R_ENVIRON_USER "-"
+    ENV PYTHONNOUSERSITE 1
     ENV PATH /usr/local/conda/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
@@ -288,6 +296,10 @@ process buildDockerRecipeFromCondaPackages {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
+    ENV R_LIBS_USER "-"
+    ENV R_PROFILE_USER "-"
+    ENV R_ENVIRON_USER "-"
+    ENV PYTHONNOUSERSITE 1
     ENV PATH /usr/local/conda/envs/${key}_env/bin:${cplmtPath}\\\$PATH
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
@@ -345,6 +357,10 @@ process buildDockerRecipeFromSourceCode {
     && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
     && make && make install ${cplmtCmdPost}
 
+    ENV R_LIBS_USER "-"
+    ENV R_PROFILE_USER "-"
+    ENV R_ENVIRON_USER "-"
+    ENV PYTHONNOUSERSITE 1
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
     ENV PATH /usr/local/bin:${cplmtPath}\\\$PATH
