@@ -342,11 +342,10 @@ process buildDockerRecipeFromSourceCode {
 
     """
 
+    image_name=\$(grep -q conda ${cmdPost} && echo "${params.dockerLinuxDistroConda}" || echo "${params.dockerLinuxDistro}")
+
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
-    
-    LABEL gitUrl="${params.gitUrl}"
-    LABEL gitCommit="${params.gitCommit}"
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistroSdk} AS devel
 
     RUN mkdir -p /opt/modules
 
@@ -354,8 +353,17 @@ process buildDockerRecipeFromSourceCode {
     
     RUN ${cplmtYum}cd /opt/modules \\\\
     && mkdir build && cd build || exit \\\\
-    && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
+    && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
     && make && make install ${cplmtCmdPost}
+
+    FROM ${params.dockerRegistry}\${image_name}
+
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
+
+    COPY --from=devel /usr/local/bin/${key}/ /usr/local/bin/${key}/
+
+    RUN ${cplmtYum}echo "Final stage"
 
     ENV R_LIBS_USER "-"
     ENV R_PROFILE_USER "-"
@@ -363,7 +371,7 @@ process buildDockerRecipeFromSourceCode {
     ENV PYTHONNOUSERSITE 1
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
-    ENV PATH /usr/local/bin:${cplmtPath}\\\$PATH
+    ENV PATH /usr/local/bin/${key}:${cplmtPath}\\\$PATH
     ${cplmtCmdEnv}
 
     EOF
