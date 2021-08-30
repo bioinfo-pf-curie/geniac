@@ -1,3 +1,9 @@
+.. |4geniac| replace:: 4geniac
+.. _4geniac: https://hub.docker.com/u/4geniac
+
+.. |4geniacgithub| replace:: 4geniac on GitHub
+.. _4geniacgithub: https://github.com/bioinfo-pf-curie/4geniac
+
 .. |biogitflow| replace:: biogitflow
 .. _biogitflow: https://biogitflow.readthedocs.io
 
