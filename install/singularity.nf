@@ -412,6 +412,8 @@ process buildSingularityRecipeFromSourceCode {
 
     """
 
+    image_name=\$(grep -q conda ${cmdPost} && echo "${params.dockerLinuxDistroConda}" || echo "${params.dockerLinuxDistro}")
+
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
@@ -426,11 +428,11 @@ process buildSingularityRecipeFromSourceCode {
     %post
         ${cplmtYum}cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
-        && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin \\\\
+        && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
         && make && make install ${cplmtCmdPost}
 
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistro}
+    From: ${params.dockerRegistry}\${image_name}
     Stage: final
 
     %labels
@@ -438,8 +440,10 @@ process buildSingularityRecipeFromSourceCode {
         gitCommit ${params.gitCommit}
 
     %files from devel
-        /usr/local/bin/ /usr/local/
+        /usr/local/bin/${key}/ /usr/local/bin/
 
+    %post
+        ${cplmtYum}echo "Final stage"
 
     %environment
         export R_LIBS_USER="-"
@@ -448,7 +452,7 @@ process buildSingularityRecipeFromSourceCode {
         export PYTHONNOUSERSITE=1
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
-        export PATH=/usr/local/bin:${cplmtPath}\\\$PATH
+        export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
         ${cplmtCmdEnv}
 
     EOF
