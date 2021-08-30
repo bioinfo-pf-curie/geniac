@@ -886,3 +886,22 @@ process globalPathConfig {
     EOF
     """
 }
+
+
+
+workflow.onComplete {
+  Map endSummary = [:]
+  endSummary['Completed on'] = workflow.complete
+  endSummary['Duration']     = workflow.duration
+  endSummary['Success']      = workflow.success
+  endSummary['exit status']  = workflow.exitStatus
+  endSummary['Error report'] = workflow.errorReport ?: '-'
+  endSummary['Distro Linux'] = "${params.dockerDistroLinux}"
+  endSummary['Distro Linux / Conda'] ="${params.dockerDistroLinuxConda}"
+  endSummary['Docker registry'] = "${params.dockerRegistry}"
+  endSummary['Cluster executor'] = "${params.clusterExecutor}"
+  String endWfSummary = endSummary.collect { k,v -> "${k.padRight(30, '.')}: $v" }.join("\n")
+  println endWfSummary
+
+}
+

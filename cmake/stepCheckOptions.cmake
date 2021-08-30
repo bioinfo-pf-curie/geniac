@@ -134,6 +134,10 @@ endif()
 
 if(NOT "${ap_docker_registry}" STREQUAL "")
   if(NOT "${ap_docker_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_registry ${ap_docker_registry} must end with '/'")
+    message_color(ERROR "ap_docker_registry '${ap_docker_registry}' must end with '/'")
   endif()
+endif()
+  
+if(NOT "${ap_distro_linux}" MATCHES ".*:.*")
+  message_color(ERROR "ap_distro_linux '${ap_distro_linux}' must be formatted like 'distro:version' (e.g. almalinux:8.4).")
 endif()

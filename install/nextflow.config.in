@@ -48,9 +48,8 @@ params {
 
 
   // docker containers from 4geniac docker hub repository
-  dockerCondaRelease = 'py39_4.10.3'
-  //dockerDistroLinux = '4geniac/centos:7.9.2009'
-  dockerDistroLinux = '4geniac/almalinux:8.4'
+  dockerCondaRelease = '@conda_release@'
+  dockerDistroLinux = '@distro_linux@'
   dockerDistroLinuxConda = "${params.dockerDistroLinux}_conda-${params.dockerCondaRelease}"
   dockerDistroLinuxSdk = "${params.dockerDistroLinux}_sdk-conda-${params.dockerCondaRelease}"
 
