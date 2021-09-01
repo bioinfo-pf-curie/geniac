@@ -453,7 +453,7 @@ process buildSingularityRecipeFromSourceCode {
         /usr/local/bin/${key}/ /usr/local/bin/
 
     %post
-        ${cplmtYum}echo "Final stage"
+        ${cplmtYum}yum install -y glibc-devel libstdc++-devel
 
     %environment
         export R_LIBS_USER="-"

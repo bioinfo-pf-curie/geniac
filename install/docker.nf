@@ -375,7 +375,7 @@ process buildDockerRecipeFromSourceCode {
 
     COPY --from=devel /usr/local/bin/${key}/ /usr/local/bin/${key}/
 
-    RUN ${cplmtYum}echo "Final stage"
+    RUN ${cplmtYum}yum install -y glibc-devel libstdc++-devel
 
     ENV R_LIBS_USER "-"
     ENV R_PROFILE_USER "-"
