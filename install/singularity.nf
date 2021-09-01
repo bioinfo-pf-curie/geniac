@@ -288,9 +288,10 @@ process buildSingularityRecipeFromCondaFile {
         export R_PROFILE_USER="-"
         export R_ENVIRON_USER="-"
         export PYTHONNOUSERSITE=1
-        export PATH=/usr/local/conda/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
+        export PATH=${cplmtPath}\\\$PATH
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
+        source /opt/etc/bashrc
         ${cplmtCmdEnv}
 
     # real path from projectDir: ${condaFile}
@@ -300,11 +301,15 @@ process buildSingularityRecipeFromCondaFile {
     %post
         ${cplmtYum}yum clean all \\\\
         && conda env create -f /opt/\$(basename ${condaFile}) \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
         && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
-    // && echo "conda activate \${env_name}" > ~/.bashrc \\\\
 }
 
 /**
@@ -368,20 +373,25 @@ process buildSingularityRecipeFromCondaPackages {
         export R_PROFILE_USER="-"
         export R_ENVIRON_USER="-"
         export PYTHONNOUSERSITE=1
-        export PATH=/usr/local/conda/envs/${key}_env/bin:${cplmtPath}\\\$PATH
+        export PATH=${cplmtPath}\\\$PATH
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
+        source /opt/etc/bashrc
         ${cplmtCmdEnv}
 
     %post
         ${cplmtYum}yum clean all \\\\
         && conda create -y -n ${key}_env \\\\
         && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
         && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
-    // && echo "conda activate ${key}_env" > ~/.bashrc \\\\
 }
 
 

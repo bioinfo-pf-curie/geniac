@@ -224,9 +224,10 @@ process buildDockerRecipeFromCondaFile {
     ENV R_PROFILE_USER "-"
     ENV R_ENVIRON_USER "-"
     ENV PYTHONNOUSERSITE 1
-    ENV PATH /usr/local/conda/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
+    ENV PATH ${cplmtPath}\\\$PATH
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
+    ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
     # real path from projectDir: ${condaFile}
@@ -234,7 +235,12 @@ process buildDockerRecipeFromCondaFile {
 
     RUN ${cplmtYum}yum clean all \\\\
     && conda env create -f /opt/\$(basename ${condaFile}) \\\\
-    && echo "conda activate \${env_name}" > ~/.bashrc \\\\
+    && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+    && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
+    && conda init bash \\\\
+    && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+    && mkdir -p /opt/etc \\\\
+    && cp ~/.bashrc /opt/etc/bashrc \\\\
     && conda clean -a  ${cplmtCmdPost}
 
 
@@ -300,16 +306,22 @@ process buildDockerRecipeFromCondaPackages {
     ENV R_PROFILE_USER "-"
     ENV R_ENVIRON_USER "-"
     ENV PYTHONNOUSERSITE 1
-    ENV PATH /usr/local/conda/envs/${key}_env/bin:${cplmtPath}\\\$PATH
+    ENV PATH ${cplmtPath}\\\$PATH
     ENV LC_ALL en_US.utf-8
     ENV LANG en_US.utf-8
+    ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
     RUN ${cplmtYum}yum clean all \\\\
     && conda create -y -n ${key}_env \\\\
     && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
     && conda clean -a ${cplmtCmdPost} \\\\
-    && echo "conda activate ${key}_env" > ~/.bashrc
+    && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
+    && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
+    && conda init bash \\\\
+    && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
+    && mkdir -p /opt/etc \\\\
+    && cp ~/.bashrc /opt/etc/bashrc \\\\
     EOF
     """
 }
