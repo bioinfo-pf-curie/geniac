@@ -3,6 +3,7 @@ NEW FEATURES
    - Use the nextflow '-resume' options when building the configuration files en containers
    - New cmake options ap_linux_distro and ap_conda_release to bootstrap on containers available on 4geniac docker hub repositories
    - Allow multi-stage building when build docker container with tools from source code
+   - Activate the conda environment inside the docker/singularity images
 
 BUGFIX
    - Copy files in /usr/local/bin in the singularity image when the tool is built from source code

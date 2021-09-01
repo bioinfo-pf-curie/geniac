@@ -77,7 +77,7 @@ Let's consider you run ``singularity build myTool.simg myTool.def`` from this ``
 ::
 
    Bootstrap: docker
-   From: conda/miniconda3-centos7
+   From: 4geniac/almalinux:8.4_conda-py39_4.10.3
    
    %environment
        export LC_ALL=en_US.utf-8
@@ -131,7 +131,7 @@ From the Definition file used in :ref:`conda-singularity-impossible`, add ``expo
 ::
 
    Bootstrap: docker
-   From: conda/miniconda3-centos7
+   From: 4geniac/almalinux:8.4_conda-py39_4.10.3
    
    %environment
        export LC_ALL=en_US.utf-8
@@ -193,7 +193,7 @@ From the Definition file used in :ref:`conda-singularity-impossible`, add ``sour
 ::
 
    Bootstrap: docker
-   From: conda/miniconda3-centos7
+   From: 4geniac/almalinux:8.4_conda-py39_4.10.3
    
    %environment
        export LC_ALL=en_US.utf-8
@@ -255,7 +255,7 @@ Let's consider you run ``sudo docker build  -f myToolV0.Dockerfile -t mytool .``
 
 ::
 
-   FROM conda/miniconda3-centos7
+   FROM 4geniac/almalinux:8.4_conda-py39_4.10.3
    
    # install conda env
    RUN yum install -y which \
@@ -302,14 +302,14 @@ Let's add ``ENV BASH_ENV ~/.bashrc`` in the Dockerfile and set the ``PS1`` varia
 
 ::
 
-   FROM conda/miniconda3-centos7
+   FROM 4geniac/almalinux:8.4_conda-py39_4.10.3
    
    # install conda env
    RUN yum install -y which \
    && yum clean all \
    && conda create -y -n myTool_env  \
    && echo -e "#! /bin/bash\n\n# script to activate the conda environment" > ~/.bashrc \
-   && echo "export PS1='Docker >'" >> ~/.bashrc \
+   && echo "export PS1='Docker> '" >> ~/.bashrc \
    && conda init bash \
    && echo -e "\nconda activate myTool_env" >> ~/.bashrc \
    && echo "echo \"Hello World\"" >>  ~/.bashrc \
