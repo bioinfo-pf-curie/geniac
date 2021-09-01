@@ -72,7 +72,7 @@ It is important to remind the behaviour of singularity:
 Example1: impossible to activate the conda environment at startup
 -----------------------------------------------------------------
 
-Let's consider you run ``singularity build myTool.simg myTool.def`` from this ``myTool.def`` Definition file:
+Let's consider you run ``singularity build myTool.sif myTool.def`` from this ``myTool.def`` Definition file:
 
 ::
 
@@ -100,7 +100,7 @@ This way, the conda environment ``myTool_env`` is not activated at startup. Inde
 
 ::
 
-   singularity  shell myTool.simg
+   singularity  shell myTool.sif
    Singularity> conda env list
    base                  *  /usr/local
    myTool_env               /usr/local/envs/myTool_env
@@ -118,8 +118,8 @@ The behaviour and outputs are the same if you run the following commands (note t
 
 ::
 
-   singularity  exec myTool.simg /bin/bash -c 'conda env list; source /opt/etc/bashrc; conda env list'
-   singularity  run myTool.simg /bin/bash -c 'conda env list; source /opt/etc/bashrc; conda env list'
+   singularity  exec myTool.sif /bin/bash -c 'conda env list; source /opt/etc/bashrc; conda env list'
+   singularity  run myTool.sif /bin/bash -c 'conda env list; source /opt/etc/bashrc; conda env list'
 
 .. _conda-singularity-noninteractive:
 
@@ -154,12 +154,12 @@ Using ``singularity exec``  or ``singularity run`` activate the conda environmen
 
 ::
 
-   singularity  exec myTool.simg /bin/bash -c 'conda env list'
+   singularity  exec myTool.sif /bin/bash -c 'conda env list'
    Hello World
    base                     /usr/local
    myTool_env            *  /usr/local/envs/myTool_env
 
-   singularity  exec myTool.simg /bin/bash -c 'conda env list'
+   singularity  exec myTool.sif /bin/bash -c 'conda env list'
    Hello World
    base                     /usr/local
    myTool_env            *  /usr/local/envs/myTool_env
@@ -169,7 +169,7 @@ However, ``singularity shell`` launch an `interactive` shell thus ignoring the `
 
 ::
 
-   singularity  shell myTool.simg
+   singularity  shell myTool.sif
    Singularity> conda env list
    base                  *  /usr/local
    myTool_env               /usr/local/envs/myTool_env
@@ -216,25 +216,25 @@ As the section ``%environment`` is copied inside the singularity image in the fi
 
 ::
 
-   singularity shell myTool.simg 
+   singularity shell myTool.sif 
    Hello World
-   Singularity myTool.simg:~> conda env list
+   Singularity myTool.sif:~> conda env list
    base                     /usr/local
    myTool_env            *  /usr/local/envs/myTool_env
    
-   Singularity myTool.simg:~>
+   Singularity myTool.sif:~>
 
 ::
 
-   singularity  run  myTool.simg /bin/bash -c 'conda env list'
-   singularity  exec  myTool.simg /bin/bash -c 'conda env list'
+   singularity  run  myTool.sif /bin/bash -c 'conda env list'
+   singularity  exec  myTool.sif /bin/bash -c 'conda env list'
    Hello World
    base                     /usr/local
    myTool_env            *  /usr/local/envs/myTool_env
 
 ::
 
-   singularity  exec  myTool.simg /bin/bash -c 'conda env list'
+   singularity  exec  myTool.sif /bin/bash -c 'conda env list'
    Hello World
    base                     /usr/local
    myTool_env            *  /usr/local/envs/myTool_env
@@ -334,7 +334,7 @@ When running inside singularity, nextflow uses a command line similar to:
 
 ::
 
-   singularity  exec  myTool.simg /bin/bash -c 'conda env list'
+   singularity  exec  myTool.sif /bin/bash -c 'conda env list'
 
 
 Therefore, the Definition file must be written as explained in:

@@ -502,11 +502,11 @@ process buildImages {
       .filter{ it[1] }
 
   output:
-    file("${key.toLowerCase()}.simg")
+    file("${key.toLowerCase()}.sif")
 
   script:
     """
-    singularity build ${key.toLowerCase()}.simg ${singularityRecipe}
+    singularity build ${key.toLowerCase()}.sif ${singularityRecipe}
     """
 }
 
@@ -530,7 +530,7 @@ process buildSingularityConfig {
   script:
     """
     cat << EOF > "${key}SingularityConfig.txt"
-      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.simg" }
+      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.sif" }
     EOF
     """
 }
