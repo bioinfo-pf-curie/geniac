@@ -268,7 +268,7 @@ process buildSingularityRecipeFromCondaFile {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -299,7 +299,7 @@ process buildSingularityRecipeFromCondaFile {
         \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
     %post
-        ${cplmtYum}yum clean all \\\\
+        ${cplmtYum}${params.yum} clean all \\\\
         && conda env create -f /opt/\$(basename ${condaFile}) \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
@@ -355,7 +355,7 @@ process buildSingularityRecipeFromCondaPackages {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -380,7 +380,7 @@ process buildSingularityRecipeFromCondaPackages {
         ${cplmtCmdEnv}
 
     %post
-        ${cplmtYum}yum clean all \\\\
+        ${cplmtYum}${params.yum} clean all \\\\
         && conda create -y -n ${key}_env \\\\
         && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
         && mkdir -p /opt/etc \\\\
@@ -416,7 +416,7 @@ process buildSingularityRecipeFromSourceCode {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -453,7 +453,7 @@ process buildSingularityRecipeFromSourceCode {
         /usr/local/bin/${key}/ /usr/local/bin/
 
     %post
-        ${cplmtYum}yum install -y glibc-devel libstdc++-devel
+        ${cplmtYum}${params.yum} install -y glibc-devel libstdc++-devel
 
     %environment
         export R_LIBS_USER="-"

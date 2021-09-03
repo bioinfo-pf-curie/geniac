@@ -207,7 +207,7 @@ process buildDockerRecipeFromCondaFile {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -233,7 +233,7 @@ process buildDockerRecipeFromCondaFile {
     # real path from projectDir: ${condaFile}
     ADD \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
-    RUN ${cplmtYum}yum clean all \\\\
+    RUN ${cplmtYum}${params.yum} clean all \\\\
     && conda env create -f /opt/\$(basename ${condaFile}) \\\\
     && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
     && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
@@ -291,7 +291,7 @@ process buildDockerRecipeFromCondaPackages {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
     && """
     }
 
@@ -312,7 +312,7 @@ process buildDockerRecipeFromCondaPackages {
     ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
-    RUN ${cplmtYum}yum clean all \\\\
+    RUN ${cplmtYum}${params.yum} clean all \\\\
     && conda create -y -n ${key}_env \\\\
     && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
     && conda clean -a ${cplmtCmdPost} \\\\
@@ -348,7 +348,7 @@ process buildDockerRecipeFromSourceCode {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """yum install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -375,7 +375,7 @@ process buildDockerRecipeFromSourceCode {
 
     COPY --from=devel /usr/local/bin/${key}/ /usr/local/bin/${key}/
 
-    RUN ${cplmtYum}yum install -y glibc-devel libstdc++-devel
+    RUN ${cplmtYum}${params.yum} install -y glibc-devel libstdc++-devel
 
     ENV R_LIBS_USER "-"
     ENV R_PROFILE_USER "-"
