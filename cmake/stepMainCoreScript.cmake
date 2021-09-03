@@ -174,8 +174,16 @@ add_custom_command(
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
+# allows the build of the configuration files with "make
+# build_config_files"
+add_custom_target(
+    build_config_files
+    COMMAND ${CMAKE_COMMAND} -E echo "Build configuration files"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
+
 # allows the build of the singularity recipes and images with "make
 # build_singularity_images"
+
 add_custom_target(
     build_singularity_images
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
