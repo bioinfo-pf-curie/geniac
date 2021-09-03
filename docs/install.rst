@@ -210,6 +210,17 @@ Custom targets
 
 .. _install-target-containers:
 
+Build configuration files
+-------------------------
+
+Assume you are in the ``build`` directory. The following custom target allows you to build only the configuration files:
+
+* ``make build_config_files``
+
+The configuration files will be generated in:
+
+* Recipes will be generated in ``build/workDir/results/conf``.
+
 Build recipes and containers
 ----------------------------
 
