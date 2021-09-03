@@ -31,7 +31,7 @@ class GCheck(GCommand):
     )
     MODULE_CMAKE_RE_TEMP = (
         r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
-        r"DIR +\$\{{pipeline_source_dir\}}/modules/{label}"
+        r"DIR +\$\{{pipeline_source_dir\}}/modules/fromSource/{label}"
     )
     SINGULARITY_DEP_RE_TEMP = r"\%files\s+{dependency} [\/\w.]+{dependency}"
     DOCKER_DEP_RE_TEMP = r"ADD +{dependency} [\/\w.]+{dependency}"
