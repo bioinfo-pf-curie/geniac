@@ -580,7 +580,6 @@ class GCheck(GCommand):
         for module_child in input_dir.iterdir():
             # If child correspond to a folder and the name of this folder is linked to
             # an existing bash script
-            label_script = (module_child.parent / module_child.stem).with_suffix(".sh")
             if module_child.is_dir():
                 _logger.debug(f"Found module directory with label {module_child.stem}.")
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
@@ -588,6 +587,7 @@ class GCheck(GCommand):
                     GCheck.MODULE_CMAKE_RE_TEMP.format(label=module_child.stem)
                 )
                 if label_reg.search(cmake_lists_content):
+                    labels_from_modules += [module_child.stem]
                     _logger.debug(
                         f"Found module {module_child.stem} in "
                         f"{cmake_lists.relative_to(self.project_dir)}."
@@ -598,14 +598,6 @@ class GCheck(GCommand):
                         f"{cmake_lists.relative_to(self.project_dir)}."
                     )
 
-                if not label_script.exists():
-                    _logger.error(
-                        f"Module {module_child.stem} does not have an "
-                        f"installation script "
-                        f"({label_script.relative_to(self.project_dir)})."
-                    )
-                else:
-                    labels_from_modules += [module_child.stem]
         return OrderedDict([("modules", labels_from_modules)])
 
     @staticmethod
