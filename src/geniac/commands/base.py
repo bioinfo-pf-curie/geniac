@@ -149,7 +149,7 @@ class GBase(ABC):
             return (
                 sorted(
                     Path(input_path[: input_path.find("**")]).glob(
-                        input_path[input_path.find("**") :]
+                        input_path[input_path.find("**"):]
                     )
                 )
                 if "**" in input_path
