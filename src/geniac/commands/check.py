@@ -160,16 +160,22 @@ class GCheck(GCommand):
                     "recommended": self.config.getboolean(tree_section, "recommended")
                     if self.config.has_option(tree_section, "recommended")
                     else False,
+                    # Should we analyze files and sub directories recursively ?
+                    "recursive": self.config.getboolean(tree_section, "recursive")
+                    if self.config.has_option(tree_section, "recursive")
+                    else False,
                     # Path to the folder
                     "path": Path(self.config.get(tree_section, "path"))
                     if self.config.get(tree_section, "path")
                     else Path(Path.cwd()),
                     # Path(s) to mandatory file(s)
-                    "required_files": self.config_path(tree_section, "files"),
+                    "required_files": self.config_path(tree_section, "mandatory"),
                     # Path(s) to optional file(s)
                     "optional_files": self.config_path(tree_section, "optional"),
                     # Path(s) to file(s) excluded from the analysis
                     "excluded_files": self.config_path(tree_section, "exclude"),
+                    # Path(s) to file(s) excluded from the analysis
+                    "prohibited_files": self.config_path(tree_section, "prohibit"),
                 },
             )
             for tree_section in self.config_subsection(self.TREE_SUFFIX)
@@ -182,9 +188,16 @@ class GCheck(GCommand):
                     "current_files": (
                         [
                             _
-                            for _ in config_tree.get(tree_section).get("path").iterdir()
+                            for _ in config_tree.get(tree_section)
+                            .get("path")
+                            .glob(
+                                "**/*"
+                                if config_tree.get(tree_section).get("recursive")
+                                else "*"
+                            )
                             if _
                             not in config_tree.get(tree_section).get("excluded_files")
+                            and not _.is_dir()
                         ]
                         if config_tree.get(tree_section).get("path").exists()
                         else []
@@ -209,6 +222,7 @@ class GCheck(GCommand):
             required = section.get("required")
             # Is the actual folder recommended
             recommended = section.get("recommended")
+            # Path to the sub directory analyzed
             path = section.get("path")
             # List of required files requested in configuration file(s)
             required_files = section.get("required_files")
@@ -245,8 +259,10 @@ class GCheck(GCommand):
             # Trigger an error if a mandatory file is missing
             for file in required_files:
                 # If the folder is actually required but the required file is not
-                # present
-                if required and file not in current_files:
+                # present or if the folder is recommended and non empty
+                if (required or (recommended and current_files)) and (
+                    file not in current_files
+                ):
                     _logger.error(
                         f"File {file.relative_to(self.project_dir)} is missing. Add it "
                         f"to your project if you want to be compatible with geniac."
@@ -270,9 +286,7 @@ class GCheck(GCommand):
         """
         script = NextflowScript(project_dir=self.project_dir)
 
-        geniac_dir = Path(
-            self.config_path(GCheck.GENIAC_DIRS, "geniac", single_path=True)
-        )
+        geniac_dir = self.project_tree.get("geniac").get("path")
 
         # Link config path to their method
         script_paths = OrderedDict(
@@ -534,9 +548,9 @@ class GCheck(GCommand):
             project_config_path = project_config_scope["path"]
             config_method = project_config_scope["check_config"]
             default_config_paths = (
-                self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "files")
+                self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "mandatory")
                 + self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "optional")
-                + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "files")
+                + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "mandatory")
                 + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "optional")
             )
             # If the project config file does not exists and does not belong to default
@@ -565,17 +579,18 @@ class GCheck(GCommand):
     def get_labels_from_modules_dir(self, input_dir: Path):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
-        cmake_lists = input_dir / "CMakeLists.txt"
-        if not cmake_lists.exists():
-            # TODO: initialize CmakeLists.txt from the template ?
-            _logger.error(
-                "Folder modules requires a CMakeLists.txt file in order to have the "
-                "container automatically built."
-            )
+        main_cmake_lists = input_dir / "CMakeLists.txt"
+        if not main_cmake_lists.exists():
+            # Output an error if module directory is not empty
+            if any(input_dir.iterdir()):
+                _logger.error(
+                    f"Folder {input_dir.relative_to(self.project_dir)} requires a CMakeLists.txt file in order to "
+                    f"automatically build containers."
+                )
             return []
 
-        with open(cmake_lists) as cmake_file:
-            cmake_lists_content = cmake_file.read()
+        with open(main_cmake_lists) as cmake_file:
+            main_cmake_lists_content = cmake_file.read()
 
         for module_child in input_dir.iterdir():
             # If child correspond to a folder and the name of this folder is linked to
@@ -586,17 +601,20 @@ class GCheck(GCommand):
                 label_reg = re.compile(
                     GCheck.MODULE_CMAKE_RE_TEMP.format(label=module_child.stem)
                 )
-                if label_reg.search(cmake_lists_content):
+                # First look if the is correctly added within the main CMakeLists.txt file
+                if label_reg.search(main_cmake_lists_content):
                     labels_from_modules += [module_child.stem]
                     _logger.debug(
-                        f"Found module {module_child.stem} in "
-                        f"{cmake_lists.relative_to(self.project_dir)}."
+                        f"Module {module_child.stem} correctly added within "
+                        f"{main_cmake_lists.relative_to(self.project_dir)}."
                     )
                 else:
                     _logger.error(
-                        f"Module {module_child.stem} not found in "
-                        f"{cmake_lists.relative_to(self.project_dir)}."
+                        f"Module {module_child.stem} not added with ExternalProject_Add directive within "
+                        f"{main_cmake_lists.relative_to(self.project_dir)} file."
                     )
+                # Then look in the CMakeLists.txt file of the actual module
+                # TODO
 
         return OrderedDict([("modules", labels_from_modules)])
 
@@ -633,9 +651,9 @@ class GCheck(GCommand):
 
         return OrderedDict([("docker", labels_from_recipes)])
 
-    @staticmethod
     def check_dependencies_dir(
-        dependencies_dir: Path,
+        self,
+        tree: dict,
         docker_path: Path = None,
         singularity_path: Path = None,
         **kwargs,
@@ -643,73 +661,72 @@ class GCheck(GCommand):
         """
 
         Args:
+            tree:
             singularity_path:
             docker_path:
-            dependencies_dir:
 
         Returns:
 
         """
-        for dependency_path in dependencies_dir.iterdir():
-            if dependency_path.suffix != ".md":
-                singularity_flag = False
-                docker_flag = False
+        for dependency_path in tree.get("current_files", []):
+            singularity_flag = False
+            docker_flag = False
 
-                # Check if the file is used in singularity files
-                if singularity_path:
-                    for singularity_path in singularity_path.iterdir():
-                        if singularity_path.suffix == ".def":
-                            dependency_reg = re.compile(
-                                GCheck.SINGULARITY_DEP_RE_TEMP.format(
-                                    dependency=dependency_path.name
-                                )
+            # Check if the file is used in singularity files
+            if singularity_path:
+                for singularity_path in singularity_path.iterdir():
+                    if singularity_path.suffix == ".def":
+                        dependency_reg = re.compile(
+                            GCheck.SINGULARITY_DEP_RE_TEMP.format(
+                                dependency=dependency_path.name
                             )
-                            with open(singularity_path) as singularity_file:
-                                singularity_flag = (
-                                    True
-                                    if dependency_reg.search(singularity_file.read())
-                                    else singularity_flag
-                                )
-
-                # Check if the file is used in docker files
-                if docker_path:
-                    for docker_path in docker_path.iterdir():
-                        if docker_path.suffix == ".Dockerfile":
-                            dependency_reg = re.compile(
-                                GCheck.DOCKER_DEP_RE_TEMP.format(
-                                    dependency=dependency_path.name
-                                )
+                        )
+                        with open(singularity_path) as singularity_file:
+                            singularity_flag = (
+                                True
+                                if dependency_reg.search(singularity_file.read())
+                                else singularity_flag
                             )
-                            with open(docker_path) as docker_file:
-                                docker_flag = (
-                                    True
-                                    if dependency_reg.search(docker_file.read())
-                                    else docker_flag
-                                )
 
-                if not singularity_flag:
-                    _logger.warning(
-                        f"Dependency file {dependency_path.name} not used in "
-                        f"singularity definition files."
-                    )
-                if not docker_flag:
-                    _logger.warning(
-                        f"Dependency file {dependency_path.name} not used in "
-                        f"docker definition files."
-                    )
+            # Check if the file is used in docker files
+            if docker_path:
+                for docker_path in docker_path.iterdir():
+                    if docker_path.suffix == ".Dockerfile":
+                        dependency_reg = re.compile(
+                            GCheck.DOCKER_DEP_RE_TEMP.format(
+                                dependency=dependency_path.name
+                            )
+                        )
+                        with open(docker_path) as docker_file:
+                            docker_flag = (
+                                True
+                                if dependency_reg.search(docker_file.read())
+                                else docker_flag
+                            )
 
-    def check_env_dir(self, env_dir: Path, **kwargs):
+            if not singularity_flag:
+                _logger.warning(
+                    f"Dependency file {dependency_path.name} not used in "
+                    f"singularity definition file {singularity_path.relative_to(self.project_dir)}."
+                )
+            if not docker_flag:
+                _logger.warning(
+                    f"Dependency file {dependency_path.name} not used in "
+                    f"docker definition files {docker_path.relative_to(self.project_dir)}."
+                )
+
+    def check_env_dir(self, tree: dict, **kwargs):
         """
 
         Args:
-            env_dir:
+            tree:
 
         Returns:
 
         """
         envs_found = []
         envs_sourced = []
-        for env_path in env_dir.iterdir():
+        for env_path in tree.get("current_files", []):
             # Skip if not env file
             if env_path.suffix != ".env":
                 continue
@@ -761,8 +778,8 @@ class GCheck(GCommand):
             (
                 geniac_dir,
                 {
-                    "path": self.config_path(
-                        GCheck.GENIAC_DIRS, geniac_dir, single_path=True
+                    "tree": self.project_tree.get(
+                        self.config.get(GCheck.GENIAC_DIRS, geniac_dir)
                     ),
                     "get_labels": getattr(
                         self, f"get_labels_from_{geniac_dir}_dir", None
@@ -774,22 +791,25 @@ class GCheck(GCommand):
         )
 
         geniac_paths = OrderedDict(
-            (f"{geniac_dir}_path", geniac_scope.get("path"))
+            (f"{geniac_dir}_path", geniac_scope.get("tree", {}).get("path"))
             for geniac_dir, geniac_scope in geniac_dirs.items()
         )
+
         # Get labels first
         for geniac_dirname, geniac_dir in geniac_dirs.items():
-            if not geniac_dir.get("path").exists():
-                continue
+            if geniac_dirpath := geniac_dir.get("tree", {}).get("path"):
+                if not geniac_dirpath.exists():
+                    continue
             if get_label := geniac_dir.get("get_labels"):
-                self.labels_from_folders |= get_label(geniac_dir.get("path"))
+                self.labels_from_folders |= get_label(geniac_dirpath)
 
         # Then check directories
         for geniac_dirname, geniac_dir in geniac_dirs.items():
-            if not geniac_dir.get("path").exists():
-                continue
+            if geniac_dirpath := geniac_dir.get("tree", {}).get("path"):
+                if not geniac_dirpath.exists():
+                    continue
             if check_dir := geniac_dir.get("check_dir"):
-                check_dir(geniac_dir.get("path"), **geniac_paths)
+                check_dir(geniac_dir.get("tree", {}), **geniac_paths)
 
         # Check if singularity and docker have the same labels
         if container_diff := sorted(
