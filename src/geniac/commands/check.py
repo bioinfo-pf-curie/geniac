@@ -32,10 +32,13 @@ class GCheck(GCommand):
     )
     MODULE_CMAKE_RE_TEMP = (
         r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
-        r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
+        r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|"
+        r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
     )
-    SINGULARITY_DEP_RE_TEMP = r"\%files\s+{dependency} [\/\w.]+{dependency}"
-    DOCKER_DEP_RE_TEMP = r"ADD +{dependency} [\/\w.]+{dependency}"
+    SINGULARITY_DEP_RE_TEMP = (
+        r"\%files[\/\w.\s]*\s+(?P<mydep>{tool}/{dependency}" r" +[\/\w.]+{dependency})"
+    )
+    DOCKER_DEP_RE_TEMP = r"ADD +{tool}/{dependency} [\/\w.]+{dependency}"
 
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
