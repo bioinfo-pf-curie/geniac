@@ -86,20 +86,12 @@ class GCheck(GCommand):
     @property
     def labels_from_geniac_config(self):
         """Geniac labels from Nextflow folders"""
-        return list(
-            dict.fromkeys(
-                list(self.labels_from_configs.get("geniac", []))
-            )
-        )
+        return list(dict.fromkeys(list(self.labels_from_configs.get("geniac", []))))
 
     @property
     def labels_from_process_config(self):
         """Process config labels from Nextflow folders"""
-        return list(
-            dict.fromkeys(
-                list(self.labels_from_configs.get("process", []))
-            )
-        )
+        return list(dict.fromkeys(list(self.labels_from_configs.get("process", []))))
 
     @property
     def processes_from_workflow(self):
@@ -161,11 +153,15 @@ class GCheck(GCommand):
         dir_path = config_tree.get(tree_section).get("path")
         recursive_flag = config_tree.get(tree_section).get("recursive")
         excluded_files = config_tree.get(tree_section).get("excluded_files")
-        _logger.debug("Browse current files in %s directory%s",
-                      dir_path, " recursively" if recursive_flag else "")
+        _logger.debug(
+            "Browse current files in %s directory%s",
+            dir_path,
+            " recursively" if recursive_flag else "",
+        )
         if dir_path.exists():
             return [
-                _ for _ in dir_path.glob("**/*" if recursive_flag else "*")
+                _
+                for _ in dir_path.glob("**/*" if recursive_flag else "*")
                 if _ not in excluded_files and not _.is_dir()
             ]
         else:
@@ -196,7 +192,7 @@ class GCheck(GCommand):
                     # Path to the folder
                     "path": Path(self.config.get(tree_section, "path"))
                     if self.config.get(tree_section, "path")
-                    else Path(Path.cwd()),
+                    else Path(self.project_dir),
                     # Path(s) to mandatory file(s)
                     "required_files": self.config_path(tree_section, "mandatory"),
                     # Path(s) to optional file(s)
@@ -261,12 +257,13 @@ class GCheck(GCommand):
                     _logger.error(
                         "Directory %s does not exist. Add it to your project if you want your "
                         "workflow to be compatible with geniac tools.",
-                        path.relative_to(self.project_dir)
+                        path.relative_to(self.project_dir),
                     )
                 elif recommended and not path.exists():
                     _logger.warning(
                         "Directory %s does not exist. It is recommended to have one in your "
-                        "project.", path.relative_to(self.project_dir)
+                        "project.",
+                        path.relative_to(self.project_dir),
                     )
 
             # Trigger an error if a mandatory file is missing
@@ -278,7 +275,8 @@ class GCheck(GCommand):
                 ):
                     _logger.error(
                         "File %s is missing. Add it to your project if you want to be compatible "
-                        "with geniac.", file.relative_to(self.project_dir)
+                        "with geniac.",
+                        file.relative_to(self.project_dir),
                     )
 
             # Trigger a warning if an optional file is missing
@@ -288,7 +286,8 @@ class GCheck(GCommand):
                 if required and file not in current_files:
                     _logger.warning(
                         "Optional file %s does not exist. It is recommended to have one in your "
-                        "project.", file.relative_to(self.project_dir)
+                        "project.",
+                        file.relative_to(self.project_dir),
                     )
 
     def get_processes_from_workflow(self):
@@ -320,7 +319,7 @@ class GCheck(GCommand):
             else:
                 _logger.error(
                     "Workflow script %s does not exist.",
-                    script_path.relative_to(self.project_dir)
+                    script_path.relative_to(self.project_dir),
                 )
 
         # Check if there is processes without label in the actual workflow
@@ -385,7 +384,9 @@ class GCheck(GCommand):
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
                     try:
                         conda_search = subprocess.run(
-                            ["conda", "search", conda_recipe], capture_output=True, check=True
+                            ["conda", "search", conda_recipe],
+                            capture_output=True,
+                            check=True,
                         )
                     except subprocess.CalledProcessError:
                         _logger.error(
@@ -394,7 +395,9 @@ class GCheck(GCommand):
                             "to an existing package or build. Check if the requested build is "
                             "still available on conda with the following command:"
                             "\n\t> conda search %s.",
-                            conda_recipe, label, conda_recipe
+                            conda_recipe,
+                            label,
+                            conda_recipe,
                         )
                     else:
                         _logger.debug("Conda search output:\n%s", conda_search.stdout)
@@ -408,13 +411,16 @@ class GCheck(GCommand):
                 ) and not conda_path.exists():
                     _logger.error(
                         "Conda file %s related to %s tool does not exist.",
-                        conda_path.relative_to(self.project_dir), label
+                        conda_path.relative_to(self.project_dir),
+                        label,
                     )
             # else check if it's a valid path
             else:
                 _logger.error(
                     "Value %s of %s tool does not follow the pattern "
-                    '"condaChannelName::softName=version=buildString".', recipe, label
+                    '"condaChannelName::softName=version=buildString".',
+                    recipe,
+                    label,
                 )
 
         for extra_section in (
@@ -428,7 +434,8 @@ class GCheck(GCommand):
                     if label not in labels_geniac_tools:
                         _logger.error(
                             "Label %s of %s is not defined in params.geniac.tools.",
-                            label, extra_section
+                            label,
+                            extra_section,
                         )
 
         return labels_geniac_tools
@@ -457,7 +464,9 @@ class GCheck(GCommand):
             if config_process not in self.processes_from_workflow:
                 _logger.error(
                     "withName:%s is defined in %s file but the process %s is not used anywhere.",
-                    config_process, config.path.relative_to(self.project_dir), config_process
+                    config_process,
+                    config.path.relative_to(self.project_dir),
+                    config_process,
                 )
 
         # Return list of labels defined with withLabel selector in the process.config file
@@ -505,7 +514,8 @@ class GCheck(GCommand):
                 )
                 # Trigger a warning if optional file. Otherwise trigger an error
                 if default_config_path in self.config_path(
-                        ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"):
+                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
+                ):
                     _logger.warning(msg)
                 else:
                     _logger.error(msg)
@@ -579,14 +589,14 @@ class GCheck(GCommand):
                 if project_config_path not in default_config_paths:
                     _logger.error(
                         "Nextflow config file %s does not exist.",
-                        project_config_path.relative_to(self.project_dir)
+                        project_config_path.relative_to(self.project_dir),
                     )
                 continue
             nxf_config.read(project_config_path)
             if config_method:
                 _logger.info(
                     "Checking Nextflow configuration file. %s",
-                    project_config_path.relative_to(self.project_dir)
+                    project_config_path.relative_to(self.project_dir),
                 )
                 self.labels_from_configs[config_key] = config_method(
                     nxf_config,
@@ -604,7 +614,8 @@ class GCheck(GCommand):
             if any(input_dir.iterdir()):
                 _logger.error(
                     "Folder %s requires a CMakeLists.txt file in order to automatically "
-                    "build containers.", input_dir.relative_to(self.project_dir)
+                    "build containers.",
+                    input_dir.relative_to(self.project_dir),
                 )
             return []
 
@@ -615,7 +626,9 @@ class GCheck(GCommand):
             # If child correspond to a folder and the name of this folder is linked to
             # an existing bash script
             if module_child.is_dir():
-                _logger.debug("Found module directory with label %s.", module_child.stem)
+                _logger.debug(
+                    "Found module directory with label %s.", module_child.stem
+                )
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
                 label_reg = re.compile(
                     GCheck.MODULE_CMAKE_RE_TEMP.format(label=module_child.stem)
@@ -625,12 +638,14 @@ class GCheck(GCommand):
                     labels_from_modules += [module_child.stem]
                     _logger.debug(
                         "Module %s correctly added within %s.",
-                        module_child.stem, main_cmake_lists.relative_to(self.project_dir)
+                        module_child.stem,
+                        main_cmake_lists.relative_to(self.project_dir),
                     )
                 else:
                     _logger.error(
                         "Module %s not added with ExternalProject_Add directive within %s file.",
-                        module_child.stem, main_cmake_lists.relative_to(self.project_dir)
+                        module_child.stem,
+                        main_cmake_lists.relative_to(self.project_dir),
                     )
                 # Then look in the CMakeLists.txt file of the actual module
                 # TODO
@@ -687,52 +702,64 @@ class GCheck(GCommand):
         Returns:
 
         """
-        for dependency_path in tree.get("current_files", []):
-            singularity_flag = False
-            docker_flag = False
+        dependencies_dir = dependencies_tree.get("path")
 
-            # Check if the file is used in singularity files
-            if singularity_path:
-                for singularity_path in singularity_path.iterdir():
-                    if singularity_path.suffix == ".def":
-                        dependency_reg = re.compile(
-                            GCheck.SINGULARITY_DEP_RE_TEMP.format(
-                                dependency=dependency_path.name
-                            )
-                        )
-                        with open(singularity_path) as singularity_file:
-                            singularity_flag = (
-                                True
-                                if dependency_reg.search(singularity_file.read())
-                                else singularity_flag
-                            )
-
-            # Check if the file is used in docker files
-            if docker_path:
-                for docker_path in docker_path.iterdir():
-                    if docker_path.suffix == ".Dockerfile":
-                        dependency_reg = re.compile(
-                            GCheck.DOCKER_DEP_RE_TEMP.format(
-                                dependency=dependency_path.name
-                            )
-                        )
-                        with open(docker_path) as docker_file:
-                            docker_flag = (
-                                True
-                                if dependency_reg.search(docker_file.read())
-                                else docker_flag
-                            )
-
-            if not singularity_flag:
-                _logger.warning(
-                    f"Dependency file {dependency_path.name} not used in "
-                    f"singularity definition file {singularity_path.relative_to(self.project_dir)}."
+        for dependency_path in dependencies_tree.get("current_files", []):
+            # The dependency should be inside a subfolder (recipes/dependencies/tool_name/dep.ext)
+            tool_name = dependency_path.parent.name
+            if (
+                tool_name == "dependencies"
+                or not dependency_path.parent.parent.resolve().samefile(
+                    dependencies_dir.resolve()
                 )
-            if not docker_flag:
-                _logger.warning(
-                    f"Dependency file {dependency_path.name} not used in "
-                    f"docker definition files {docker_path.relative_to(self.project_dir)}."
+            ):
+                _logger.error(
+                    "Dependency %s can't be used for container recipes. It should be located "
+                    "inside a custom folder with the name corresponding to the container recipe "
+                    "file.",
+                    dependency_path.relative_to(self.project_dir),
                 )
+                continue
+
+            for recipe_type, recipe_ext in (
+                ("singularity", ".def"),
+                ("docker", ".Dockerfile"),
+            ):
+                recipe_files = (
+                    locals().get(f"{recipe_type}_tree", {}).get("current_files", [])
+                    if singularity_tree
+                    else []
+                )
+                recipe_flag = False
+
+                # Check if the file is used in recipe files
+                for recipe_path in recipe_files:
+                    if recipe_path.suffix == recipe_ext:
+                        dependency_reg = re.compile(
+                            getattr(
+                                GCheck, f"{recipe_type.upper()}_DEP_RE_TEMP", ""
+                            ).format(dependency=dependency_path.name, tool=tool_name)
+                        )
+                        with open(
+                            recipe_path, encoding=DEFAULT_ENCODING
+                        ) as recipe_file:
+                            recipe_flag = (
+                                True
+                                if dependency_reg.search(recipe_file.read())
+                                else recipe_flag
+                            )
+
+                # Throw an error if dependency not found in any recipe file
+                if not recipe_flag:
+                    _logger.warning(
+                        "Dependency file %s not used in any %s recipe files %s.",
+                        dependency_path.name,
+                        recipe_type,
+                        locals()
+                        .get(f"{recipe_type}_tree")
+                        .get("path")
+                        .relative_to(self.project_dir),
+                    )
 
     def _check_env_dir(self, env_tree: dict, **kwargs):
         """
@@ -753,7 +780,8 @@ class GCheck(GCommand):
             # Check if basename of env file is present in label list
             if env_path.stem not in self.labels_all:
                 _logger.warning(
-                    "Environment file %s does not correspond to any process label.", env_path.name
+                    "Environment file %s does not correspond to any process label.",
+                    env_path.name,
                 )
             # Check if this file has been sourced in main.nf (script score in
             # processes_from_workflow)
@@ -773,14 +801,16 @@ class GCheck(GCommand):
                     if not source_flag:
                         _logger.warning(
                             "Process %s with label %s does not source %s.",
-                            process, env_path.stem, env_path.relative_to(self.project_dir)
+                            process,
+                            env_path.stem,
+                            env_path.relative_to(self.project_dir),
                         )
 
         if envs_unsourced := set(envs_found) - set(envs_sourced):
             for env_path in sorted(envs_unsourced):
                 _logger.warning(
                     "Env file %s not used in the workflow.",
-                    env_path.relative_to(self.project_dir)
+                    env_path.relative_to(self.project_dir),
                 )
 
     def get_labels_from_folders(self):
@@ -837,7 +867,7 @@ class GCheck(GCommand):
         ):
             _logger.warning(
                 "Some recipes are missing either in docker or singularity folder %s.",
-                container_diff
+                container_diff,
             )
 
         return self.labels_from_folders
@@ -856,7 +886,8 @@ class GCheck(GCommand):
         if len(cross_labels) >= 1:
             _logger.warning(
                 "You have recipes, modules or geniac.tools label(s) that are not used in workflow "
-                "scripts %s.", cross_labels
+                "scripts %s.",
+                cross_labels,
             )
 
         for process, process_scope in self.processes_from_workflow.items():
@@ -872,7 +903,8 @@ class GCheck(GCommand):
                 _logger.error(
                     "Use only one recipes, modules or geniac.tools label for the process %s %s. "
                     "A process should have only one geniac.tools label.",
-                    process, matched_labels
+                    process,
+                    matched_labels,
                 )
             unmatched_labels = [
                 label
@@ -888,8 +920,10 @@ class GCheck(GCommand):
                     "Label(s) %s from process %s in the file %s not defined in the file %s.",
                     unmatched_labels,
                     process,
-                    Path(process_scope.get('NextflowScriptPath')).relative_to(self.project_dir),
-                    process_path
+                    Path(process_scope.get("NextflowScriptPath")).relative_to(
+                        self.project_dir
+                    ),
+                    process_path,
                 )
 
     def run(self):
