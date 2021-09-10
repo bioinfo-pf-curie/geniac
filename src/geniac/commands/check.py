@@ -356,7 +356,9 @@ class GCheck(GCommand):
         config.check_config_scope("params")
 
         # Check if conda command exists
-        if subprocess.run(["conda", "-h"], capture_output=True).returncode != 0:
+        try:
+            subprocess.run(["conda", "-h"], capture_output=True, check=True)
+        except subprocess.CalledProcessError:
             _logger.error(
                 "Conda is not available in your path. Geniac will not check if tool "
                 "recipes are correct."
@@ -378,10 +380,11 @@ class GCheck(GCommand):
                 # The related recipe is a correct conda recipe
                 # Check if the recipes exists in the actual OS with conda search
                 for conda_recipe in match.groupdict().get("recipes").split(" "):
-                    conda_search = subprocess.run(
-                        ["conda", "search", conda_recipe], capture_output=True
-                    )
-                    if conda_search and (conda_search.returncode != 0):
+                    try:
+                        conda_search = subprocess.run(
+                            ["conda", "search", conda_recipe], capture_output=True, check=True
+                        )
+                    except subprocess.CalledProcessError:
                         _logger.error(
                             "Conda search command returned non-zero exit status for the recipe "
                             "%s[%s]. Either conda is not available or the recipe does not link "
@@ -390,6 +393,8 @@ class GCheck(GCommand):
                             "\n\t> conda search %s.",
                             conda_recipe, label, conda_recipe
                         )
+                    else:
+                        _logger.debug("Conda search output:\n%s", conda_search.stdout)
             # Elif the tool value is a path to an environment file (yml or yaml ext),
             # check if the path exists
             elif match := GCheck.CONDA_PATH_RE.search(recipe):
