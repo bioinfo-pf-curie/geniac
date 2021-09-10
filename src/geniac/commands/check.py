@@ -10,9 +10,10 @@ import sys
 from collections import OrderedDict
 from pathlib import Path
 
-from ..commands.base import GCommand
-from ..parsers.config import NextflowConfig
-from ..parsers.scripts import NextflowScript
+from geniac.commands.base import GCommand
+from geniac.parsers.base import DEFAULT_ENCODING
+from geniac.parsers.config import NextflowConfig
+from geniac.parsers.scripts import NextflowScript
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

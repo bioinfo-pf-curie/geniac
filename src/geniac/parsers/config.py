@@ -9,7 +9,7 @@ import re
 import typing
 from collections import OrderedDict, defaultdict
 
-from ..parsers.base import GParser
+from geniac.parsers.base import GParser, DEFAULT_ENCODING
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -38,10 +38,6 @@ class NextflowConfig(GParser):
         r"(?P<beforeClose>})?(?P<other>.+)(?<!\$)) *{ *(?P<afterClose>})?$"
     )
     ESCOPERE = re.compile(r"^ *}\s*$")
-
-    def __init__(self, *args, **kwargs):
-        """Constructor for NextflowConfigParser"""
-        super().__init__(*args, **kwargs)
 
     @staticmethod
     def get_config_list(config, config_scope, option):
@@ -143,14 +139,14 @@ class NextflowConfig(GParser):
 
     def _read(
         self,
-        config_file: typing.Union[typing.IO, typing.BinaryIO],
-        encoding="UTF-8",
+        in_file: typing.Union[typing.IO, typing.BinaryIO],
+        encoding=DEFAULT_ENCODING,
         config_path="",
     ):
         """Load a Nextflow config file into content property
 
         Args:
-            config_file (BinaryIO): nextflow config file
+            in_file (BinaryIO): nextflow config file
             encoding (str): name of the encoding use to decode config files
         """
         # TODO: should we flush content dict before reading another file ?
@@ -158,7 +154,7 @@ class NextflowConfig(GParser):
         def_flag = False
         selector = None
         scope_idx = ""
-        for line_idx, line in enumerate(super()._read(config_file, encoding=encoding)):
+        for line_idx, line in enumerate(super()._read(in_file, encoding=encoding)):
             # Pop scope index list if we find a curly bracket
             # Turn off def flag if we reach the last scope in a def
             if self.ESCOPERE.match(line):

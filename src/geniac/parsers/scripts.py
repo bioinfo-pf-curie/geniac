@@ -30,28 +30,22 @@ class NextflowScript(GParser):
         r"((?P<script>.+)(?<=(?P<endScript>[\"']{3})))? *$"
     )
 
-    def __init__(self, *args, **kwargs):
-        """Constructor for NextflowScript parser"""
-        super().__init__(*args, **kwargs)
-
     def _read(
         self,
-        config_file: typing.Union[typing.IO, typing.BinaryIO],
-        config_path="",
+        in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding=None,
+        config_path=""
     ):
         """Load a Nextflow script file into content property
 
         Args:
-            config_file (BinaryIO): path to nextflow config file
+            in_file (BinaryIO): path to nextflow config file
             encoding (str): name of the encoding use to decode config files
         """
         script_flag = False
         process = ""
         self.content["process"] = self.content.get("process") or OrderedDict()
-        # TODO: add if condition within scripts who should break the actual
-        #       process scope
-        for idx, line in enumerate(super()._read(config_file, encoding=encoding)):
+        for idx, line in enumerate(super()._read(in_file, encoding=encoding)):
             if match := self.PROCESSRE.match(line):
                 values = match.groupdict()
                 # If process add it to the process dict

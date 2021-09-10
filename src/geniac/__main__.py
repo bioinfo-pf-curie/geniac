@@ -167,7 +167,7 @@ def main(args):
     parser, args = parse_args(args)
     setup_logging(args.loglevel)
     if "func" in args:
-        _logger.info(f"Start geniac {args.which if 'which' in args else None} command.")
+        _logger.info("Start geniac %s command.", args.which if 'which' in args else None)
         args.func(args).run()
     else:
         parser.print_help()

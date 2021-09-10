@@ -22,11 +22,33 @@ def _path_checker(value: str):
     """
     Exit if the path is not correct
     """
-    if (path := Path(value)) and path.is_dir():
-        return path.resolve()
-    else:
-        _logger.critical(f"Path {path} does not exist.")
+    if not (path := Path(value)) and not path.is_dir():
+        _logger.critical("Path %s does not exist.", path)
         sys.exit(1)
+    return path.resolve()
+
+
+def glob_solver(input_path):
+    """
+    Use pathlib glob solver to expand input_path glob patterns
+
+    Args:
+        input_path:
+
+    Returns:
+
+    """
+    return (
+        sorted(
+            Path(input_path[: input_path.find("**")]).glob(
+                input_path[input_path.find("**"):]
+            )
+        )
+        if "**" in input_path
+        else sorted(Path(dirname(input_path)).glob(basename(input_path)))
+        if "*" in input_path
+        else [""]
+    )
 
 
 class GBase(ABC):
@@ -130,33 +152,12 @@ class GBase(ABC):
         Args:
             option_name:
             section (str): name of config section
-            option (str): name of config option
+            option_name (str): name of config option
             single_path (bool): flag to enable the return of single path
 
         Returns:
             config_paths (list, Path)
         """
-
-        def glob_solver(input_path):
-            """
-
-            Args:
-                input_path:
-
-            Returns:
-
-            """
-            return (
-                sorted(
-                    Path(input_path[: input_path.find("**")]).glob(
-                        input_path[input_path.find("**"):]
-                    )
-                )
-                if "**" in input_path
-                else sorted(Path(dirname(input_path)).glob(basename(input_path)))
-                if "*" in input_path
-                else [""]
-            )
 
         option = (
             self.config.get(section, option_name).split()
