@@ -143,6 +143,31 @@ class GCheck(GCommand):
             )
         return self._labels_all
 
+    @staticmethod
+    def _get_current_files(config_tree: dict, tree_section: str):
+        """
+        Get current file list from a specific section
+
+        Args:
+            config_tree:
+            section:
+
+        Returns:
+
+        """
+        dir_path = config_tree.get(tree_section).get("path")
+        recursive_flag = config_tree.get(tree_section).get("recursive")
+        excluded_files = config_tree.get(tree_section).get("excluded_files")
+        _logger.debug("Browse current files in %s directory%s",
+                      dir_path, " recursively" if recursive_flag else "")
+        if dir_path.exists():
+            return [
+                _ for _ in dir_path.glob("**/*" if recursive_flag else "*")
+                if _ not in excluded_files and not _.is_dir()
+            ]
+        else:
+            return ()
+
     def _format_tree_config(self):
         """Format configuration tree from ini config
 
@@ -187,21 +212,7 @@ class GCheck(GCommand):
                 {
                     # Get a list all the files in the folder
                     "current_files": (
-                        [
-                            _
-                            for _ in config_tree.get(tree_section)
-                            .get("path")
-                            .glob(
-                                "**/*"
-                                if config_tree.get(tree_section).get("recursive")
-                                else "*"
-                            )
-                            if _
-                            not in config_tree.get(tree_section).get("excluded_files")
-                            and not _.is_dir()
-                        ]
-                        if config_tree.get(tree_section).get("path").exists()
-                        else []
+                        self._get_current_files(config_tree, tree_section)
                     ),
                     **section,
                 },
