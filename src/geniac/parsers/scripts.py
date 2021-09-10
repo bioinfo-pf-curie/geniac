@@ -63,22 +63,22 @@ class NextflowScript(GParser):
             if match := self.LABELRE.match(line):
                 values = match.groupdict()
                 label = values.get("labelName")
-                _logger.debug(f"FOUND label {label} in process {process}.")
+                _logger.debug("FOUND label %s in process %s.", label, process)
                 self.content["process"][process]["label"].append(label)
                 continue
             # TODO: what about conditionals nextflow scripts ?
             if match := self.SCRIPTRE.match(line):
                 values = match.groupdict()
                 if process:
-                    script_flag = False if script_flag else True
+                    script_flag = not script_flag
                     if values.get("script"):
                         self.content["process"][process]["script"].append(line.strip())
                 continue
             # Add to script part if script_flag
             if process and script_flag:
-                _logger.debug(f"Add line {idx} to process {process} scope.")
+                _logger.debug("Add line %s to process %s scope.", idx, process)
                 self.content["process"][process]["script"].append(line.strip())
                 continue
         _logger.debug(
-            f"LOADED {config_file} scope:\n{json.dumps(dict(self.content), indent=2)}."
+            "LOADED %s scope:\n%s.", in_file, json.dumps(dict(self.content), indent=2)
         )
