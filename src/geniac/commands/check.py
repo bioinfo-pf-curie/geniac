@@ -30,7 +30,11 @@ class GCheck(GCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
-    MODULE_CMAKE_RE_TEMP = (
+    SUB_CMAKE_RE = re.compile(
+        r"install\([\s\w_${}\-/=]*DESTINATION +"
+        r"(?P<destination>\${CMAKE_INSTALL_PREFIX}/\${pipeline_dir}/bin/fromSource)[\s)]"
+    )
+    MAIN_CMAKE_RE_TEMP = (
         r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
         r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|"
         r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
@@ -605,83 +609,102 @@ class GCheck(GCommand):
                     conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
                 )
 
-    def _get_labels_from_modules_dir(self, input_dir: Path):
+    def _get_labels_from_modules_dir(self, modules_tree: dict, **kwargs):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
-        main_cmake_lists = input_dir / "CMakeLists.txt"
+        modules_dir = modules_tree.get("path")
+        main_cmake_lists = modules_dir / "CMakeLists.txt"
         if not main_cmake_lists.exists():
-            # Output an error if module directory is not empty
-            if any(input_dir.iterdir()):
+            # Output an error if modules directory is not empty
+            if any(modules_dir.iterdir()):
                 _logger.error(
                     "Folder %s requires a CMakeLists.txt file in order to automatically "
                     "build containers.",
-                    input_dir.relative_to(self.project_dir),
+                    modules_dir.relative_to(self.project_dir),
                 )
             return []
 
         with open(main_cmake_lists, encoding=DEFAULT_ENCODING) as cmake_file:
             main_cmake_lists_content = cmake_file.read()
 
-        for module_child in input_dir.iterdir():
+        for module_dir in modules_dir.iterdir():
             # If child correspond to a folder and the name of this folder is linked to
             # an existing bash script
-            if module_child.is_dir():
-                _logger.debug(
-                    "Found module directory with label %s.", module_child.stem
-                )
+            # If the actual file is not the main cmakelists file, it should correspond to a module
+            module_name = module_dir.stem
+            cmakelists_child = module_dir / "CMakeLists.txt"
+            if cmakelists_child.exists():
+                _logger.debug("Found module directory with label %s.", module_name)
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
-                label_reg = re.compile(
-                    GCheck.MODULE_CMAKE_RE_TEMP.format(label=module_child.stem)
+                check_main_cmlist_reg = re.compile(
+                    GCheck.MAIN_CMAKE_RE_TEMP.format(label=module_name)
                 )
                 # First look if the is correctly added within the main CMakeLists.txt file
-                if label_reg.search(main_cmake_lists_content):
-                    labels_from_modules += [module_child.stem]
+                if check_main_cmlist_reg.search(main_cmake_lists_content):
+                    labels_from_modules += [module_name]
                     _logger.debug(
                         "Module %s correctly added within %s.",
-                        module_child.stem,
+                        module_name,
                         main_cmake_lists.relative_to(self.project_dir),
                     )
                 else:
                     _logger.error(
                         "Module %s not added with ExternalProject_Add directive within %s file.",
-                        module_child.stem,
+                        module_name,
                         main_cmake_lists.relative_to(self.project_dir),
                     )
+
                 # Then look in the CMakeLists.txt file of the actual module
-                # TODO
+                with open(
+                    cmakelists_child, encoding=DEFAULT_ENCODING
+                ) as cmakelists_child_file:
+                    cmakelists_child_content = cmakelists_child_file.read()
+
+                if GCheck.SUB_CMAKE_RE.search(cmakelists_child_content):
+                    _logger.debug(
+                        "Module %s correctly setup to install tools inside "
+                        "${projectDir}bin/fromSource",
+                        module_name,
+                    )
+                else:
+                    _logger.error(
+                        "DESTINATION in CMakeLists.txt file for module %s is not set to "
+                        "${projectDir}/bin/fromSource. Please update DESTINATION section in %s file"
+                        ' to "DESTINATION ${CMAKE_INSTALL_PREFIX}'
+                        '/${pipeline_dir}/bin/fromSource."',
+                        module_name,
+                        cmakelists_child.relative_to(self.project_dir),
+                    )
 
         return OrderedDict([("modules", labels_from_modules)])
 
     @staticmethod
-    def _get_labels_from_conda_dir(input_dir):
+    def _get_labels_from_conda_dir(conda_tree, **kwargs):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
-        for recipe_child in input_dir.iterdir():
-            if recipe_child.is_file() and recipe_child.suffix in (".yml", ".yaml"):
-                labels_from_recipes += [recipe_child.stem]
+        for recipe_child in conda_tree.get("current_files", []):
+            labels_from_recipes += [recipe_child.stem]
 
         return OrderedDict([("conda", labels_from_recipes)])
 
     @staticmethod
-    def _get_labels_from_singularity_dir(input_dir):
+    def _get_labels_from_singularity_dir(singularity_tree, **kwargs):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
-        for recipe_child in input_dir.iterdir():
-            if recipe_child.is_file() and recipe_child.suffix == ".def":
-                labels_from_recipes += [recipe_child.stem]
+        for recipe_child in singularity_tree.get("current_files", []):
+            labels_from_recipes += [recipe_child.stem]
 
         return OrderedDict([("singularity", labels_from_recipes)])
 
     @staticmethod
-    def _get_labels_from_docker_dir(input_dir):
+    def _get_labels_from_docker_dir(docker_tree, **kwargs):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
-        for recipe_child in input_dir.iterdir():
-            if recipe_child.is_file() and recipe_child.suffix == ".Dockerfile":
-                labels_from_recipes += [recipe_child.stem]
+        for recipe_child in docker_tree.get("current_files", []):
+            labels_from_recipes += [recipe_child.stem]
 
         return OrderedDict([("docker", labels_from_recipes)])
 
@@ -696,8 +719,8 @@ class GCheck(GCommand):
 
         Args:
             dependency_tree:
-            singularity_path:
-            docker_path:
+            singularity_tree:
+            docker_tree:
 
         Returns:
 
@@ -847,7 +870,7 @@ class GCheck(GCommand):
                 if not geniac_dirpath.exists():
                     continue
             if get_label := geniac_dir.get("get_labels"):
-                self.labels_from_folders |= get_label(geniac_dirpath)
+                self.labels_from_folders |= get_label(**geniac_trees)
 
         # Then check directories
         for geniac_dirname, geniac_dir in geniac_dirs.items():
