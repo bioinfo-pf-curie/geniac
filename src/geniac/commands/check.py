@@ -162,14 +162,15 @@ class GCheck(GCommand):
             dir_path,
             " recursively" if recursive_flag else "",
         )
-        if dir_path.exists():
-            return [
+        return (
+            [
                 _
                 for _ in dir_path.glob("**/*" if recursive_flag else "*")
                 if _ not in excluded_files and not _.is_dir()
             ]
-        else:
-            return ()
+            if dir_path.exists()
+            else ()
+        )
 
     def _format_tree_config(self):
         """Format configuration tree from ini config
@@ -865,7 +866,7 @@ class GCheck(GCommand):
         )
 
         # Get labels first
-        for geniac_dirname, geniac_dir in geniac_dirs.items():
+        for _, geniac_dir in geniac_dirs.items():
             if geniac_dirpath := geniac_dir.get("tree", {}).get("path"):
                 if not geniac_dirpath.exists():
                     continue
@@ -873,7 +874,7 @@ class GCheck(GCommand):
                 self.labels_from_folders |= get_label(**geniac_trees)
 
         # Then check directories
-        for geniac_dirname, geniac_dir in geniac_dirs.items():
+        for _, geniac_dir in geniac_dirs.items():
             if geniac_dirpath := geniac_dir.get("tree", {}).get("path"):
                 if not geniac_dirpath.exists():
                     continue
