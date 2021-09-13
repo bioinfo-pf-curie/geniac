@@ -202,9 +202,9 @@ class GCheck(GCommand):
                     # Path(s) to optional file(s)
                     "optional_files": self.config_path(tree_section, "optional"),
                     # Path(s) to file(s) excluded from the analysis
-                    "excluded_files": self.config_path(tree_section, "exclude"),
+                    "excluded_files": self.config_path(tree_section, "excluded"),
                     # Path(s) to file(s) excluded from the analysis
-                    "prohibited_files": self.config_path(tree_section, "prohibit"),
+                    "prohibited_files": self.config_path(tree_section, "prohibited"),
                 },
             )
             for tree_section in self.config_subsection(self.TREE_SUFFIX)
