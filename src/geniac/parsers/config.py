@@ -9,7 +9,7 @@ import re
 import typing
 from collections import OrderedDict, defaultdict
 
-from geniac.parsers.base import GParser, DEFAULT_ENCODING
+from geniac.parsers.base import DEFAULT_ENCODING, GParser
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -66,7 +66,8 @@ class NextflowConfig(GParser):
         skip_nested_scopes = [""] if skip_nested_scopes is None else skip_nested_scopes
         _logger.info(
             "Checking %s scope in %s.",
-            nxf_config_scope, self.path.relative_to(self.project_dir)
+            nxf_config_scope,
+            self.path.relative_to(self.project_dir),
         )
 
         default_config_scopes = self.get_config_list(
@@ -87,6 +88,16 @@ class NextflowConfig(GParser):
                 else []
             )
         }
+        prohibited_patterns = {
+            key: value.split("\n")
+            for key, value in (
+                self.config.items(f"scope.{nxf_config_scope}.values.prohibited")
+                if self.config.has_section(
+                    f"scope.{nxf_config_scope}.values.prohibited"
+                )
+                else []
+            )
+        }
 
         scope = self.get(nxf_config_scope, "missing")
         cfg_val = None
@@ -94,19 +105,27 @@ class NextflowConfig(GParser):
         if nxf_config_scope and scope == "missing" and required_flag:
             _logger.error(
                 "Required section %s in Nextflow configuration file %s is missing.",
-                nxf_config_scope, self.path.relative_to(self.project_dir)
+                nxf_config_scope,
+                self.path.relative_to(self.project_dir),
             )
         # Else if the scope is empty
         elif nxf_config_scope and not scope:
             _logger.error(
                 "Section %s in Nextflow configuration file %s is empty.",
-                nxf_config_scope, self.path.relative_to(self.project_dir)
+                nxf_config_scope,
+                self.path.relative_to(self.project_dir),
             )
         # Check if config_paths/config_props in the Nextflow config corresponds to
         # their default values
         if scope != "missing":
             for config_prop in default_config_paths + default_config_props:
                 def_val = default_config_values.get(config_prop, [])
+                proh_patterns = prohibited_patterns.get(config_prop)
+                proh_reg = (
+                    [re.compile(proh_pattern) for proh_pattern in proh_patterns]
+                    if proh_patterns
+                    else []
+                )
                 if (
                     config_prop
                     and (cfg_val := scope.get(config_prop))
@@ -119,17 +138,34 @@ class NextflowConfig(GParser):
                             for _ in filter(None, def_val)
                         ]
                     )
+
+                    for reg in proh_reg:
+                        if match := reg.search(cfg_val):
+                            _logger.error(
+                                'Value "%s" of %s.%s parameter match a prohibited pattern. '
+                                "It should normally correspond to the string below:\n\t"
+                                "%s",
+                                cfg_val,
+                                nxf_config_scope,
+                                config_prop,
+                                cfg_val[: match.start()] + cfg_val[match.end() : -1],
+                            )
                     if cfg_val is not None:
                         _logger.warning(
                             'Value "%s" of %s.%s parameter'
                             " in file %s doesn't correspond to one of the expected values [%s].",
-                            cfg_val, nxf_config_scope, config_prop,
-                            self.path.relative_to(self.project_dir), form_def_val
+                            cfg_val,
+                            nxf_config_scope,
+                            config_prop,
+                            self.path.relative_to(self.project_dir),
+                            form_def_val,
                         )
                     else:
                         _logger.error(
                             "Missing %s.%s parameter in file %s.",
-                            nxf_config_scope, config_prop, self.path.relative_to(self.project_dir)
+                            nxf_config_scope,
+                            config_prop,
+                            self.path.relative_to(self.project_dir),
                         )
 
         # Call same checks on nested scopes
@@ -206,7 +242,9 @@ class NextflowConfig(GParser):
                 )
                 _logger.debug(
                     "FOUND property %s with value %s in scope %s.",
-                    values.get(prop_key), values.get(value_key), param_idx
+                    values.get(prop_key),
+                    values.get(value_key),
+                    param_idx,
                 )
                 value = (
                     value.strip('"')
@@ -234,7 +272,10 @@ class NextflowConfig(GParser):
                     )
                     _logger.warning(
                         "Parameter %s from %s at line %s has already been defined%s.",
-                        param_idx, self.path.relative_to(self.project_dir), line_idx + 1, extra_msg
+                        param_idx,
+                        self.path.relative_to(self.project_dir),
+                        line_idx + 1,
+                        extra_msg,
                     )
                 self.content[param_idx] = (
                     self.content[param_idx] + [value]
@@ -245,6 +286,5 @@ class NextflowConfig(GParser):
                 )
                 continue
         _logger.debug(
-            "LOADED %s scope:\n%s.",
-            in_file, json.dumps(dict(self.content), indent=2)
+            "LOADED %s scope:\n%s.", in_file, json.dumps(dict(self.content), indent=2)
         )
