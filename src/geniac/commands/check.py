@@ -655,26 +655,19 @@ class GCheck(GCommand):
                         main_cmake_lists.relative_to(self.project_dir),
                     )
 
-                # Then look in the CMakeLists.txt file of the actual module
-                with open(
-                    cmakelists_child, encoding=DEFAULT_ENCODING
-                ) as cmakelists_child_file:
-                    cmakelists_child_content = cmakelists_child_file.read()
-
-                if GCheck.SUB_CMAKE_RE.search(cmakelists_child_content):
+                # Then look in the CMakeLists.txt if install DESTINATION is correct
+                if GCheck.SUB_CMAKE_RE.search(main_cmake_lists_content):
                     _logger.debug(
                         "Module %s correctly setup to install tools inside "
-                        "${projectDir}bin/fromSource",
+                        "${projectDir}/bin/fromSource",
                         module_name,
                     )
                 else:
                     _logger.error(
-                        "DESTINATION in CMakeLists.txt file for module %s is not set to "
-                        "${projectDir}/bin/fromSource. Please update DESTINATION section in %s file"
-                        ' to "DESTINATION ${CMAKE_INSTALL_PREFIX}'
-                        '/${pipeline_dir}/bin/fromSource."',
-                        module_name,
-                        cmakelists_child.relative_to(self.project_dir),
+                        "DESTINATION in '%s' is not set to '${projectDir}/bin/fromSource'. Please "
+                        "update DESTINATION section in this file to "
+                        '"DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/bin/fromSource."',
+                        main_cmake_lists.relative_to(self.project_dir),
                     )
 
         return OrderedDict([("modules", labels_from_modules)])
