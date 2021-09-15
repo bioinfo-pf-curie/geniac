@@ -165,7 +165,7 @@ def setup_logging(loglevel, only_stream=False):
         logging_config["handlers"] = {
             handler: handler_config
             for (handler, handler_config) in logging_config["handlers"].items()
-            if handler_config.get("class") == "logging.StreamHandler"
+            if handler == "console"
         }
         # And remove them within loggers and root section
         for config_section in ("root", "loggers"):
