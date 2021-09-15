@@ -974,14 +974,5 @@ class GCheck(GCommand):
         self.check_labels()
 
         # End the run with exit code
-        sys.exit(
-            1
-            if (
-                (logging.ERROR in _logger._cache and _logger._cache[logging.ERROR])
-                or (
-                    logging.CRITICAL in _logger._cache
-                    and _logger._cache[logging.CRITICAL]
-                )
-            )
-            else 0
-        )
+        if self.error_flag:
+            raise SystemExit(1)
