@@ -259,7 +259,7 @@ class GCheck(GCommand):
                 formatted_path = (
                     path.relative_to(self.project_dir)
                     if not is_project_dir
-                    else self.project_dir
+                    else self.project_dir.relative_to(Path.cwd())
                 )
                 if required and not path.exists():
                     extra_msg = (
