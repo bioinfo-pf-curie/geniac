@@ -94,6 +94,12 @@ def parse_args(args):
         const=logging.DEBUG,
     )
     parser.add_argument(
+        "--no-logfiles",
+        dest="only_stream",
+        help="Disable generation of log files",
+        action="store_true",
+    )
+    parser.add_argument(
         "-c",
         "--config",
         help="Path to geniac config file (INI format)",
@@ -144,16 +150,32 @@ def parse_args(args):
     return parser, parser.parse_args(args)
 
 
-def setup_logging(loglevel):
+def setup_logging(loglevel, only_stream=False):
     """Setup basic logging
 
     Args:
       loglevel (int): minimum loglevel for emitting messages
+      only_stream (bool): keep only Stream handlers
     """
-    # Set a default logger
+    # Setup a default logger
     logging.basicConfig(level=loglevel if loglevel else logging.WARNING)
     # Update with file handlers defined in _logging_config file
     logging_config = loads(resource_stream(*_logging_config).read().decode())
+    if only_stream and logging_config.get("handlers"):
+        logging_config["handlers"] = {
+            handler: handler_config
+            for (handler, handler_config) in logging_config["handlers"].items()
+            if handler_config.get("class") == "logging.StreamHandler"
+        }
+        # And remove them within loggers and root section
+        for config_section in ("root", "loggers"):
+            if logging_config.get(config_section, {}).get("handlers"):
+                logging_config[config_section]["handlers"] = [
+                    handler
+                    for handler in logging_config[config_section]["handlers"]
+                    if handler in logging_config["handlers"]
+                ]
+
     dictConfig(logging_config)
     logging.captureWarnings(True)
 
@@ -165,9 +187,11 @@ def main(args):
       args ([str]): command line parameter list
     """
     parser, args = parse_args(args)
-    setup_logging(args.loglevel)
+    setup_logging(args.loglevel, args.only_stream)
     if "func" in args:
-        _logger.info("Start geniac %s command.", args.which if 'which' in args else None)
+        _logger.info(
+            "Start geniac %s command.", args.which if "which" in args else None
+        )
         args.func(args).run()
     else:
         parser.print_help()
