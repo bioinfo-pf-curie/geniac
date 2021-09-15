@@ -3,10 +3,8 @@
 
 """check.py: Linter command for geniac"""
 
-import logging
 import re
 import subprocess
-import sys
 from collections import OrderedDict
 from pathlib import Path
 
@@ -17,8 +15,6 @@ from geniac.parsers.scripts import NextflowScript
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
-
-_logger = logging.getLogger(__name__)
 
 
 class GCheck(GCommand):
@@ -142,8 +138,7 @@ class GCheck(GCommand):
             )
         return self._labels_all
 
-    @staticmethod
-    def _get_current_files(config_tree: dict, tree_section: str):
+    def _get_current_files(self, config_tree: dict, tree_section: str):
         """
         Get current file list from a specific section
 
@@ -157,7 +152,7 @@ class GCheck(GCommand):
         dir_path = config_tree.get(tree_section).get("path")
         recursive_flag = config_tree.get(tree_section).get("recursive")
         excluded_files = config_tree.get(tree_section).get("excluded_files")
-        _logger.debug(
+        self.debug(
             "Browse current files in %s directory%s",
             dir_path,
             " recursively" if recursive_flag else "",
@@ -226,12 +221,12 @@ class GCheck(GCommand):
 
     def check_tree_folder(self):
         """Check the directory in order to set the flags"""
-        _logger.info("Checking tree structure of %s.", self.project_dir)
-        _logger.debug("Sections parsed from config file: %s.", self.config.sections())
+        self.info("Checking tree structure of %s.", self.project_dir)
+        self.debug("Sections parsed from config file: %s.", self.config.sections())
 
         for tree_section, section in self.project_tree.items():
             for msg in ("\n", f"Folder {tree_section}"):
-                _logger.debug(msg)
+                self.debug(msg)
 
             # Is the actual folder required
             required = section.get("required")
@@ -254,7 +249,7 @@ class GCheck(GCommand):
                 f"excluded files: {section.get('excluded_files')}",
                 f"current files: {current_files}",
             ):
-                _logger.debug(msg)
+                self.debug(msg)
 
             # If folder exists and is not empty (excluded files are ignored)
             if path:
@@ -265,10 +260,10 @@ class GCheck(GCommand):
                         path.relative_to(self.project_dir),
                     )
                 elif recommended and not path.exists():
-                    _logger.warning(
+                    self.warning(
                         "Directory %s does not exist. It is recommended to have one in your "
                         "project.",
-                        path.relative_to(self.project_dir),
+                        formatted_path,
                     )
 
             # Trigger an error if a mandatory file is missing
@@ -278,7 +273,7 @@ class GCheck(GCommand):
                 if (required or (recommended and current_files)) and (
                     file not in current_files
                 ):
-                    _logger.error(
+                    self.error(
                         "File %s is missing. Add it to your project if you want to be compatible "
                         "with geniac.",
                         file.relative_to(self.project_dir),
@@ -289,7 +284,7 @@ class GCheck(GCommand):
                 # If the folder is actually required but the optional file is not
                 # present
                 if required and file not in current_files:
-                    _logger.warning(
+                    self.warning(
                         "Optional file %s does not exist. It is recommended to have one in your "
                         "project.",
                         file.relative_to(self.project_dir),
@@ -322,7 +317,7 @@ class GCheck(GCommand):
             if script_path.exists():
                 script.read(script_path)
             else:
-                _logger.error(
+                self.error(
                     "Workflow script %s does not exist.",
                     script_path.relative_to(self.project_dir),
                 )
@@ -334,7 +329,7 @@ class GCheck(GCommand):
                 process_path = Path(
                     processes.get(process).get('NextflowScriptPath')
                 ).relative_to(self.project_dir)
-                _logger.error(
+                self.error(
                     "Process %s in %s does not have any label.",
                     process, process_path
                 )
@@ -366,14 +361,14 @@ class GCheck(GCommand):
         try:
             subprocess.run(["conda", "-h"], capture_output=True, check=True)
         except subprocess.CalledProcessError:
-            _logger.error(
+            self.error(
                 "Conda is not available in your path. Geniac will not check if tool "
                 "recipes are correct."
             )
             conda_check = False
 
         # Check each label in params.geniac.tools
-        _logger.info(
+        self.info(
             "Checking conda recipes in params.geniac.tools."
             if conda_check
             else "Checking of conda recipes turned off."
@@ -394,7 +389,7 @@ class GCheck(GCommand):
                             check=True,
                         )
                     except subprocess.CalledProcessError:
-                        _logger.error(
+                        self.error(
                             "Conda search command returned non-zero exit status for the recipe "
                             "%s[%s]. Either conda is not available or the recipe does not link "
                             "to an existing package or build. Check if the requested build is "
@@ -405,7 +400,7 @@ class GCheck(GCommand):
                             conda_recipe,
                         )
                     else:
-                        _logger.debug("Conda search output:\n%s", conda_search.stdout)
+                        self.debug("Conda search output:\n%s", conda_search.stdout)
             # Elif the tool value is a path to an environment file (yml or yaml ext),
             # check if the path exists
             elif match := GCheck.CONDA_PATH_RE.search(recipe):
@@ -414,14 +409,14 @@ class GCheck(GCommand):
                         self.project_dir / match.groupdict().get("basepath")
                     )
                 ) and not conda_path.exists():
-                    _logger.error(
+                    self.error(
                         "Conda file %s related to %s tool does not exist.",
                         conda_path.relative_to(self.project_dir),
                         label,
                     )
             # else check if it's a valid path
             else:
-                _logger.error(
+                self.error(
                     "Value %s of %s tool does not follow the pattern "
                     '"condaChannelName::softName=version=buildString".',
                     recipe,
@@ -437,7 +432,7 @@ class GCheck(GCommand):
                 for label in x_section:
                     # If label is not present in geniac.tools
                     if label not in labels_geniac_tools:
-                        _logger.error(
+                        self.error(
                             "Label %s of %s is not defined in params.geniac.tools.",
                             label,
                             extra_section,
@@ -467,7 +462,7 @@ class GCheck(GCommand):
             "withName", OrderedDict()
         ):
             if config_process not in self.processes_from_workflow:
-                _logger.error(
+                self.error(
                     "withName:%s is defined in %s file but the process %s is not used anywhere.",
                     config_process,
                     config.path.relative_to(self.project_dir),
@@ -521,12 +516,12 @@ class GCheck(GCommand):
                 if default_config_path in self.config_path(
                     ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
                 ):
-                    _logger.warning(msg)
+                    self.warning(msg)
                 else:
-                    _logger.error(msg)
+                    self.error(msg)
 
-    @staticmethod
     def _check_base_config(
+        self,
         nxf_config: NextflowConfig,
         **kwargs,
     ):
@@ -592,14 +587,14 @@ class GCheck(GCommand):
             # geniac files
             if not project_config_path.exists():
                 if project_config_path not in default_config_paths:
-                    _logger.error(
+                    self.error(
                         "Nextflow config file %s does not exist.",
                         project_config_path.relative_to(self.project_dir),
                     )
                 continue
             nxf_config.read(project_config_path)
             if config_method:
-                _logger.info(
+                self.info(
                     "Checking Nextflow configuration file. %s",
                     project_config_path.relative_to(self.project_dir),
                 )
@@ -618,7 +613,7 @@ class GCheck(GCommand):
         if not main_cmake_lists.exists():
             # Output an error if modules directory is not empty
             if any(modules_dir.iterdir()):
-                _logger.error(
+                self.error(
                     "Folder %s requires a CMakeLists.txt file in order to automatically "
                     "build containers.",
                     modules_dir.relative_to(self.project_dir),
@@ -635,7 +630,7 @@ class GCheck(GCommand):
             module_name = module_dir.stem
             cmakelists_child = module_dir / "CMakeLists.txt"
             if cmakelists_child.exists():
-                _logger.debug("Found module directory with label %s.", module_name)
+                self.debug("Found module directory with label %s.", module_name)
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
                 check_main_cmlist_reg = re.compile(
                     GCheck.MAIN_CMAKE_RE_TEMP.format(label=module_name)
@@ -643,13 +638,13 @@ class GCheck(GCommand):
                 # First look if the is correctly added within the main CMakeLists.txt file
                 if check_main_cmlist_reg.search(main_cmake_lists_content):
                     labels_from_modules += [module_name]
-                    _logger.debug(
+                    self.debug(
                         "Module %s correctly added within %s.",
                         module_name,
                         main_cmake_lists.relative_to(self.project_dir),
                     )
                 else:
-                    _logger.error(
+                    self.error(
                         "Module %s not added with ExternalProject_Add directive within %s file.",
                         module_name,
                         main_cmake_lists.relative_to(self.project_dir),
@@ -657,13 +652,13 @@ class GCheck(GCommand):
 
                 # Then look in the CMakeLists.txt if install DESTINATION is correct
                 if GCheck.SUB_CMAKE_RE.search(main_cmake_lists_content):
-                    _logger.debug(
+                    self.debug(
                         "Module %s correctly setup to install tools inside "
                         "${projectDir}/bin/fromSource",
                         module_name,
                     )
                 else:
-                    _logger.error(
+                    self.error(
                         "DESTINATION in '%s' is not set to '${projectDir}/bin/fromSource'. Please "
                         "update DESTINATION section in this file to "
                         '"DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/bin/fromSource."',
@@ -730,7 +725,7 @@ class GCheck(GCommand):
                     dependencies_dir.resolve()
                 )
             ):
-                _logger.error(
+                self.error(
                     "Dependency %s can't be used for container recipes. It should be located "
                     "inside a custom folder with the name corresponding to the container recipe "
                     "file.",
@@ -768,7 +763,7 @@ class GCheck(GCommand):
 
                 # Throw an error if dependency not found in any recipe file
                 if not recipe_flag:
-                    _logger.warning(
+                    self.warning(
                         "Dependency file %s not used in any %s recipe files %s.",
                         dependency_path.name,
                         recipe_type,
@@ -796,7 +791,7 @@ class GCheck(GCommand):
             envs_found += [env_path]
             # Check if basename of env file is present in label list
             if env_path.stem not in self.labels_all:
-                _logger.warning(
+                self.warning(
                     "Environment file %s does not correspond to any process label.",
                     env_path.name,
                 )
@@ -816,7 +811,7 @@ class GCheck(GCommand):
                                 envs_sourced += [env_path]
                     # If env file not sourced in the actual process
                     if not source_flag:
-                        _logger.warning(
+                        self.warning(
                             "Process %s with label %s does not source %s.",
                             process,
                             env_path.stem,
@@ -825,7 +820,7 @@ class GCheck(GCommand):
 
         if envs_unsourced := set(envs_found) - set(envs_sourced):
             for env_path in sorted(envs_unsourced):
-                _logger.warning(
+                self.warning(
                     "Env file %s not used in the workflow.",
                     env_path.relative_to(self.project_dir),
                 )
@@ -882,7 +877,7 @@ class GCheck(GCommand):
                 ).symmetric_difference(set(self.labels_from_folders.get("docker", [])))
             )
         ):
-            _logger.warning(
+            self.warning(
                 "Some recipes are missing either in docker or singularity folder %s.",
                 container_diff,
             )
@@ -901,7 +896,7 @@ class GCheck(GCommand):
             if label not in self.labels_from_workflow and label != "onlyLinux"
         ]
         if len(cross_labels) >= 1:
-            _logger.warning(
+            self.warning(
                 "You have recipes, modules or geniac.tools label(s) that are not used in workflow "
                 "scripts %s.",
                 cross_labels,
@@ -917,7 +912,7 @@ class GCheck(GCommand):
                 and label in self.labels_all
             ]
             if len(matched_labels) > 1:
-                _logger.error(
+                self.error(
                     "Use only one recipes, modules or geniac.tools label for the process %s %s. "
                     "A process should have only one geniac.tools label.",
                     process,
@@ -933,7 +928,7 @@ class GCheck(GCommand):
                 process_path = self.config_path(
                     GCheck.PROJECT_CONFIG, "process", single_path=True
                 ).relative_to(self.project_dir)
-                _logger.error(
+                self.error(
                     "Label(s) %s from process %s in the file %s not defined in the file %s.",
                     unmatched_labels,
                     process,
