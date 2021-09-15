@@ -253,11 +253,23 @@ class GCheck(GCommand):
 
             # If folder exists and is not empty (excluded files are ignored)
             if path:
+                is_project_dir = (
+                    True if path.resolve() == self.project_dir.resolve() else False
+                )
+                formatted_path = (
+                    path.relative_to(self.project_dir)
+                    if not is_project_dir
+                    else self.project_dir
+                )
                 if required and not path.exists():
-                    _logger.error(
-                        "Directory %s does not exist. Add it to your project if you want your "
-                        "workflow to be compatible with geniac tools.",
-                        path.relative_to(self.project_dir),
+                    extra_msg = (
+                        " Add it to your project if you want your "
+                        "workflow to be compatible with geniac tools."
+                        if not is_project_dir
+                        else ""
+                    )
+                    self.critical(
+                        "Directory %s does not exist.%s", formatted_path, extra_msg
                     )
                 elif recommended and not path.exists():
                     self.warning(

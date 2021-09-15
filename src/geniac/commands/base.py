@@ -12,6 +12,8 @@ from pathlib import Path
 
 from pkg_resources import resource_filename, resource_stream
 
+from geniac.conf.logging import LogMixin
+
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
 
@@ -41,7 +43,7 @@ def glob_solver(input_path):
     return (
         sorted(
             Path(input_path[: input_path.find("**")]).glob(
-                input_path[input_path.find("**"):]
+                input_path[input_path.find("**") :]
             )
         )
         if "**" in input_path
@@ -51,18 +53,25 @@ def glob_solver(input_path):
     )
 
 
-class GBase(ABC):
+class GBase(ABC, LogMixin):
     """Abstract base class for Geniac commands"""
 
     DEFAULT_CONFIG = ("geniac", "conf/geniac.ini")
 
-    def __init__(self, project_dir=None, build_dir=None, config_file=None, **kwargs):
+    def __init__(
+        self,
+        project_dir: str = None,
+        build_dir: str = None,
+        config_file: str = None,
+        **kwargs,
+    ) -> None:
         """
 
         Args:
             project_dir (str): path to the Nextflow Project Dir
             config_file (str): path to a configuration file (INI format)
         """
+        super().__init__()
         self._project_dir = None
         self._build_dir = None
         if project_dir:

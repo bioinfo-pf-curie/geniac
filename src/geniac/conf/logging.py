@@ -11,6 +11,7 @@ __copyright__ = "Institut Curie 2021"
 
 class LogMixin:
     """Add logger property and error/warning/info tracking"""
+
     def __init__(self, *args, **kwargs):
         self._error_flag = False
         super().__init__(*args, **kwargs)
@@ -18,7 +19,7 @@ class LogMixin:
     @property
     def logger(self):
         """Logging logger instance"""
-        return logging.getLogger('.'.join([__name__, self.__class__.__name__]))
+        return logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
     @property
     def error_flag(self):
@@ -58,6 +59,7 @@ class LogMixin:
 
 class ExitOnExceptionHandler(logging.StreamHandler):
     """Custom handler that exit if the log level is critical"""
+
     def emit(self, record):
         """Pass log messages on to its super and exit if the log level is critical"""
         super().emit(record)
