@@ -6,6 +6,7 @@
 import re
 import subprocess
 from collections import OrderedDict
+from inspect import getfullargspec
 from pathlib import Path
 
 from geniac.commands.base import GCommand
@@ -351,15 +352,14 @@ class GCheck(GCommand):
 
     def _check_geniac_config(
         self,
-        config: NextflowConfig,
+        nxf_config: NextflowConfig,
         conda_check: bool = True,
-        **kwargs,
     ):
         """Check the content of params scope in a geniac config file
 
         Args:
             conda_check:
-            config: Nextflow config object
+            nxf_config: Nextflow config object
 
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
@@ -367,7 +367,7 @@ class GCheck(GCommand):
         labels_geniac_tools = []
 
         # Check parameters according to their default values
-        config.check_config_scope("params")
+        nxf_config.check_config_scope("params")
 
         # Check if conda command exists
         try:
@@ -385,7 +385,9 @@ class GCheck(GCommand):
             if conda_check
             else "Checking of conda recipes turned off."
         )
-        for label, recipe in config.get("params.geniac.tools", OrderedDict()).items():
+        for label, recipe in nxf_config.get(
+            "params.geniac.tools", OrderedDict()
+        ).items():
             labels_geniac_tools.append(label)
             # If the tool value is a conda recipe
             if match := GCheck.CONDA_RECIPES_RE.match(recipe):
@@ -439,7 +441,7 @@ class GCheck(GCommand):
             "params.geniac.containers.yum",
             "params.geniac.containers.git",
         ):
-            if x_section := config.get(extra_section):
+            if x_section := nxf_config.get(extra_section):
                 # For each label in yum or git scope
                 for label in x_section:
                     # If label is not present in geniac.tools
@@ -454,42 +456,40 @@ class GCheck(GCommand):
 
     def _check_process_config(
         self,
-        config: NextflowConfig,
-        **kwargs,
+        nxf_config: NextflowConfig,
     ):
         """Check the content of a process config file
 
         Args:
-            config: Nextflow config object
+            nxf_config: Nextflow config object
 
         Returns:
             labels_process (list): list of process labels in params.process with withName
         """
         # Check parameters according to their default values
-        config.check_config_scope("process")
+        nxf_config.check_config_scope("process")
 
         # For each process used with withName selector, check their existence in the
         # workflow
-        for config_process in config.get("process", OrderedDict()).get(
+        for config_process in nxf_config.get("process", OrderedDict()).get(
             "withName", OrderedDict()
         ):
             if config_process not in self.processes_from_workflow:
                 self.error(
                     "withName:%s is defined in %s file but the process %s is not used anywhere.",
                     config_process,
-                    config.path.relative_to(self.project_dir),
+                    nxf_config.path.relative_to(self.project_dir),
                     config_process,
                 )
 
         # Return list of labels defined with withLabel selector in the process.config file
-        return list(config.get("process", OrderedDict()).get("withLabel"))
+        return list(nxf_config.get("process", OrderedDict()).get("withLabel"))
 
     def _check_nextflow_config(
         self,
         nxf_config: NextflowConfig,
         default_config_paths: list = (),
         default_geniac_files_paths: list = (),
-        **kwargs,
     ):
         """Check the content of a nextflow config file
 
@@ -535,7 +535,6 @@ class GCheck(GCommand):
     def _check_base_config(
         self,
         nxf_config: NextflowConfig,
-        **kwargs,
     ):
         """Check the content of a base config file
 
@@ -545,6 +544,7 @@ class GCheck(GCommand):
         Returns:
 
         """
+        self.debug("Check content of base config file without analyzing geniac scope")
         nxf_config.check_config_scope("params", skip_nested_scopes=["geniac"])
 
     def get_labels_from_config_files(self):
@@ -587,6 +587,12 @@ class GCheck(GCommand):
         ]
 
         for config_key, project_config_scope in project_config_scopes.items():
+            config_args = {
+                "nxf_config": nxf_config,
+                "default_config_paths": project_config_paths,
+                "default_geniac_files_paths": generated_geniac_config_paths,
+                "conda_check": self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
+            }
             project_config_path = project_config_scope["path"]
             config_method = project_config_scope["check_config"]
             default_config_paths = (
@@ -611,13 +617,14 @@ class GCheck(GCommand):
                     project_config_path.relative_to(self.project_dir),
                 )
                 self.labels_from_configs[config_key] = config_method(
-                    nxf_config,
-                    default_config_paths=project_config_paths,
-                    default_geniac_files_paths=generated_geniac_config_paths,
-                    conda_check=self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
+                    **{
+                        arg: config_args.get(arg)
+                        for arg in getfullargspec(config_method).args
+                        if arg != "self"
+                    }
                 )
 
-    def _get_labels_from_modules_dir(self, modules_tree: dict, **kwargs):
+    def _get_labels_from_modules_dir(self, modules_tree: dict):
         """Get geniac labels from modules directory"""
         labels_from_modules = []
         modules_dir = modules_tree.get("path")
@@ -683,7 +690,7 @@ class GCheck(GCommand):
         return OrderedDict([("modules", labels_from_modules)])
 
     @staticmethod
-    def _get_labels_from_conda_dir(conda_tree, **kwargs):
+    def _get_labels_from_conda_dir(conda_tree):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
@@ -693,7 +700,7 @@ class GCheck(GCommand):
         return OrderedDict([("conda", labels_from_recipes)])
 
     @staticmethod
-    def _get_labels_from_singularity_dir(singularity_tree, **kwargs):
+    def _get_labels_from_singularity_dir(singularity_tree):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
@@ -703,7 +710,7 @@ class GCheck(GCommand):
         return OrderedDict([("singularity", labels_from_recipes)])
 
     @staticmethod
-    def _get_labels_from_docker_dir(docker_tree, **kwargs):
+    def _get_labels_from_docker_dir(docker_tree):
         """Get geniac labels from conda, singularity and docker recipes"""
         labels_from_recipes = []
 
@@ -717,12 +724,11 @@ class GCheck(GCommand):
         dependencies_tree: dict,
         docker_tree: dict = None,
         singularity_tree: dict = None,
-        **kwargs,
     ):
         """
 
         Args:
-            dependency_tree:
+            dependencies_tree:
             singularity_tree:
             docker_tree:
 
@@ -732,7 +738,7 @@ class GCheck(GCommand):
         dependencies_dir = dependencies_tree.get("path")
 
         for dependency_path in dependencies_tree.get("current_files", []):
-            # The dependency should be inside a subfolder (recipes/dependencies/tool_name/dep.ext)
+            # The dependency should be inside a sub folder (recipes/dependencies/tool_name/dep.ext)
             tool_name = dependency_path.parent.name
             if (
                 tool_name == "dependencies"
@@ -748,15 +754,11 @@ class GCheck(GCommand):
                 )
                 continue
 
-            for recipe_type, recipe_ext in (
-                ("singularity", ".def"),
-                ("docker", ".Dockerfile"),
+            for recipe_type, recipe_ext, tree in (
+                ("singularity", ".def", singularity_tree),
+                ("docker", ".Dockerfile", docker_tree),
             ):
-                recipe_files = (
-                    locals().get(f"{recipe_type}_tree", {}).get("current_files", [])
-                    if singularity_tree
-                    else []
-                )
+                recipe_files = tree.get("current_files", [])
                 recipe_flag = False
 
                 # Check if the file is used in recipe files
@@ -782,13 +784,10 @@ class GCheck(GCommand):
                         "Dependency file %s not used in any %s recipe files %s.",
                         dependency_path.name,
                         recipe_type,
-                        locals()
-                        .get(f"{recipe_type}_tree")
-                        .get("path")
-                        .relative_to(self.project_dir),
+                        tree.get("path").relative_to(self.project_dir),
                     )
 
-    def _check_env_dir(self, env_tree: dict, **kwargs):
+    def _check_env_dir(self, env_tree: dict):
         """
 
         Args:
@@ -874,7 +873,13 @@ class GCheck(GCommand):
                 if not geniac_dirpath.exists():
                     continue
             if get_label := geniac_dir.get("get_labels"):
-                self.labels_from_folders |= get_label(**geniac_trees)
+                self.labels_from_folders |= get_label(
+                    **{
+                        arg: geniac_trees.get(arg)
+                        for arg in getfullargspec(get_label).args
+                        if arg != "self"
+                    }
+                )
 
         # Then check directories
         for _, geniac_dir in geniac_dirs.items():
@@ -882,7 +887,13 @@ class GCheck(GCommand):
                 if not geniac_dirpath.exists():
                     continue
             if check_dir := geniac_dir.get("check_dir"):
-                check_dir(**geniac_trees)
+                check_dir(
+                    **{
+                        arg: geniac_trees.get(arg)
+                        for arg in getfullargspec(check_dir).args
+                        if arg != "self"
+                    }
+                )
 
         # Check if singularity and docker have the same labels
         if container_diff := sorted(
