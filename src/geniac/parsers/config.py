@@ -141,14 +141,24 @@ class NextflowConfig(GParser):
 
                     for reg in proh_reg:
                         if match := reg.search(cfg_val):
+                            cfg_val_without_pro = cfg_val.replace(
+                                match.groupdict().get("prohibited"), ""
+                            )
+                            cfg_val_without_values = cfg_val.replace(
+                                match.groupdict().get("values"), ""
+                            )
+                            warn_flag = cfg_val_without_pro != cfg_val_without_values
                             _logger.error(
-                                'Value "%s" of %s.%s parameter match a prohibited pattern. '
-                                "It should normally correspond to the string below:\n\t"
-                                "%s",
+                                'Value "%s" of %s.%s parameter match the following prohibited '
+                                'pattern "%s". %s%s',
                                 cfg_val,
                                 nxf_config_scope,
                                 config_prop,
-                                cfg_val[: match.start()] + cfg_val[match.end() : -1],
+                                reg.pattern,
+                                "It should normally correspond to the string below:\n\t"
+                                if warn_flag
+                                else "",
+                                cfg_val_without_pro if warn_flag else "",
                             )
                     if cfg_val is not None:
                         _logger.warning(
