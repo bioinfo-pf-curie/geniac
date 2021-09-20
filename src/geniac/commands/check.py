@@ -258,6 +258,8 @@ class GCheck(GCommand):
                     path.relative_to(self.project_dir)
                     if not is_project_dir
                     else self.project_dir.relative_to(Path.cwd())
+                    if self.project_dir.is_relative_to(Path.cwd())
+                    else self.project_dir
                 )
                 if required and not path.exists():
                     extra_msg = (
