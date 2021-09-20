@@ -10,6 +10,7 @@ import typing
 from abc import abstractmethod
 from collections import OrderedDict
 from io import StringIO
+from json import dumps
 from os import PathLike
 from pathlib import Path
 
@@ -114,13 +115,14 @@ class GParser(GBase):
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding=DEFAULT_ENCODING,
-        config_path="",
+        in_path: PathLike = Path(""),
     ):
         """Load a file into content property
 
         Args:
             in_file (TextIO): path to nextflow config file
         """
+        self.debug(f"Reading file {in_path}")
         return StringIO(in_file.read().decode(encoding))
 
     def read(self, in_paths, encoding=DEFAULT_ENCODING):
@@ -137,16 +139,22 @@ class GParser(GBase):
         if isinstance(in_paths, (str, bytes, PathLike)):
             in_paths = [in_paths]
         read_ok = []
-        for filename in in_paths:
-            filename = Path(filename)
+        for in_path in in_paths:
+            in_path = Path(in_path)
             try:
-                with filename.open(
+                with in_path.open(
                     mode="r", encoding=encoding
                 ) as input_file, tempfile.TemporaryFile() as temp_file:
+                    # Format files before reading
                     temp_file = self._remove_comments(input_file, temp_file)
-                    self._read(temp_file, encoding=encoding, config_path=filename)
-                    self.loaded_paths += [filename]
+                    self._read(temp_file, encoding=encoding, in_path=in_path)
+                    self.debug(
+                        "LOADED %s scope:\n%s.",
+                        temp_file,
+                        dumps(dict(self.content), indent=2),
+                    )
+                    self.loaded_paths += [in_path]
             except OSError:
                 continue
-            read_ok.append(filename)
+            read_ok.append(in_path)
         return read_ok

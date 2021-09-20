@@ -190,6 +190,30 @@ class GBase(ABC, LogMixin):
             if section.startswith(f"{subsection}.")
         )
 
+    def get_config_option_list(self, section: str, option: str) -> list:
+        """Get option list related to a specific section from config
+        Args:
+            section:
+            option:
+
+        Returns:
+            list
+        """
+        return (
+            list(filter(None, config_option.split("\n")))
+            if (config_option := self.config.get(f"scope.{section}", option))
+            else []
+        )
+
+    def get_config_section_items(self, section: str) -> dict:
+        """Get section items if they exist or return an empty dic"""
+        return {
+            key: value.split("\n")
+            for key, value in (
+                self.config.items(section) if self.config.has_section(section) else []
+            )
+        }
+
 
 class GCommand(GBase):
     """Base geniac command"""

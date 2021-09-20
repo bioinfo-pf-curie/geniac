@@ -3,8 +3,6 @@
 
 """scripts.py: Nextflow scripts parser."""
 
-import json
-import logging
 import re
 import typing
 from collections import OrderedDict, defaultdict
@@ -13,8 +11,6 @@ from geniac.parsers.base import GParser
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2021"
-
-_logger = logging.getLogger(__name__)
 
 
 class NextflowScript(GParser):
@@ -34,13 +30,14 @@ class NextflowScript(GParser):
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding=None,
-        config_path=""
+        in_path="",
     ):
         """Load a Nextflow script file into content property
 
         Args:
             in_file (BinaryIO): path to nextflow config file
             encoding (str): name of the encoding use to decode config files
+            in_path (str): path to the input file
         """
         script_flag = False
         process = ""
@@ -51,13 +48,11 @@ class NextflowScript(GParser):
                 # If process add it to the process dict
                 process = values.get("processName")
                 self.content["process"][process] = defaultdict(list)
-                self.content["process"][process]["NextflowScriptPath"] = str(
-                    config_path
-                )
+                self.content["process"][process]["NextflowScriptPath"] = str(in_path)
             if match := self.LABELRE.match(line):
                 values = match.groupdict()
                 label = values.get("labelName")
-                _logger.debug("FOUND label %s in process %s.", label, process)
+                self.debug("FOUND label %s in process %s.", label, process)
                 self.content["process"][process]["label"].append(label)
                 continue
             # TODO: what about conditionals nextflow scripts ?
@@ -70,9 +65,6 @@ class NextflowScript(GParser):
                 continue
             # Add to script part if script_flag
             if process and script_flag:
-                _logger.debug("Add line %s to process %s scope.", idx, process)
+                self.debug("Add line %s to process %s scope.", idx, process)
                 self.content["process"][process]["script"].append(line.strip())
                 continue
-        _logger.debug(
-            "LOADED %s scope:\n%s.", in_file, json.dumps(dict(self.content), indent=2)
-        )

@@ -3,8 +3,6 @@
 
 """config.py: Nextflow configuration file parser"""
 
-import json
-import logging
 import re
 import typing
 from collections import OrderedDict, defaultdict
@@ -13,8 +11,6 @@ from geniac.parsers.base import DEFAULT_ENCODING, GParser
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
-
-_logger = logging.getLogger(__name__)
 
 
 def _scope_tmpl():
@@ -39,23 +35,6 @@ class NextflowConfig(GParser):
     )
     ESCOPERE = re.compile(r"^ *}\s*$")
 
-    @staticmethod
-    def get_config_list(config, config_scope, option):
-        """Get option list from configparser object
-        Args:
-            config:
-            config_scope:
-            option:
-
-        Returns:
-            list
-        """
-        return (
-            list(filter(None, config_option.split("\n")))
-            if (config_option := config.get(f"scope.{config_scope}", option))
-            else []
-        )
-
     def check_config_scope(self, nxf_config_scope: str, skip_nested_scopes=None):
         """Check if the given scope is in an NextflowConfig instance
 
@@ -63,94 +42,69 @@ class NextflowConfig(GParser):
             skip_nested_scopes:
             nxf_config_scope (str): Scope checked in the Nextflow configuration
         """
-        skip_nested_scopes = [""] if skip_nested_scopes is None else skip_nested_scopes
-        _logger.info(
+        self.info(
             "Checking %s scope in %s.",
             nxf_config_scope,
             self.path.relative_to(self.project_dir),
         )
 
-        default_config_scopes = self.get_config_list(
-            self.config, nxf_config_scope, "scopes"
-        )
-        default_config_paths = self.get_config_list(
-            self.config, nxf_config_scope, "paths"
-        )
-        default_config_props = self.get_config_list(
-            self.config, nxf_config_scope, "properties"
-        )
-        required_flag = self.config.getboolean(f"scope.{nxf_config_scope}", "required")
-        default_config_values = {
-            key: value.split("\n")
-            for key, value in (
-                self.config.items(f"scope.{nxf_config_scope}.values")
-                if self.config.has_section(f"scope.{nxf_config_scope}.values")
-                else []
-            )
-        }
-        prohibited_patterns = {
-            key: value.split("\n")
-            for key, value in (
-                self.config.items(f"scope.{nxf_config_scope}.values.prohibited")
-                if self.config.has_section(
-                    f"scope.{nxf_config_scope}.values.prohibited"
-                )
-                else []
-            )
-        }
+        skip_nested_scopes = [""] if skip_nested_scopes is None else skip_nested_scopes
 
         scope = self.get(nxf_config_scope, "missing")
         cfg_val = None
         # If scope is empty and required
-        if nxf_config_scope and scope == "missing" and required_flag:
-            _logger.error(
+        if (
+            nxf_config_scope
+            and scope == "missing"
+            and self.config.getboolean(f"scope.{nxf_config_scope}", "required")
+        ):
+            self.error(
                 "Required section %s in Nextflow configuration file %s is missing.",
                 nxf_config_scope,
                 self.path.relative_to(self.project_dir),
             )
         # Else if the scope is empty
         elif nxf_config_scope and not scope:
-            _logger.error(
+            self.error(
                 "Section %s in Nextflow configuration file %s is empty.",
                 nxf_config_scope,
                 self.path.relative_to(self.project_dir),
             )
+
         # Check if config_paths/config_props in the Nextflow config corresponds to
-        # their default values
+        # their default values and are not prohibited (if a prohibited pattern is available)
         if scope != "missing":
-            for config_prop in default_config_paths + default_config_props:
-                def_val = default_config_values.get(config_prop, [])
-                proh_patterns = prohibited_patterns.get(config_prop)
-                proh_reg = (
-                    [re.compile(proh_pattern) for proh_pattern in proh_patterns]
-                    if proh_patterns
-                    else []
-                )
+            for config_prop in self.get_config_option_list(
+                nxf_config_scope, "paths"
+            ) + self.get_config_option_list(nxf_config_scope, "properties"):
+                default_values = self.get_config_section_items(
+                    f"scope.{nxf_config_scope}.values"
+                ).get(config_prop, [])
+                prohibited_patterns = self.get_config_section_items(
+                    f"scope.{nxf_config_scope}.values.prohibited"
+                ).get(config_prop)
+
                 if (
                     config_prop
                     and (cfg_val := scope.get(config_prop))
-                    not in [_.strip("'\"") for _ in def_val]
-                    and def_val
+                    not in [_.strip("'\"") for _ in default_values]
+                    and default_values
                 ):
-                    form_def_val = ", ".join(
-                        [
-                            _ if '"' in _ or "'" in _ else f"'{_}'"
-                            for _ in filter(None, def_val)
-                        ]
-                    )
-
-                    for reg in proh_reg:
+                    for reg in (
+                        [re.compile(pattern) for pattern in prohibited_patterns]
+                        if prohibited_patterns
+                        else []
+                    ):
                         if match := reg.search(cfg_val):
                             matches = match.groupdict()
                             cfg_val_without_pro = cfg_val.replace(
                                 matches.get("prohibited"), ""
                             )
-                            cfg_val_without_values = cfg_val.replace(
+                            prohibited_pattern = matches.get("prohibited_pattern")
+                            warn_flag = cfg_val_without_pro != cfg_val.replace(
                                 matches.get("values"), ""
                             )
-                            prohibited_pattern = matches.get("prohibited_pattern")
-                            warn_flag = cfg_val_without_pro != cfg_val_without_values
-                            _logger.error(
+                            self.error(
                                 'Value "%s" of %s.%s parameter match the following prohibited '
                                 'pattern "%s". %s%s',
                                 cfg_val,
@@ -163,17 +117,22 @@ class NextflowConfig(GParser):
                                 cfg_val_without_pro if warn_flag else "",
                             )
                     if cfg_val is not None:
-                        _logger.warning(
+                        self.warning(
                             'Value "%s" of %s.%s parameter'
                             " in file %s doesn't correspond to one of the expected values [%s].",
                             cfg_val,
                             nxf_config_scope,
                             config_prop,
                             self.path.relative_to(self.project_dir),
-                            form_def_val,
+                            ", ".join(
+                                [
+                                    _ if '"' in _ or "'" in _ else f"'{_}'"
+                                    for _ in filter(None, default_values)
+                                ]
+                            ),
                         )
                     else:
-                        _logger.error(
+                        self.error(
                             "Missing %s.%s parameter in file %s.",
                             nxf_config_scope,
                             config_prop,
@@ -181,7 +140,7 @@ class NextflowConfig(GParser):
                         )
 
         # Call same checks on nested scopes
-        for nested_scope in default_config_scopes:
+        for nested_scope in self.get_config_option_list(nxf_config_scope, "scopes"):
             if nested_scope not in skip_nested_scopes:
                 self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
@@ -189,7 +148,7 @@ class NextflowConfig(GParser):
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding=DEFAULT_ENCODING,
-        config_path="",
+        in_path="",
     ):
         """Load a Nextflow config file into content property
 
@@ -252,7 +211,7 @@ class NextflowConfig(GParser):
                 param_idx = (
                     ".".join(param_list) if len(param_list) > 1 else param_list[0]
                 )
-                _logger.debug(
+                self.debug(
                     "FOUND property %s with value %s in scope %s.",
                     values.get(prop_key),
                     values.get(value_key),
@@ -282,7 +241,7 @@ class NextflowConfig(GParser):
                         if self.loaded_paths
                         else " in the same file"
                     )
-                    _logger.warning(
+                    self.warning(
                         "Parameter %s from %s at line %s has already been defined%s.",
                         param_idx,
                         self.path.relative_to(self.project_dir),
@@ -297,6 +256,3 @@ class NextflowConfig(GParser):
                     else value
                 )
                 continue
-        _logger.debug(
-            "LOADED %s scope:\n%s.", in_file, json.dumps(dict(self.content), indent=2)
-        )
