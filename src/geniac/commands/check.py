@@ -36,7 +36,7 @@ class GCheck(GCommand):
         r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
     )
     SINGULARITY_DEP_RE_TEMP = (
-        r"\%files[\/\w.\s]*\s+(?P<mydep>{tool}/{dependency}" r" +[\/\w.]+{dependency})"
+        r"\%files[\/\w.\s]*\s+(?P<mydep>{tool}/{dependency} +[\/\w.]+{dependency})"
     )
     DOCKER_DEP_RE_TEMP = r"ADD +{tool}/{dependency} [\/\w.]+{dependency}"
 
@@ -144,7 +144,7 @@ class GCheck(GCommand):
 
         Args:
             config_tree:
-            section:
+            tree_section:
 
         Returns:
 
@@ -253,9 +253,7 @@ class GCheck(GCommand):
 
             # If folder exists and is not empty (excluded files are ignored)
             if path:
-                is_project_dir = (
-                    True if path.resolve() == self.project_dir.resolve() else False
-                )
+                is_project_dir = path.resolve() == self.project_dir.resolve()
                 formatted_path = (
                     path.relative_to(self.project_dir)
                     if not is_project_dir
@@ -635,21 +633,24 @@ class GCheck(GCommand):
         with open(main_cmake_lists, encoding=DEFAULT_ENCODING) as cmake_file:
             main_cmake_lists_content = cmake_file.read()
 
-        for module_dir in modules_dir.iterdir():
+        for module_dir in [
+            module for module in modules_dir.iterdir() if module.is_dir()
+        ]:
             # If child correspond to a folder and the name of this folder is linked to
             # an existing bash script
             # If the actual file is not the main cmakelists file, it should correspond to a module
             module_name = module_dir.stem
             cmakelists_child = module_dir / "CMakeLists.txt"
+            labels_from_modules += [module_name]
             if cmakelists_child.exists():
                 self.debug("Found module directory with label %s.", module_name)
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
                 check_main_cmlist_reg = re.compile(
                     GCheck.MAIN_CMAKE_RE_TEMP.format(label=module_name)
                 )
+
                 # First look if the is correctly added within the main CMakeLists.txt file
                 if check_main_cmlist_reg.search(main_cmake_lists_content):
-                    labels_from_modules += [module_name]
                     self.debug(
                         "Module %s correctly added within %s.",
                         module_name,
@@ -899,7 +900,7 @@ class GCheck(GCommand):
     def check_labels(
         self,
     ):
-        """Check lab"""
+        """Check labels"""
         # Get the difference with labels from geniac tools and folders and labels used
         # in the workflow
         cross_labels = [
