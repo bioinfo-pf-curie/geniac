@@ -45,7 +45,7 @@ def conf_cmd(args):
     return GConfor(**vars(args))
 
 
-# TODO: geniac run command
+# TODO: geniac install
 def deploy_cmd(args):
     """Geniac run subcommand
 
@@ -135,7 +135,7 @@ def parse_args(args):
     # )
     # parser_conf.set_defaults(func=conf_cmd, which="conf")
 
-    # Geniac Conf
+    # Geniac Deploy
     # parser_deploy = subparsers.add_parser(
     #     "deploy", help="Deploy files in a Nextflow project"
     # )

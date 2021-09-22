@@ -2,19 +2,23 @@
 
 set -oue pipefail
 
-
+# TODO: should be internal/ run before any step requiring cmake3
 ### cmake3 on CentOS / or cmake in other Linux Distro
 type cmake3 && export CMAKE_BIN="cmake3" || export CMAKE_BIN="cmake"
 
 option=$1
 
+# TODO: should be internal/ run before any build step
 function geniac_init {
-  # $1 is the folder name
-  # $2 is the the url to the git repository
+  # - Create a new working directory for geniac with src, build and .geniac subfolders
+  # - Clone the source code into the src folder
+  # $1 is the name of the main folder
+  # $2 is the the git url to the nextflow repository where geniac has been setup
   folder=$1
   url=$2
   echo "Init ${folder} as geniac working directory"
   mkdir -p ${folder}
+  # Clone the repository inside src folder of the main working directory
   git clone --recurse-submodules ${url} ${folder}/src
   mkdir -p ${folder}/build
   mkdir -p ${folder}/.geniac
@@ -24,6 +28,7 @@ function geniac_init {
   $SHELL
 }
 
+# TODO: geniac help
 function geniac_options {
   if [[ ! -d .geniac ]]; then
     echo "ERROR: you are not in a folder created by geniac init"
@@ -87,7 +92,6 @@ function geniac_test {
 function geniac_install {
   # $1 is the install folder
   # $2 are the args (cmake style with -D) to be passed to cmake (eg -Dap_install_singularity_images)
-  echo "GGGGGGGGGGGGGGGGg"
   if [[ ! -d .geniac ]]; then
     echo "ERROR: you are not in a folder created by geniac init"
     exit 1
@@ -176,6 +180,8 @@ function geniac_images {
   sudo chown -R $(id -gn):$(id -gn) ${current_dir}
   cd ${current_dir}
 }
+
+
 function geniac_configfiles {
   # $1 is either {docker,singularity}
   if [[ ! -d .geniac ]]; then

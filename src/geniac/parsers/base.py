@@ -114,7 +114,7 @@ class GParser(GBase):
     def _read(
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
-        encoding=DEFAULT_ENCODING,
+        encoding: str = DEFAULT_ENCODING,
         in_path: PathLike = Path(""),
     ):
         """Load a file into content property

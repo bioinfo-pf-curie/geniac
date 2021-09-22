@@ -30,7 +30,7 @@ def _path_checker(value: str):
     return path.resolve()
 
 
-def glob_solver(input_path):
+def glob_solver(input_path, use_glob: bool = True):
     """
     Use pathlib glob solver to expand input_path glob patterns
 
@@ -40,13 +40,14 @@ def glob_solver(input_path):
     Returns:
 
     """
+    # TODO: bad list glob pattern and incorrect paths which should be checked after this function !
     return (
         sorted(
             Path(input_path[: input_path.find("**")]).glob(
                 input_path[input_path.find("**") :]
             )
         )
-        if "**" in input_path
+        if "**" in input_path and use_glob
         else sorted(Path(dirname(input_path)).glob(basename(input_path)))
         if "*" in input_path
         else [""]

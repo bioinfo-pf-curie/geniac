@@ -27,11 +27,14 @@ class GCheck(GCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
-    SUB_CMAKE_RE = re.compile(
+    INSTALL_MAIN_CMAKE_RE = re.compile(
         r"install\([\s\w_${}\-/=]*DESTINATION +"
         r"(?P<destination>\${CMAKE_INSTALL_PREFIX}/\${pipeline_dir}/bin/fromSource)[\s)]"
     )
-    MAIN_CMAKE_RE_TEMP = (
+    INSTALL_MODULE_CMAKE_RE = re.compile(
+        r"install\([\s\w_${}\-/=]*DESTINATION +[\s\w_${}\-/=]*\)"
+    )
+    PROJECT_ADD_MAIN_CMAKE_RE_TEMP = (
         r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
         r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|"
         r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
@@ -651,12 +654,18 @@ class GCheck(GCommand):
             module_name = module_dir.stem
             cmakelists_child = module_dir / "CMakeLists.txt"
             labels_from_modules += [module_name]
+
             if cmakelists_child.exists():
                 self.debug("Found module directory with label %s.", module_name)
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
                 check_main_cmlist_reg = re.compile(
-                    GCheck.MAIN_CMAKE_RE_TEMP.format(label=module_name)
+                    GCheck.PROJECT_ADD_MAIN_CMAKE_RE_TEMP.format(label=module_name)
                 )
+
+                with open(
+                    cmakelists_child, encoding=DEFAULT_ENCODING
+                ) as cmake_module_file:
+                    module_cmake_lists_content = cmake_module_file.read()
 
                 # First look if the is correctly added within the main CMakeLists.txt file
                 if check_main_cmlist_reg.search(main_cmake_lists_content):
@@ -673,11 +682,12 @@ class GCheck(GCommand):
                     )
 
                 # Then look in the CMakeLists.txt if install DESTINATION is correct
-                if GCheck.SUB_CMAKE_RE.search(main_cmake_lists_content):
+                if GCheck.INSTALL_MAIN_CMAKE_RE.search(main_cmake_lists_content):
                     self.debug(
-                        "Module %s correctly setup to install tools inside "
+                        "Module %s correctly setup in %s to install tools inside "
                         "${projectDir}/bin/fromSource",
                         module_name,
+                        main_cmake_lists.relative_to(self.project_dir),
                     )
                 else:
                     self.error(
@@ -685,6 +695,17 @@ class GCheck(GCommand):
                         "update DESTINATION section in this file to "
                         '"DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/bin/fromSource."',
                         main_cmake_lists.relative_to(self.project_dir),
+                    )
+
+                # Then look in the module cmakeLists.txt if install directive has been set
+                if GCheck.INSTALL_MODULE_CMAKE_RE.search(module_cmake_lists_content):
+                    self.debug("Module %s have an install directive", module_name)
+                else:
+                    self.warning(
+                        "Module %s doesn't setup an install directive within %s file. "
+                        "It needs one in order to install sources inside this module.",
+                        module_name,
+                        cmakelists_child.relative_to(self.project_dir),
                     )
 
         return OrderedDict([("modules", labels_from_modules)])

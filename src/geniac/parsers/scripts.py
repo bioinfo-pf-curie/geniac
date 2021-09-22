@@ -29,8 +29,8 @@ class NextflowScript(GParser):
     def _read(
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
-        encoding=None,
-        in_path="",
+        encoding: str = None,
+        in_path: str = "",
     ):
         """Load a Nextflow script file into content property
 
