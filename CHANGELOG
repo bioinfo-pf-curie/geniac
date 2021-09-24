@@ -1,6 +1,7 @@
 NEW FEATURES
    - Tools from source: they are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
    - Tools from source: the sh script which allowed the installation inside the container is not needed anymore
+   - Tolls with custom install: their dependencies files needed to build the containers have to be located in recipes/dependencies/label_name (to allow the -resume option)
    - Use the nextflow '-resume' options when building the configuration files en containers
    - New cmake options ap_linux_distro and ap_conda_release to bootstrap on containers available on 4geniac docker hub repositories
    - Allow multi-stage building when build docker container with tools from source code
@@ -17,6 +18,7 @@ BUGFIX
 DOCUMENTATION
    - How to write singularity and docker recipes to activate conda environment
    - New Miscellaneous section
+   - Updates with new functionalities and modifications from version-2.0.0
 
 version-1.1.0
 08/09/2021

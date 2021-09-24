@@ -456,7 +456,7 @@ Custom install
 *prerequisite*
 ++++++++++++++
 
-Add your installer file (`deb`, `rpm` or whatever) in the ``recipes/dependencies/`` directory along with any other files that could be needed especially to build the container.
+Create a folder in ``recipes/dependencies/`` with the label of your tool, for example ``recipes/dependencies/alpine``. Add in this folder your installer file (`deb`, `rpm` or whatever) in the ``recipes/dependencies/`` directory along with any other files that could be needed especially to build the container.
 
 *label*
 +++++++
@@ -503,7 +503,7 @@ This is the only case you will have to write the recipe yourself. The recipe sho
        mkdir -p ${SINGULARITY_ROOTFS}/opt
    
    %files
-       myDependency.sh /opt/myDependency.sh
+       alpine/myDependency.sh /opt/myDependency.sh
    
    %post
        apk update
@@ -522,7 +522,7 @@ The ``alpine.Dockerfile`` recipe looks like this:
    
    RUN mkdir -p /opt
    
-   ADD myDependency.sh /opt/myDependency.sh
+   ADD alpine/myDependency.sh /opt/myDependency.sh
    
    RUN apk update
    RUN apk add bash
@@ -535,7 +535,7 @@ The ``alpine.Dockerfile`` recipe looks like this:
 
 .. important::
 
-   As your recipe will very likely depends on files you added in the ``recipes/dependencies/`` directory, you can just mention the name of the files in the ``%files`` section for `singularity` or with the ``ADD`` directive for `docker`.
+   As your recipe will very likely depends on files you added for example in the ``recipes/dependencies/alpine`` directory, you can just mention the name of the files in the ``%files`` section for `singularity` or with the ``ADD`` directive for `docker` include the name of the label, for example ``alpine/myDependency.sh``.
 
 
 .. _process-env-var:
