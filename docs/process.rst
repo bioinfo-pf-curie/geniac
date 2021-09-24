@@ -393,29 +393,27 @@ Install from source code
 *prerequisite*
 ++++++++++++++
 
-First, you have to retrieve the source code and add it in a directory in the ``modules`` directory. Create the ``modules`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/helloWorld`` directory. This directory can be added as a |gitsubmodule|_ `(see this tutorial) <https://biogitflow.readthedocs.io/en/latest/git.html#add-a-submodule-in-a-repository>`_.
+First, you have to retrieve the source code and add it in a directory in the ``modules/fromSource`` directory. Create the ``modules/fromSource`` directory if needed. For example, add the source code of the ``helloWorld`` tool in ``modules/fromSource/helloWorld`` directory. This directory can be added as a |gitsubmodule|_ `(see this tutorial) <https://biogitflow.readthedocs.io/en/latest/git.html#add-a-submodule-in-a-repository>`_.
 
 Then comes the tricky part. Add in the file :download:`modules/fromSource/CMakeLists.txt <../data/modules/fromSource/CMakeLists.txt>` the |cmakeexternalproject|_  function from |cmake|_.
-
 
 ::
 
    ExternalProject_Add(
        helloWorld
-       SOURCE_DIR ${pipeline_source_dir}/modules/helloWorld
+       SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/helloWorld
        CMAKE_ARGS
            -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/externalProject/bin)
 
+.. important::
 
-.. note::
+   Always use the variable ``${CMAKE_CURRENT_SOURCE_DIR}`` in the ``SOURCE_DIR`` directive, for example ``SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/helloWorld``
 
-   Depending on the source code you added, the arguments of the |cmakeexternalproject|_  function may be different. Refer to the cmake documentation for more details.
+   Always install the binary in ``${CMAKE_BINARY_DIR}/externalProject/bin)`` (note that ``CMAKE_BINARY_DIR`` is actually the build directory you have created to configure and build the pipeline, see :ref:`install-page`).
 
 .. important::
 
-   Always use the variable  ``${pipeline_source_dir}`` in the ``SOURCE_DIR`` directive, for example  ``SOURCE_DIR ${pipeline_source_dir}/modules/helloWorld``.
-
-   Always install the binary in ``${CMAKE_BINARY_DIR}/externalProject/bin)`` (note that CMAKE_BINARY_DIR is actually the build directory you have created to configure and build the pipeline, see :ref:`install-page`).
+   Always create another ``CMakeLists.txt`` file in the folder which stores the source code of the tool. For example, create the ``modules/fromSource/helloWorld/CMakeLists.txt`` file which will explain how the source code must be installed. Depending on the source code you added, refer to the |cmake|_ documentation to correctly write the ``CMakeLists.txt`` file.
 
 *label*
 +++++++
@@ -447,28 +445,10 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In order to have the container automatically built, you have to add an additional shell script in the ``modules`` directory with the suffix ``.sh`` (otherwise it will not work) and with the exact same name as the directory in which you added the source code. For example, you added the source code in ``helloWorld`` directory, thus the shell script must be named ``helloWorld.sh``. Then, write the code that has to be executed to compile and install the binary:
+You have nothing to do, the install process will build the recipes and images for you.
 
-::
-
-   ### executable must always be installed in /usr/local/bin
-   yum install -y cmake3
-   mkdir build
-   cd build || exit
-   cmake3 ../helloWorld -DCMAKE_INSTALL_PREFIX=/usr/local/bin
-   make
-   make install
-
-.. important::
-
-   * Consider that this shell script will be executed in the ``modules`` directory,
-   * Use only relative path
-   * This script will be executed in |centos|_ distribution, thus install any required packages with ``yum``,
-   * Set always the install directory to ``/usr/local/bin``.
-
-Any suggestion to avoid having both the |cmakeexternalproject|_ function in the file ``modules/CMakeLists.txt`` and this shell script is very welcome.
    
-   .. _process-custom-install:
+.. _process-custom-install:
    
 Custom install
 --------------

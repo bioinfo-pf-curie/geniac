@@ -81,9 +81,10 @@ The source code of your repository should look like this:
    │   ├── docs                     # guidelines for installation
    │   ├── install                  # scripts for the build step
    ├── main.nf
-   ├── modules                      # tools installed from source code
-   │   ├── CMakeLists.txt
-   │   ├── helloWorld
+   ├── modules
+   │   └── fromSource               # tools installed from source code
+   │       ├── CMakeLists.txt
+   │       └── helloWorld
    ├── nextflow.config
    ├── recipes                      # installation recipes for the tools
    │   ├── conda
