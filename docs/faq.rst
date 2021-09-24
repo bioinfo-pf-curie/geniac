@@ -244,3 +244,28 @@ The :ref:`run-profile-conda` relies on the ``environment.yml`` that is automatic
 
 Note that it may be impossible to have a working ``environment.yml`` file due to the incompatibility between tools. Use the :ref:`run-profile-multiconda` profile instead of the :ref:`run-profile-conda` profile.
 
+
+Why the tools available from source are installed in `pipeline/bin/fromSource` and not in `pipeline/bin`?
+=========================================================================================================
+
+The tools available from source are installed in `pipeline/bin/fromSource` to ensure that, when using the singularity or docker profiles, the tools installed inside the containers are used. Indeed, nextflow add the folder `pipeline/bin` in the environment variable ``PATH`` when the container is launched. To illustrate the impact of this setting, assume that the pipeline has been installed with the singularity images in ``${INSTALL_DIR}/pipeline``. Then, create the file ``${INSTALL_DIR}/pipeline/bin/helloWorld`` which contains the following bash script:
+
+::
+
+   #! /bin/bash
+   
+   echo "Buenos dias!"
+
+
+Make this bash script executable with ``chmod +x ${INSTALL_DIR}/pipeline/bin/helloWorld`` and execute the pipeline as follows:
+
+::
+
+   nextflow run main.nf -profile test,singularity
+
+
+Then, the file ``${INSTALL_DIR}/pipeline/results/helloWorld/helloWorld.txt`` will contain `Buenos dias!` instead of `Hello World!`. This means that singularity uses the bash script in ``${INSTALL_DIR}/pipeline/bin/helloWorld`` instead of the ``helloWorld`` executable which has been installed inside the image which raises reproducibility issue we can avoid by installing the tools in the folder `pipeline/bin/fromSource` which is not in the ``PATH``.
+
+
+
+
