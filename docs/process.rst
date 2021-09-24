@@ -361,7 +361,7 @@ Binary or executable script
 *label*
 +++++++
 
-Use always ``label 'onlyLinux'``.
+Use ``label 'onlyLinux'`` if this is a bash script or define a new tool with the expected programming language to run the script of binary (e.g. ``label 'python'``).
 
 *example*
 +++++++++
