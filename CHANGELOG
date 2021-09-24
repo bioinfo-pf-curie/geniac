@@ -1,5 +1,6 @@
 NEW FEATURES
-   - Tools from source are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
+   - Tools from source: they are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
+   - Tools from source: the sh script which allowed the installation inside the container is not needed anymore
    - Use the nextflow '-resume' options when building the configuration files en containers
    - New cmake options ap_linux_distro and ap_conda_release to bootstrap on containers available on 4geniac docker hub repositories
    - Allow multi-stage building when build docker container with tools from source code
