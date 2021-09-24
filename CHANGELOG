@@ -6,12 +6,17 @@ NEW FEATURES
    - Allow multi-stage building when build docker container with tools from source code
    - Activate the conda environment inside the docker/singularity images
    - Singularity image extension is now '.sif' instead of '.simg'
+   - Add params.yum to use 'dnf' instead of yum to install packages in the linux distros
    - New custom target 'build_config_files'
 
 BUGFIX
    - Copy files in /usr/local/bin in the singularity image when the tool is built from source code
    - Fix extra quotes in the beforeScript directive added in the conda.config and multiconda.config files
    - Some environment variables from the deffile were not correctly exported inside the image
+
+DOCUMENTATION
+   - How to write singularity and docker recipes to activate conda environment
+   - New Miscellaneous section
 
 version-1.1.0
 08/09/2021
