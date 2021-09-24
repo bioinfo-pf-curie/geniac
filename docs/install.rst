@@ -3,9 +3,9 @@
 
 .. _install-page:
 
-*********************
+************
 Installation
-*********************
+************
 
 We describe here how the analysis pipeline can be installed. The pipeline must be available from a git repository and follows the expected organization (see :ref:`overview-source-tree`). An example of installation is provided with the |geniacdemo|_ pipeline.
 
@@ -39,7 +39,7 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
 
 .. note::
 
-   If you use |centos|_, |cmake|_ version 3 is available as ``cmake3`` executable. You can alias ``cmake3`` as ``cmake`` in your ``.bashrc`` if needed.
+   If you use a Linux distribution which is binary-compatible with the Red Hat Enterprise Linux (RHEL) operating system source code (such as |almalinux|_, |centos|_ or |rockylinux|_), |cmake|_ version 3 is available as ``cmake3`` executable. You can alias ``cmake3`` as ``cmake`` in your ``.bashrc`` if needed.
 
 Different options can be passed to |cmake|_ for the configuration step. They are described in the following section.
 
@@ -187,7 +187,8 @@ The file ``geniac/install/cmake-init-default.cmake`` provides a script to set al
 
 
 .. note::
-   On |centos|_, the syntax is ``cmake3 ${SRC_DIR}/geniac -C ${SRC_DIR}/geniac/install/cmake-init.cmake``
+
+   If you use a Linux distribution which is binary-compatible with the Red Hat Enterprise Linux (RHEL) operating system source code (such as |almalinux|_, |centos|_ or |rockylinux|_), |cmake|_ version 3 is available as ``cmake3`` executable, the syntax is ``cmake3 ${SRC_DIR}/geniac -C ${SRC_DIR}/geniac/install/cmake-init.cmake``
 
 
 

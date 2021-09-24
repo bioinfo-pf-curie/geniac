@@ -239,7 +239,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/geniac.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the :ref:`linux-page`. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `dnf` (this is the Dandified YUM command which is the package management utility for the :ref:`linux-page`). To do so, edit the file ``conf/geniac.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
 
 ::
 
@@ -325,8 +325,7 @@ Add your process in the ``main.nf``. It can take any name (which is not necessar
 *container*
 +++++++++++
 
-In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the |centos|_ distribution we use to build the container. For example, if ``myFavouriteTool`` requires maths libraries like `gsl` and `blas`, then add the list of packages that will have to be installed with `yum` (which is the package management utility for |centos|_). To do so, edit the file ``conf/geniac.config`` and add for example ``myFavouriteTool = 'gsl blas'`` in the section ``params.geniac.containers.yum`` as follows:
-
+In most of the case, you will have nothing to do. However, some tools depend on packages that have to be installed from the :ref:`linux-page`. For example, ``fastqc`` requires some fonts to be installed, then add the list of packages that will have to be installed with `dnf` (this is the Dandified YUM command which is the package management utility for the :ref:`linux-page`). To do so, edit the file ``conf/geniac.config`` and add for example ``fastqc = 'fontconfig dejavu*'`` in the section ``params.geniac.containers.yum`` as follows:
 
 ::
 

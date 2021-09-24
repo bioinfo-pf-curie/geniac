@@ -107,7 +107,7 @@ For more details on how to proceed, see :ref:`customcmd-page`.
 How can I use a custom docker registry to build the containers?
 ===============================================================
 
-Geniac automatically generate recipes for Docker and Singularity. To build the containers, it bootstraps on two docker containers from the official docker hub registry: ``centos:7`` and ``miniconda3-centos7``. Instead of using the official docker hub registry, you may want to use a custom registry. In this case, make sure that both conteiners with the tags ``centos:7`` and ``miniconda3-centos7`` are available on this custom registry and use the following option at the configuration step:
+Geniac automatically generate recipes for Docker and Singularity. To build the containers, it bootstraps on two docker containers from the official |4geniac|_ docker hub registry which includes several :ref:`linux-page`. Instead of using the official docker hub registry, you may want to use a custom registry. In this case, make sure that the exact same container tags available on |4geniac|_ are available on this custom registry and use the following option at the configuration step:
 
 ::
    

@@ -4,8 +4,9 @@ Miscellaneous
 *************
 
 .. toctree::
-   conda
-   profiles
    customcmd
+   conda
+   linux
+   profiles
 
 
