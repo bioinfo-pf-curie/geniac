@@ -15,7 +15,7 @@ __copyright__ = "Institut Curie 2020"
 
 @pytest.fixture
 def gcheck_data(shared_datadir):
-    """Instantiate GCheck command with shared datadir"""
+    """Instantiate GCheck command with shared datadir from pytest-datadir"""
     return GCheck(shared_datadir)
 
 
