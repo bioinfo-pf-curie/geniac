@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""parser.py: Geniac file parser"""
+"""base.py: Geniac base file parser"""
 
 import logging
 import re

@@ -1,4 +1,8 @@
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """Geniac Module"""
+
 from importlib.metadata import PackageNotFoundError, version  # pragma: no cover
 
 try:

@@ -1,3 +1,4 @@
-""" Geniac Parsers module"""
 # !/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+"""Geniac Parsers module"""
