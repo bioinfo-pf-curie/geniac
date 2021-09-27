@@ -8,7 +8,6 @@ import sys
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, ExtendedInterpolation
 from os.path import basename, dirname, isfile
-from os.path import join as joinpaths
 from pathlib import Path
 
 from pkg_resources import resource_filename, resource_stream
@@ -31,7 +30,7 @@ def _path_checker(value: str):
     return path.resolve()
 
 
-def glob_solver(input_path, lazy_flag: bool = False):
+def glob_solver(input_path: str, lazy_flag: bool = False):
     """
     Use native glob solver to expand glob patterns from an input path
 
@@ -58,15 +57,14 @@ def glob_solver(input_path, lazy_flag: bool = False):
             #       expansion
             # ELSE THEN we make a pattern with the file_name and doesn't add it after the glob
             #   expansion
-            glob_pattern = joinpaths(
-                *[
+            glob_pattern = "/".join(
+                [
                     path_elt
                     for path_elt in [
                         basename(input_path_parts[0]),
-                        input_path_parts[1]
+                        input_path_parts[1] + dirname(input_path_parts[2]).rstrip("/")
                         if basename(input_path_parts[2]) == file_name
-                        else "",
-                        dirname(input_path_parts[2]).rstrip("/"),
+                        else "" + dirname(input_path_parts[2]).rstrip("/"),
                         "" if lazy_flag and no_glob_file else file_name,
                     ]
                     if path_elt
