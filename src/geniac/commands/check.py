@@ -198,7 +198,9 @@ class GCheck(GCommand):
                     if self.config.get(tree_section, "path")
                     else Path(self.project_dir),
                     # Path(s) to mandatory file(s)
-                    "required_files": self.config_path(tree_section, "mandatory"),
+                    "required_files": self.config_path(
+                        tree_section, "mandatory", lazy_glob=True
+                    ),
                     # Path(s) to optional file(s)
                     "optional_files": self.config_path(tree_section, "optional"),
                     # Path(s) to file(s) excluded from the analysis

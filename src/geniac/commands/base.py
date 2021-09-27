@@ -8,6 +8,7 @@ import sys
 from abc import ABC, abstractmethod
 from configparser import ConfigParser, ExtendedInterpolation
 from os.path import basename, dirname, isfile
+from os.path import join as joinpaths
 from pathlib import Path
 
 from pkg_resources import resource_filename, resource_stream
@@ -30,28 +31,58 @@ def _path_checker(value: str):
     return path.resolve()
 
 
-def glob_solver(input_path, use_glob: bool = True):
+def glob_solver(input_path, lazy_flag: bool = False):
     """
-    Use pathlib glob solver to expand input_path glob patterns
+    Use native glob solver to expand glob patterns from an input path
 
     Args:
-        input_path:
+        input_path (str): input file path
+        lazy_flag (bool): expand to existing paths or generate paths without any check
 
     Returns:
-
+        output_paths (list): list of expanded paths
     """
-    # TODO: bad list glob pattern and incorrect paths which should be checked after this function !
-    return (
-        sorted(
-            Path(input_path[: input_path.find("**")]).glob(
-                input_path[input_path.find("**") :]
+    for glob_string in ("**", "*"):
+        if glob_string in input_path:
+            # Get the tuple of elements with 3 parts (base_dir, glob_pattern, filename)
+            input_path_parts = input_path.partition(glob_string)
+            (stem_path, file_name) = (
+                Path(dirname(input_path_parts[0])).resolve(),
+                basename(input_path),
             )
-        )
-        if "**" in input_path and use_glob
-        else sorted(Path(dirname(input_path)).glob(basename(input_path)))
-        if "*" in input_path
-        else [""]
-    )
+            no_glob_file = "*" not in file_name
+            # IF LAZY
+            #   IF no_glob_file THEN we make a pattern without the file_name and add it
+            #       to the path after the glob expansion
+            #   ELSE THEN we make a pattern with the file_name and doesn't add it after the glob
+            #       expansion
+            # ELSE THEN we make a pattern with the file_name and doesn't add it after the glob
+            #   expansion
+            glob_pattern = joinpaths(
+                *[
+                    path_elt
+                    for path_elt in [
+                        basename(input_path_parts[0]),
+                        input_path_parts[1]
+                        if basename(input_path_parts[2]) == file_name
+                        else "",
+                        dirname(input_path_parts[2]).rstrip("/"),
+                        "" if lazy_flag and no_glob_file else file_name,
+                    ]
+                    if path_elt
+                ]
+            )
+            return (
+                [
+                    path / Path(file_name)
+                    for path in stem_path.glob(glob_pattern)
+                    if path.is_dir()
+                    and not path.resolve().samefile(stem_path.resolve())
+                ]
+                if lazy_flag and no_glob_file
+                else sorted(stem_path.glob(glob_pattern))
+            )
+    return [""]
 
 
 class GBase(ABC, LogMixin):
@@ -156,7 +187,13 @@ class GBase(ABC, LogMixin):
         value.set("tree.base", "path", str(self.project_dir))
         self._config = value
 
-    def config_path(self, section: str, option_name: str, single_path: bool = False):
+    def config_path(
+        self,
+        section: str,
+        option_name: str,
+        single_path: bool = False,
+        lazy_glob: bool = False,
+    ):
         """Format config option to list of Path objects or Path object if there is only one path
 
         Args:
@@ -164,6 +201,7 @@ class GBase(ABC, LogMixin):
             section (str): name of config section
             option_name (str): name of config option
             single_path (bool): flag to enable the return of single path
+            lazy_glob (bool): use lazy glob solver without any check
 
         Returns:
             config_paths (list, Path)
@@ -179,7 +217,7 @@ class GBase(ABC, LogMixin):
         result = [
             Path(in_path) if "*" not in in_path else glob_path
             for in_path in option
-            for glob_path in glob_solver(in_path)
+            for glob_path in glob_solver(in_path, lazy_flag=lazy_glob)
         ]
         return result[0] if len(result) == 1 and single_path else result
 
