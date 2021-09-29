@@ -26,7 +26,8 @@ Installation from source code offers a great flexibility as the software develop
 
    # copy miscellaneous examples "Install from Source"
    rsync -avh --progress ${SRC_DIR}/test/misc/* ${SRC_DIR}
-   
+   mv ${SRC_DIR}/main.nf.misc ${SRC_DIR}/main.nf
+
    cd ${BUILD_DIR}
 
    # configure the pipeline
