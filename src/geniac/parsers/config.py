@@ -48,22 +48,27 @@ class NextflowConfig(GParser):
 
         config_properties = [
             *self.get_config_option_list(nxf_config_scope, "paths"),
-            *self.get_config_option_list(nxf_config_scope, "properties")
+            *self.get_config_option_list(nxf_config_scope, "properties"),
         ]
 
-        scope = self.get(nxf_config_scope, "missing")
-        cfg_val = None
-        # If scope is empty and required
-        if (
-            nxf_config_scope
-            and scope == "missing"
-            and self.config.getboolean(f"scope.{nxf_config_scope}", "required")
-        ):
-            self.error(
-                "Required section %s in Nextflow configuration file %s is missing.",
-                nxf_config_scope,
-                self.path.relative_to(self.project_dir),
-            )
+        # If there is a pattern related to the format of the scope, we check all the properties
+        properties_pattern = [
+            re.compile(pattern)
+            for pattern in self.get_config_option_list(nxf_config_scope, "patterns")
+        ]
+        if properties_pattern:
+            for property_name, property_value in scope.items():
+                is_formatted = False
+                for reg in properties_pattern:
+                    if reg.search(property_value):
+                        is_formatted = True
+                        break
+                if not is_formatted:
+                    self.warning(
+                        "Parameter %s is not correctly formatted. Read the documentation for more "
+                        "details.",
+                        ".".join((nxf_config_scope, property_name)),
+                    )
 
         # If there is mandatory properties, we check against default values and/or prohibited
         # patterns
@@ -78,15 +83,15 @@ class NextflowConfig(GParser):
 
             # If the value doesn't match default values
             if (
-                    config_prop
-                    and default_values
-                    and cfg_val not in [_.strip("'\"") for _ in default_values]
+                config_prop
+                and default_values
+                and cfg_val not in [_.strip("'\"") for _ in default_values]
             ):
                 # Check for prohibited pattern only if the value doesn't match default values
                 for reg in (
-                        [re.compile(pattern) for pattern in prohibited_patterns]
-                        if prohibited_patterns
-                        else []
+                    [re.compile(pattern) for pattern in prohibited_patterns]
+                    if prohibited_patterns
+                    else []
                 ):
                     if match := reg.search(cfg_val):
                         matches = match.groupdict()
@@ -210,7 +215,9 @@ class NextflowConfig(GParser):
         if scope := values.get("other"):
             def_flag = True if "def" in scope else def_flag
             scope_idx = (
-                "other" if not scope_idx or scope_idx == 'other' else ".".join((scope_idx, "other"))
+                "other"
+                if not scope_idx or scope_idx == "other"
+                else ".".join((scope_idx, "other"))
             )
         self.content[scope_idx] = OrderedDict()
         if values.get("afterClose"):
@@ -231,9 +238,7 @@ class NextflowConfig(GParser):
         prop = values.get(prop_key, "")
         value = values.get(value_key, "")
         param_list = list(filter(None, (scope_idx, values.get("scope"), prop)))
-        param_idx = (
-            ".".join(param_list) if len(param_list) > 1 else param_list[0]
-        )
+        param_idx = ".".join(param_list) if len(param_list) > 1 else param_list[0]
         self.debug(
             "FOUND property %s with value %s in scope %s.",
             values.get(prop_key),
@@ -250,10 +255,10 @@ class NextflowConfig(GParser):
         # If parameter has already been defined in a previous configuration
         # file
         if (
-                value
-                and param_idx in self.content
-                and self.content[param_idx]
-                and prop_key != "includeConfig"
+            value
+            and param_idx in self.content
+            and self.content[param_idx]
+            and prop_key != "includeConfig"
         ):
             history_paths = [
                 conf_path.relative_to(self.project_dir).name
@@ -284,7 +289,7 @@ class NextflowConfig(GParser):
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding: str = DEFAULT_ENCODING,
         in_path: PathLike = None,
-        flush_content: bool = False
+        flush_content: bool = False,
     ):
         """Load a Nextflow config file into content property
 
@@ -297,8 +302,9 @@ class NextflowConfig(GParser):
         def_flag = False
         selector = None
         scope_idx = ""
-        for line_idx, line in enumerate(super()._read(in_file, encoding=encoding,
-                                                      flush_content=flush_content)):
+        for line_idx, line in enumerate(
+            super()._read(in_file, encoding=encoding, flush_content=flush_content)
+        ):
             # Pop scope index list if we find a curly bracket
             # Turn off def flag if we reach the last scope in a def
             if self.ESCOPERE.match(line):
@@ -310,7 +316,9 @@ class NextflowConfig(GParser):
                 continue
             # If we find a new scope
             if match := self.SCOPERE.match(line):
-                (scope_idx, selector, def_flag) = self._set_scope(match, scope_idx, def_flag)
+                (scope_idx, selector, def_flag) = self._set_scope(
+                    match, scope_idx, def_flag
+                )
                 continue
             # If we are not in a def scope and we find a parameter
             if not def_flag and (match := self.PARAMRE.match(line)):
