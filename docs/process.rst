@@ -424,6 +424,10 @@ Then comes the tricky part. Add in the file :download:`modules/fromSource/CMakeL
 
    Always create another ``CMakeLists.txt`` file in the folder which stores the source code of the tool. For example, create the ``modules/fromSource/helloWorld/CMakeLists.txt`` file which will explain how the source code must be installed. Depending on the source code you added, refer to the |cmake|_ documentation to correctly write the ``CMakeLists.txt`` file.
 
+.. note::
+
+   Installation from source code offers a great flexibility as the software developer can control everything during the installation process. However, this obviously requires more configuration. In particular, the software developer has to be fluent with |cmake|_ in order to tackle specific use cases, see :ref:`from-source-examples-page` for more details.
+
 *label*
 +++++++
 
