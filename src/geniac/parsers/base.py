@@ -51,6 +51,11 @@ class GParser(GBase):
         """Content loaded from input file with read method"""
         return self._content
 
+    @content.setter
+    def content(self, value):
+        """Content loaded from input file with read method"""
+        self._content = value
+
     @property
     def path(self):
         """Content loaded from input file with read method"""
@@ -116,13 +121,19 @@ class GParser(GBase):
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding: str = DEFAULT_ENCODING,
         in_path: PathLike = Path(""),
+        flush_content: bool = False,
     ):
         """Load a file into content property
 
         Args:
-            in_file (TextIO): path to nextflow config file
+            in_file (TextIO): input file
+            encoding (str): encoding type used to read the input file
+            in_path (PathLike): path to input file
+            flush_content (bool): flag used to flush previous content before reading
         """
         self.debug(f"Reading file {in_path}")
+        if flush_content:
+            self.content = dotty(OrderedDict())
         return StringIO(in_file.read().decode(encoding))
 
     def read(self, in_paths, encoding=DEFAULT_ENCODING):

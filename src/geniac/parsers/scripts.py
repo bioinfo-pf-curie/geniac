@@ -7,7 +7,7 @@ import re
 import typing
 from collections import OrderedDict, defaultdict
 
-from geniac.parsers.base import GParser
+from geniac.parsers.base import GParser, PathLike
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2021"
@@ -30,19 +30,25 @@ class NextflowScript(GParser):
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
         encoding: str = None,
-        in_path: str = "",
+        in_path: PathLike = None,
+        flush_content: bool = False,
     ):
         """Load a Nextflow script file into content property
 
         Args:
-            in_file (BinaryIO): path to nextflow config file
+            in_file (BinaryIO): path to nextflow script file
             encoding (str): name of the encoding use to decode config files
-            in_path (str): path to the input file
+            in_path (PathLike): path to the input file
+            flush_content (bool): flag used to flush previous content before reading
         """
         script_flag = False
         process = ""
         self.content["process"] = self.content.get("process") or OrderedDict()
-        for idx, line in enumerate(super()._read(in_file, encoding=encoding)):
+        for idx, line in enumerate(
+            super()._read(
+                in_file, encoding=encoding, in_path=in_path, flush_content=flush_content
+            )
+        ):
             if match := self.PROCESSRE.match(line):
                 values = match.groupdict()
                 # If process add it to the process dict
@@ -55,7 +61,8 @@ class NextflowScript(GParser):
                 self.debug("FOUND label %s in process %s.", label, process)
                 self.content["process"][process]["label"].append(label)
                 continue
-            # TODO: what about conditionals nextflow scripts ?
+            # For the moment we append everything into the same list even with conditional nextflow
+            # script
             if match := self.SCRIPTRE.match(line):
                 values = match.groupdict()
                 if process:
