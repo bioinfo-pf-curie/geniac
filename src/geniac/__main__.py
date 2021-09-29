@@ -45,7 +45,6 @@ def conf_cmd(args):
     return GConfor(**vars(args))
 
 
-# TODO: geniac install
 def deploy_cmd(args):
     """Geniac run subcommand
 

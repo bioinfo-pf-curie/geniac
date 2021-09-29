@@ -170,6 +170,7 @@ class GBase(ABC, LogMixin):
         """"""
         self._config_file = value if value and isfile(value) else None
 
+    # TODO: refactor config to geniac_config
     @property
     def config(self):
         """ConfigParser property
