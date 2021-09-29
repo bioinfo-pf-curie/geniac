@@ -569,7 +569,7 @@ process mergeSingularityConfig {
     singularity {
       enabled = true
       autoMounts = false
-      runOptions = "\\\${(params.geniac.containers.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')} -B \\\\"\\\\\\\$PWD\\\\":/tmp -B \\\${projectDir} --containall"
+      runOptions = "\\\${(params.geniac.containers.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')} -B \\\\"\\\\\\\$PWD\\\\":/tmp -B \\\\"\\\\\\\$PWD\\\\":/var/tmp -B \\\${projectDir} --containall"
     }
 
     process {
