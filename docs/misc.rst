@@ -8,5 +8,5 @@ Miscellaneous
    conda
    linux
    profiles
-
+   from-source-examples
 
