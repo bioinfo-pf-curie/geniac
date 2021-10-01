@@ -61,11 +61,17 @@ class GCheck(GCommand):
         self._processes_from_workflow = OrderedDict()
         self._labels_from_workflow = []
         self._labels_all = []
+        self._nxf_config = NextflowConfig(project_dir=self.project_dir)
 
     @property
     def project_tree(self):
         """Formatted tree configuration"""
         return self._project_tree
+
+    @property
+    def nxf_config(self):
+        """Namespace for Nextflow configuration files"""
+        return self._nxf_config
 
     @property
     def labels_from_folders(self):
@@ -186,11 +192,15 @@ class GCheck(GCommand):
                     if self.default_config.has_option(tree_section, "required")
                     else False,
                     # Is the folder recommended ?
-                    "recommended": self.default_config.getboolean(tree_section, "recommended")
+                    "recommended": self.default_config.getboolean(
+                        tree_section, "recommended"
+                    )
                     if self.default_config.has_option(tree_section, "recommended")
                     else False,
                     # Should we analyze files and sub directories recursively ?
-                    "recursive": self.default_config.getboolean(tree_section, "recursive")
+                    "recursive": self.default_config.getboolean(
+                        tree_section, "recursive"
+                    )
                     if self.default_config.has_option(tree_section, "recursive")
                     else False,
                     # Path to the folder
@@ -206,7 +216,9 @@ class GCheck(GCommand):
                     # Path(s) to file(s) excluded from the analysis
                     "excluded_files": self.get_config_path(tree_section, "excluded"),
                     # Path(s) to file(s) excluded from the analysis
-                    "prohibited_files": self.get_config_path(tree_section, "prohibited"),
+                    "prohibited_files": self.get_config_path(
+                        tree_section, "prohibited"
+                    ),
                 },
             )
             for tree_section in self.get_config_subsection(self.TREE_SUFFIX)
@@ -228,7 +240,9 @@ class GCheck(GCommand):
     def check_tree_folder(self):
         """Check the directory in order to set the flags"""
         self.info("Checking tree structure of %s.", self.project_dir)
-        self.debug("Sections parsed from config file: %s.", self.default_config.sections())
+        self.debug(
+            "Sections parsed from config file: %s.", self.default_config.sections()
+        )
 
         for tree_section, section in self.project_tree.items():
             for msg in ("\n", f"Folder {tree_section}"):
@@ -355,16 +369,11 @@ class GCheck(GCommand):
 
         self.processes_from_workflow = script.content.get("process", OrderedDict())
 
-    def _check_geniac_config(
-        self,
-        nxf_config: NextflowConfig,
-        conda_check: bool = True,
-    ):
+    def _check_geniac_config(self, conda_check: bool = True):
         """Check the content of params scope in a geniac config file
 
         Args:
-            conda_check:
-            nxf_config: Nextflow config object
+            conda_check (bool): trigger conda search calls with conda recipes in params.geniac.tools
 
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
@@ -372,7 +381,7 @@ class GCheck(GCommand):
         labels_geniac_tools = []
 
         # Check parameters according to their default values
-        nxf_config.check_config_scope("params")
+        self.nxf_config.check_config_scope("params")
 
         # Check if conda command exists
         try:
@@ -390,7 +399,7 @@ class GCheck(GCommand):
             if conda_check
             else "Checking of conda recipes turned off."
         )
-        for label, recipe in nxf_config.get(
+        for label, recipe in self.nxf_config.get(
             "params.geniac.tools", OrderedDict()
         ).items():
             labels_geniac_tools.append(label)
@@ -446,86 +455,68 @@ class GCheck(GCommand):
             "params.geniac.containers.yum",
             "params.geniac.containers.git",
         ):
-            if x_section := nxf_config.get(extra_section):
-                # For each label in yum or git scope
-                for label in x_section:
-                    # If label is not present in geniac.tools
-                    if label not in labels_geniac_tools:
-                        self.error(
-                            "Label %s of %s is not defined in params.geniac.tools.",
-                            label,
-                            extra_section,
-                        )
+            self.nxf_config.check_labels_in_section(extra_section, labels_geniac_tools)
 
         return labels_geniac_tools
 
-    def _check_process_config(
-        self,
-        nxf_config: NextflowConfig,
-    ):
+    def _check_process_config(self, config_path):
         """Check the content of a process config file
-
-        Args:
-            nxf_config: Nextflow config object
 
         Returns:
             labels_process (list): list of process labels in params.process with withName
         """
         # Check parameters according to their default values
-        nxf_config.check_config_scope("process")
+        self.nxf_config.check_config_scope("process")
 
         # For each process used with withName selector, check their existence in the
         # workflow
-        for config_process in nxf_config.get("process", OrderedDict()).get(
+        for config_process in self.nxf_config.get("process", OrderedDict()).get(
             "withName", OrderedDict()
         ):
             if config_process not in self.processes_from_workflow:
                 self.error(
                     "withName:%s is defined in %s file but the process %s is not used anywhere.",
                     config_process,
-                    nxf_config.path.relative_to(self.project_dir),
+                    config_path.relative_to(self.project_dir),
                     config_process,
                 )
 
         # Return list of labels defined with withLabel selector in the process.config file
-        return list(nxf_config.get("process", OrderedDict()).get("withLabel"))
+        return list(self.nxf_config.get("process", OrderedDict()).get("withLabel"))
 
     def _check_nextflow_config(
         self,
-        nxf_config: NextflowConfig,
+        config_path,
         default_config_paths: list = (),
         default_geniac_files_paths: list = (),
     ):
         """Check the content of a nextflow config file
 
         Args:
-            default_geniac_files_paths:
-            nxf_config (NextflowConfig):
+            config_path:
+            default_geniac_files_paths (list):
             default_config_paths (list):
-
-        Returns:
-
         """
         include_config_paths = [
             self.project_dir / Path(include_path)
-            for include_path in nxf_config.get("includeConfig")
+            for include_path in self.nxf_config.get("includeConfig")
         ]
         profile_config_paths = [
             self.project_dir / Path(conf_path)
-            for conf_profile in nxf_config.get("profiles", OrderedDict())
-            for conf_path in nxf_config.get("profiles", OrderedDict())
+            for conf_profile in self.nxf_config.get("profiles", OrderedDict())
+            for conf_path in self.nxf_config.get("profiles", OrderedDict())
             .get(conf_profile, {})
             .get("includeConfig", {})
         ]
         for default_config_path in default_config_paths + default_geniac_files_paths:
             # We do not check if the path corresponds to nextflow.config path
             # Check if config files are included
-            if default_config_path != nxf_config.path and (
+            if default_config_path != config_path and (
                 default_config_path not in include_config_paths + profile_config_paths
             ):
                 msg = (
                     f"Main configuration file "
-                    f"{nxf_config.path.relative_to(self.project_dir)} does not "
+                    f"{config_path.relative_to(self.project_dir)} does not "
                     f"include configuration file "
                     f"{default_config_path.relative_to(self.project_dir)}."
                 )
@@ -537,20 +528,10 @@ class GCheck(GCommand):
                 else:
                     self.error(msg)
 
-    def _check_base_config(
-        self,
-        nxf_config: NextflowConfig,
-    ):
-        """Check the content of a base config file
-
-        Args:
-            nxf_config (NextflowConfig):
-
-        Returns:
-
-        """
+    def _check_base_config(self):
+        """Check the content of a base config file"""
         self.debug("Check content of base config file without analyzing geniac scope")
-        nxf_config.check_config_scope("params", skip_nested_scopes=["geniac"])
+        self.nxf_config.check_config_scope("params", skip_nested_scopes=["geniac"])
 
     def get_labels_from_config_files(self):
         """Check the structure of the repo
@@ -559,7 +540,6 @@ class GCheck(GCommand):
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
             labels_process (list): list of process labels in params.process with withName
         """
-        nxf_config = NextflowConfig(project_dir=self.project_dir)
 
         # Link config path to their method
         project_config_scopes = OrderedDict(
@@ -574,7 +554,9 @@ class GCheck(GCommand):
                     ),
                 },
             )
-            for default_config_name in self.config.options(GCheck.PROJECT_CONFIG)
+            for default_config_name in self.default_config.options(
+                GCheck.PROJECT_CONFIG
+            )
         )
 
         # Configuration files analyzed
@@ -588,23 +570,37 @@ class GCheck(GCommand):
             self.get_config_path(
                 GCheck.GENIAC_CONFIG_FILES, geniac_config_file, single_path=True
             )
-            for geniac_config_file in self.default_config.options(GCheck.GENIAC_CONFIG_FILES)
+            for geniac_config_file in self.default_config.options(
+                GCheck.GENIAC_CONFIG_FILES
+            )
         ]
 
+        # For each Nextflow configuration file analyzed
         for config_key, project_config_scope in project_config_scopes.items():
-            config_args = {
-                "nxf_config": nxf_config,
-                "default_config_paths": project_config_paths,
-                "default_geniac_files_paths": generated_geniac_config_paths,
-                "conda_check": self.default_config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
-            }
             project_config_path = project_config_scope["path"]
             config_method = project_config_scope["check_config"]
+            config_args = {
+                "config_path": project_config_path,
+                "default_config_paths": project_config_paths,
+                "default_geniac_files_paths": generated_geniac_config_paths,
+                "conda_check": self.default_config.getboolean(
+                    self.GENIAC_FLAGS, "condaCheck"
+                ),
+            }
+
             default_config_paths = (
-                self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "mandatory")
-                + self.config_path(".".join([GCheck.TREE_SUFFIX, "conf"]), "optional")
-                + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "mandatory")
-                + self.config_path(".".join([GCheck.TREE_SUFFIX, "base"]), "optional")
+                self.get_config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "mandatory"
+                )
+                + self.get_config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
+                )
+                + self.get_config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "base"]), "mandatory"
+                )
+                + self.get_config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "base"]), "optional"
+                )
             )
             # If the project config file does not exists and does not belong to default
             # geniac files
@@ -615,7 +611,9 @@ class GCheck(GCommand):
                         project_config_path.relative_to(self.project_dir),
                     )
                 continue
-            nxf_config.read(project_config_path)
+
+            # Read the Nextflow configuration file
+            self.nxf_config.read(project_config_path)
             if config_method:
                 self.info(
                     "Checking Nextflow configuration file. %s",
@@ -951,9 +949,13 @@ class GCheck(GCommand):
                 cross_labels,
             )
 
-        # TODO: Add nxf_config as a property (project_config) to access config scope here ?
         # TODO: Check if there is any inconsistencies with labels in other parts of config files
         #  (post, envCustom)
+        for extra_section in (
+            "params.geniac.containers.cmd.post",
+            "params.geniac.containers.cmd.envCustom",
+        ):
+            self.nxf_config.check_labels_in_section(extra_section, self.labels_all)
 
         for process, process_scope in self.processes_from_workflow.items():
             # Get the diff of process labels not present in process scope in config
