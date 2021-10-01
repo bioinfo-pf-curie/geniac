@@ -110,7 +110,7 @@ class GBase(ABC, LogMixin):
             self.build_dir = build_dir
         self.default_config_file = Path(resource_filename(*self.DEFAULT_CONFIG))
         self.config_file = Path(config_file) if config_file else None
-        self.config = self._load_config(config_file=self.config_file)
+        self.default_config = self._load_config(config_file=self.config_file)
 
     def _load_config(self, config_file: Path = None):
         """Load default configuration file and update option with config_file
@@ -134,11 +134,7 @@ class GBase(ABC, LogMixin):
 
     @property
     def project_dir(self):
-        """Project Dir path property
-
-        Returns:
-
-        """
+        """Project Dir path property"""
         return self._project_dir
 
     @project_dir.setter
@@ -170,9 +166,8 @@ class GBase(ABC, LogMixin):
         """"""
         self._config_file = value if value and isfile(value) else None
 
-    # TODO: refactor config to geniac_config
     @property
-    def config(self):
+    def default_config(self):
         """ConfigParser property
 
         Returns:
@@ -180,13 +175,13 @@ class GBase(ABC, LogMixin):
         """
         return self._config
 
-    @config.setter
-    def config(self, value):
+    @default_config.setter
+    def default_config(self, value):
         """Update base dir with project dir"""
         value.set("tree.base", "path", str(self.project_dir))
         self._config = value
 
-    def config_path(
+    def get_config_path(
         self,
         section: str,
         option_name: str,
@@ -196,7 +191,6 @@ class GBase(ABC, LogMixin):
         """Format config option to list of Path objects or Path object if there is only one path
 
         Args:
-            option_name:
             section (str): name of config section
             option_name (str): name of config option
             single_path (bool): flag to enable the return of single path
@@ -207,8 +201,8 @@ class GBase(ABC, LogMixin):
         """
 
         option = (
-            self.config.get(section, option_name).split()
-            if self.config.get(section, option_name)
+            self.default_config.get(section, option_name).split()
+            if self.default_config.get(section, option_name)
             else []
         )
         # Get Path instance for each file in the related configparser option. Glob
@@ -220,26 +214,29 @@ class GBase(ABC, LogMixin):
         ]
         return result[0] if len(result) == 1 and single_path else result
 
-    def config_subsection(self, subsection):
+    def get_config_subsection(self, subsection):
         """Filter sections to a uniq sub section"""
         return (
             section
-            for section in self.config.sections()
+            for section in self.default_config.sections()
             if section.startswith(f"{subsection}.")
         )
 
     def get_config_option_list(self, section: str, option: str) -> list:
-        """Get option list related to a specific section from config
+        """
+        Format option values related to a specific section in geniac.ini configuration
+        file as a list
+
         Args:
-            section:
-            option:
+            section (str): Name of the section in the configuration file (geniac.ini)
+            option: Name of the option within the section
 
         Returns:
             list
         """
         return (
             list(filter(None, config_option.split("\n")))
-            if (config_option := self.config.get(f"scope.{section}", option))
+            if (config_option := self.default_config.get(f"scope.{section}", option))
             else []
         )
 
@@ -248,6 +245,8 @@ class GBase(ABC, LogMixin):
         return {
             key: value.split("\n")
             for key, value in (
-                self.config.items(section) if self.config.has_section(section) else []
+                self.default_config.items(section)
+                if self.default_config.has_section(section)
+                else []
             )
         }

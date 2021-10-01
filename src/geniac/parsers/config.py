@@ -157,7 +157,7 @@ class NextflowConfig(GParser):
         if (
             nxf_config_scope
             and scope == "missing"
-            and self.config.getboolean(f"scope.{nxf_config_scope}", "required")
+            and self.default_config.getboolean(f"scope.{nxf_config_scope}", "required")
         ):
             self.error(
                 "Required section %s in Nextflow configuration file %s is missing.",

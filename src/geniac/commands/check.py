@@ -182,34 +182,34 @@ class GCheck(GCommand):
                 tree_section.removeprefix(self.TREE_SUFFIX + "."),
                 {
                     # Is the folder required ?
-                    "required": self.config.getboolean(tree_section, "required")
-                    if self.config.has_option(tree_section, "required")
+                    "required": self.default_config.getboolean(tree_section, "required")
+                    if self.default_config.has_option(tree_section, "required")
                     else False,
                     # Is the folder recommended ?
-                    "recommended": self.config.getboolean(tree_section, "recommended")
-                    if self.config.has_option(tree_section, "recommended")
+                    "recommended": self.default_config.getboolean(tree_section, "recommended")
+                    if self.default_config.has_option(tree_section, "recommended")
                     else False,
                     # Should we analyze files and sub directories recursively ?
-                    "recursive": self.config.getboolean(tree_section, "recursive")
-                    if self.config.has_option(tree_section, "recursive")
+                    "recursive": self.default_config.getboolean(tree_section, "recursive")
+                    if self.default_config.has_option(tree_section, "recursive")
                     else False,
                     # Path to the folder
-                    "path": Path(self.config.get(tree_section, "path"))
-                    if self.config.get(tree_section, "path")
+                    "path": Path(self.default_config.get(tree_section, "path"))
+                    if self.default_config.get(tree_section, "path")
                     else Path(self.project_dir),
                     # Path(s) to mandatory file(s)
-                    "required_files": self.config_path(
+                    "required_files": self.get_config_path(
                         tree_section, "mandatory", lazy_glob=True
                     ),
                     # Path(s) to optional file(s)
-                    "optional_files": self.config_path(tree_section, "optional"),
+                    "optional_files": self.get_config_path(tree_section, "optional"),
                     # Path(s) to file(s) excluded from the analysis
-                    "excluded_files": self.config_path(tree_section, "excluded"),
+                    "excluded_files": self.get_config_path(tree_section, "excluded"),
                     # Path(s) to file(s) excluded from the analysis
-                    "prohibited_files": self.config_path(tree_section, "prohibited"),
+                    "prohibited_files": self.get_config_path(tree_section, "prohibited"),
                 },
             )
-            for tree_section in self.config_subsection(self.TREE_SUFFIX)
+            for tree_section in self.get_config_subsection(self.TREE_SUFFIX)
         )
         return OrderedDict(
             (
@@ -228,7 +228,7 @@ class GCheck(GCommand):
     def check_tree_folder(self):
         """Check the directory in order to set the flags"""
         self.info("Checking tree structure of %s.", self.project_dir)
-        self.debug("Sections parsed from config file: %s.", self.config.sections())
+        self.debug("Sections parsed from config file: %s.", self.default_config.sections())
 
         for tree_section, section in self.project_tree.items():
             for msg in ("\n", f"Folder {tree_section}"):
@@ -324,9 +324,9 @@ class GCheck(GCommand):
                 f"{config_key}_{index}",
                 path,
             )
-            for config_key in self.config.options(GCheck.PROJECT_WORKFLOW)
+            for config_key in self.default_config.options(GCheck.PROJECT_WORKFLOW)
             for index, path in enumerate(
-                self.config_path(GCheck.PROJECT_WORKFLOW, config_key)
+                self.get_config_path(GCheck.PROJECT_WORKFLOW, config_key)
             )
             if not path.is_relative_to(geniac_dir)
         )
@@ -530,7 +530,7 @@ class GCheck(GCommand):
                     f"{default_config_path.relative_to(self.project_dir)}."
                 )
                 # Trigger a warning if optional file. Otherwise trigger an error
-                if default_config_path in self.config_path(
+                if default_config_path in self.get_config_path(
                     ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
                 ):
                     self.warning(msg)
@@ -566,7 +566,7 @@ class GCheck(GCommand):
             (
                 default_config_name,
                 {
-                    "path": self.config_path(
+                    "path": self.get_config_path(
                         GCheck.PROJECT_CONFIG, default_config_name, single_path=True
                     ),
                     "check_config": getattr(
@@ -585,10 +585,10 @@ class GCheck(GCommand):
 
         # Generate path to configuration files produced by geniac
         generated_geniac_config_paths = [
-            self.config_path(
+            self.get_config_path(
                 GCheck.GENIAC_CONFIG_FILES, geniac_config_file, single_path=True
             )
-            for geniac_config_file in self.config.options(GCheck.GENIAC_CONFIG_FILES)
+            for geniac_config_file in self.default_config.options(GCheck.GENIAC_CONFIG_FILES)
         ]
 
         for config_key, project_config_scope in project_config_scopes.items():
@@ -596,7 +596,7 @@ class GCheck(GCommand):
                 "nxf_config": nxf_config,
                 "default_config_paths": project_config_paths,
                 "default_geniac_files_paths": generated_geniac_config_paths,
-                "conda_check": self.config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
+                "conda_check": self.default_config.getboolean(self.GENIAC_FLAGS, "condaCheck"),
             }
             project_config_path = project_config_scope["path"]
             config_method = project_config_scope["check_config"]
@@ -874,7 +874,7 @@ class GCheck(GCommand):
                 geniac_dir,
                 {
                     "tree": self.project_tree.get(
-                        self.config.get(GCheck.GENIAC_DIRS, geniac_dir)
+                        self.default_config.get(GCheck.GENIAC_DIRS, geniac_dir)
                     ),
                     "get_labels": getattr(
                         self, f"_get_labels_from_{geniac_dir}_dir", None
@@ -882,7 +882,7 @@ class GCheck(GCommand):
                     "check_dir": getattr(self, f"_check_{geniac_dir}_dir", None),
                 },
             )
-            for geniac_dir in self.config.options(GCheck.GENIAC_DIRS)
+            for geniac_dir in self.default_config.options(GCheck.GENIAC_DIRS)
         )
 
         geniac_trees = OrderedDict(
@@ -978,7 +978,7 @@ class GCheck(GCommand):
                 and label not in self.labels_from_process_config
             ]
             if len(unmatched_labels) >= 1:
-                process_path = self.config_path(
+                process_path = self.get_config_path(
                     GCheck.PROJECT_CONFIG, "process", single_path=True
                 ).relative_to(self.project_dir)
                 self.error(
