@@ -182,11 +182,24 @@ class NextflowConfig(GParser):
             if nested_scope not in skip_nested_scopes:
                 self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
-    def _set_scope(self, match: re.Match, scope_idx: str, def_flag: bool):
+    def check_labels_in_section(self, section_name, labels):
+        """Check if given labels exists within a section"""
+        if x_section := self.get(section_name):
+            # For each label in the section scope
+            for label in x_section:
+                # If label is not present in labels
+                if label not in labels:
+                    self.error(
+                        "Label %s of %s is not defined in params.geniac.tools.",
+                        label,
+                        section_name,
+                    )
+
+    def _set_scope(self, values: dict, scope_idx: str, def_flag: bool):
         """Set a new scope according to the actual scope_idx
 
         Args:
-            match (re.Match): matching object
+            values (dict): group dict from matching pattern
             scope_idx (str): Index of the last scope in content tree structure
             def_flag (bool): Flag corresponding to definition groovy blocks
 
@@ -195,7 +208,6 @@ class NextflowConfig(GParser):
             selector (str): Setup if there is any with* nextflow selector
             def_flag (bool): Flag corresponding to definition groovy blocks
         """
-        values = match.groupdict()
         # If scope add it to the scopes dict
         if scope := values.get("scope"):
             scope_idx = scope if not scope_idx else ".".join((scope_idx, scope))
@@ -219,20 +231,22 @@ class NextflowConfig(GParser):
                 if not scope_idx or scope_idx == "other"
                 else ".".join((scope_idx, "other"))
             )
-        self.content[scope_idx] = OrderedDict()
+        # Init the scope with the scope_idx only if it does not exist
+        if scope_idx not in self.content:
+            self.content[scope_idx] = OrderedDict()
+        # Update scope_idx if there is a closing bracket at the end of the match
         if values.get("afterClose"):
             scope_idx = ".".join(scope_idx.split(".").pop())
         return scope_idx, selector, def_flag
 
-    def _set_param(self, match: re.Match, scope_idx: str, line_idx: int):
+    def _set_param(self, values: dict, scope_idx: str, line_idx: int):
         """Set Nextflow parameter in content property
 
         Args:
-            match (re.Match): matching object
+            values (dict): group dict from matching pattern
             scope_idx (str): Index of the scope in content tree structure
             line_idx (int): Index of the current line in the file
         """
-        values = match.groupdict()
         prop_key = "property" if values.get("property") else "includeConfig"
         value_key = "value" if values.get("value") else "confPath"
         prop = values.get(prop_key, "")
@@ -317,10 +331,10 @@ class NextflowConfig(GParser):
             # If we find a new scope
             if match := self.SCOPERE.match(line):
                 (scope_idx, selector, def_flag) = self._set_scope(
-                    match, scope_idx, def_flag
+                    match.groupdict(), scope_idx, def_flag
                 )
                 continue
             # If we are not in a def scope and we find a parameter
             if not def_flag and (match := self.PARAMRE.match(line)):
-                self._set_param(match, scope_idx, line_idx)
+                self._set_param(match.groupdict(), scope_idx, line_idx)
                 continue
