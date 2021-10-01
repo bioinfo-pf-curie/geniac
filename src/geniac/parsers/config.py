@@ -239,7 +239,9 @@ class NextflowConfig(GParser):
             scope_idx = ".".join(scope_idx.split(".").pop())
         return scope_idx, selector, def_flag
 
-    def _set_param(self, values: dict, scope_idx: str, line_idx: int):
+    def _set_param(
+        self, values: dict, scope_idx: str, line_idx: int, warnings: bool = True
+    ):
         """Set Nextflow parameter in content property
 
         Args:
@@ -270,6 +272,7 @@ class NextflowConfig(GParser):
         # file
         if (
             value
+            and warnings
             and param_idx in self.content
             and self.content[param_idx]
             and prop_key != "includeConfig"
@@ -304,6 +307,7 @@ class NextflowConfig(GParser):
         encoding: str = DEFAULT_ENCODING,
         in_path: PathLike = None,
         flush_content: bool = False,
+        warnings: bool = True,
     ):
         """Load a Nextflow config file into content property
 
@@ -312,6 +316,7 @@ class NextflowConfig(GParser):
             encoding (str): encoding type used to read the input file
             in_path (PathLike): path to input file
             flush_content (bool): flag used to flush previous content before reading
+            warnings (bool): flag to turn on/off warning messages
         """
         def_flag = False
         selector = None
@@ -336,5 +341,7 @@ class NextflowConfig(GParser):
                 continue
             # If we are not in a def scope and we find a parameter
             if not def_flag and (match := self.PARAMRE.match(line)):
-                self._set_param(match.groupdict(), scope_idx, line_idx)
+                self._set_param(
+                    match.groupdict(), scope_idx, line_idx, warnings=warnings
+                )
                 continue

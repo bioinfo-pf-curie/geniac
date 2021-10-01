@@ -122,6 +122,7 @@ class GParser(GBase):
         encoding: str = DEFAULT_ENCODING,
         in_path: PathLike = Path(""),
         flush_content: bool = False,
+        warnings: bool = True,
     ):
         """Load a file into content property
 
@@ -130,18 +131,20 @@ class GParser(GBase):
             encoding (str): encoding type used to read the input file
             in_path (PathLike): path to input file
             flush_content (bool): flag used to flush previous content before reading
+            warnings (bool): flag to turn on/off warning messages
         """
         self.debug(f"Reading file {in_path}")
         if flush_content:
             self.content = dotty(OrderedDict())
         return StringIO(in_file.read().decode(encoding))
 
-    def read(self, in_paths, encoding=DEFAULT_ENCODING):
+    def read(self, in_paths, encoding=DEFAULT_ENCODING, warnings=True):
         """Read and parse a file or an iterable of files
 
         Args:
             in_paths: path to input file(s)
             encoding (str): name of the encoding used to decode files
+            warnings (bool): flag to turn on/off warning messages
 
         Returns:
             read_ok (list): list of successfully read files
@@ -158,7 +161,9 @@ class GParser(GBase):
                 ) as input_file, tempfile.TemporaryFile() as temp_file:
                     # Format files before reading
                     temp_file = self._remove_comments(input_file, temp_file)
-                    self._read(temp_file, encoding=encoding, in_path=in_path)
+                    self._read(
+                        temp_file, encoding=encoding, in_path=in_path, warnings=warnings
+                    )
                     self.debug(
                         "LOADED %s scope:\n%s.",
                         temp_file,

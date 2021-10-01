@@ -32,6 +32,7 @@ class NextflowScript(GParser):
         encoding: str = None,
         in_path: PathLike = None,
         flush_content: bool = False,
+        warnings: bool = True,
     ):
         """Load a Nextflow script file into content property
 
@@ -40,6 +41,7 @@ class NextflowScript(GParser):
             encoding (str): name of the encoding use to decode config files
             in_path (PathLike): path to the input file
             flush_content (bool): flag used to flush previous content before reading
+            warnings (bool): flag to turn on/off warning messages
         """
         script_flag = False
         process = ""

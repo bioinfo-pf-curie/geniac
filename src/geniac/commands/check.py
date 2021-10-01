@@ -588,24 +588,24 @@ class GCheck(GCommand):
                 ),
             }
 
-            default_config_paths = (
-                self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "mandatory"
+            default_config_paths = {
+                config_type: (
+                    self.get_config_path(
+                        ".".join([GCheck.TREE_SUFFIX, "base"]), config_type
+                    )
+                    + self.get_config_path(
+                        ".".join([GCheck.TREE_SUFFIX, "conf"]), config_type
+                    )
                 )
-                + self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
-                )
-                + self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "base"]), "mandatory"
-                )
-                + self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "base"]), "optional"
-                )
-            )
+                for config_type in ("mandatory", "optional")
+            }
+
             # If the project config file does not exists and does not belong to default
             # geniac files
             if not project_config_path.exists():
-                if project_config_path not in default_config_paths:
+                if project_config_path not in default_config_paths.get(
+                    "optional"
+                ) + default_config_paths.get("mandatory"):
                     self.error(
                         "Nextflow config file %s does not exist.",
                         project_config_path.relative_to(self.project_dir),
@@ -613,7 +613,10 @@ class GCheck(GCommand):
                 continue
 
             # Read the Nextflow configuration file
-            self.nxf_config.read(project_config_path)
+            self.nxf_config.read(
+                project_config_path,
+                warnings=project_config_path in default_config_paths.get("mandatory"),
+            )
             if config_method:
                 self.info(
                     "Checking Nextflow configuration file. %s",
