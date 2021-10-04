@@ -23,6 +23,49 @@ _logging_config = ("geniac", "conf/logging.json")
 _logger = logging.getLogger(__name__)
 
 
+def _set_default_opts(parser: ArgumentParser):
+    """Set default arguments for the given ArgumentParser object
+
+    Args:
+        parser (ArgumentParser): argument parser object
+    """
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"geniac version-{__version__}",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="loglevel",
+        help="set loglevel to INFO",
+        action="store_const",
+        const=logging.INFO,
+    )
+    parser.add_argument(
+        "-vv",
+        "--very-verbose",
+        dest="loglevel",
+        help="set loglevel to DEBUG",
+        action="store_const",
+        const=logging.DEBUG,
+    )
+    parser.add_argument(
+        "--no-logfiles",
+        dest="only_stream",
+        help="Disable generation of log files",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-c",
+        "--config",
+        help="Path to geniac config file (INI format)",
+        dest="config_file",
+        type=str,
+        metavar="CONF.INI",
+    )
+
+
 def check_cmd(args):
     """Geniac Lint subcommand
 
@@ -71,41 +114,6 @@ def parse_args(args):
     """
     # Top command
     parser = ArgumentParser(prog="geniac", description="Geniac Command Line Interface")
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"geniac version-{__version__}",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        dest="loglevel",
-        help="set loglevel to INFO",
-        action="store_const",
-        const=logging.INFO,
-    )
-    parser.add_argument(
-        "-vv",
-        "--very-verbose",
-        dest="loglevel",
-        help="set loglevel to DEBUG",
-        action="store_const",
-        const=logging.DEBUG,
-    )
-    parser.add_argument(
-        "--no-logfiles",
-        dest="only_stream",
-        help="Disable generation of log files",
-        action="store_true",
-    )
-    parser.add_argument(
-        "-c",
-        "--config",
-        help="Path to geniac config file (INI format)",
-        dest="config_file",
-        type=str,
-        metavar="CONF.INI",
-    )
 
     # Add sub command (lint and conf)
     subparsers = parser.add_subparsers(title="commands")
@@ -145,6 +153,10 @@ def parse_args(args):
     #     metavar="INT",
     # )
     # parser_deploy.set_defaults(func=deploy_cmd, which="deploy")
+
+    # Set default options for subparsers
+    for _, subparser in subparsers.choices.items():
+        _set_default_opts(subparser)
 
     return parser, parser.parse_args(args)
 
@@ -191,6 +203,7 @@ def main(args):
         _logger.info(
             "Start geniac %s command.", args.which if "which" in args else None
         )
+        # Run method is actually the main entry point for any subcommand
         args.func(args).run()
     else:
         parser.print_help()
