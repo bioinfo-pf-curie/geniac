@@ -46,11 +46,11 @@ class GCheck(GCommand):
 
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
-    PROJECT_CONFIG = "project.config"
     PROJECT_WORKFLOW = "project.workflow"
     GENIAC_FLAGS = "geniac.flags"
     GENIAC_DIRS = "geniac.directories"
     GENIAC_CONFIG_FILES = "geniac.generated.config"
+    GENIAC_CHECK_CONFIG = "geniac.check.config"
 
     def __init__(self, project_dir, *args, **kwargs):
         """Init flags specific to GCheck command"""
@@ -547,7 +547,9 @@ class GCheck(GCommand):
                 default_config_name,
                 {
                     "path": self.get_config_path(
-                        GCheck.PROJECT_CONFIG, default_config_name, single_path=True
+                        GCheck.GENIAC_CHECK_CONFIG,
+                        default_config_name,
+                        single_path=True,
                     ),
                     "check_config": getattr(
                         self, f"_check_{default_config_name}_config", None
@@ -555,7 +557,7 @@ class GCheck(GCommand):
                 },
             )
             for default_config_name in self.default_config.options(
-                GCheck.PROJECT_CONFIG
+                GCheck.GENIAC_CHECK_CONFIG
             )
         )
 
@@ -984,7 +986,7 @@ class GCheck(GCommand):
             ]
             if len(unmatched_labels) >= 1:
                 process_path = self.get_config_path(
-                    GCheck.PROJECT_CONFIG, "process", single_path=True
+                    GCheck.GENIAC_CHECK_CONFIG, "process", single_path=True
                 ).relative_to(self.project_dir)
                 self.error(
                     "Label(s) %s from process %s in the file %s not defined in the file %s.",
