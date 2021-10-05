@@ -212,7 +212,20 @@ class GCheck(GCommand):
                         tree_section, "mandatory", lazy_glob=True
                     ),
                     # Path(s) to optional file(s)
-                    "optional_files": self.get_config_path(tree_section, "optional"),
+                    "optional_files": list(
+                        set(
+                            [
+                                path
+                                for path in self.get_config_path(
+                                    tree_section, "optional"
+                                )
+                                if path
+                                not in self.get_config_path(
+                                    tree_section, "mandatory", lazy_glob=True
+                                )
+                            ]
+                        )
+                    ),
                     # Path(s) to file(s) excluded from the analysis
                     "excluded_files": self.get_config_path(tree_section, "excluded"),
                     # Path(s) to file(s) excluded from the analysis
@@ -549,15 +562,29 @@ class GCheck(GCommand):
                     "path": self.get_config_path(
                         GCheck.GENIAC_CHECK_CONFIG,
                         default_config_name,
-                        single_path=True,
+                        single_path=default_config_name,
                     ),
                     "check_config": getattr(
                         self, f"_check_{default_config_name}_config", None
                     ),
                 },
             )
-            for default_config_name in self.default_config.options(
+            for default_config_name in self.get_config_section_items(
                 GCheck.GENIAC_CHECK_CONFIG
+            )
+            if default_config_name != "all"
+        ) | OrderedDict(
+            (
+                default_config_path.stem,
+                {
+                    "path": default_config_path,
+                    "check_config": getattr(
+                        self, f"_check_{default_config_path.stem}_config", None
+                    ),
+                },
+            )
+            for default_config_path in self.get_config_path(
+                GCheck.GENIAC_CHECK_CONFIG, "all", single_path=False
             )
         )
 
@@ -577,6 +604,18 @@ class GCheck(GCommand):
             )
         ]
 
+        default_config_paths = {
+            config_type: (
+                self.get_config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "base"]), config_type
+                )
+                + self.get_config_path(
+                    ".".join([GCheck.TREE_SUFFIX, "conf"]), config_type
+                )
+            )
+            for config_type in ("mandatory", "optional")
+        }
+
         # For each Nextflow configuration file analyzed
         for config_key, project_config_scope in project_config_scopes.items():
             project_config_path = project_config_scope["path"]
@@ -588,18 +627,6 @@ class GCheck(GCommand):
                 "conda_check": self.default_config.getboolean(
                     self.GENIAC_FLAGS, "condaCheck"
                 ),
-            }
-
-            default_config_paths = {
-                config_type: (
-                    self.get_config_path(
-                        ".".join([GCheck.TREE_SUFFIX, "base"]), config_type
-                    )
-                    + self.get_config_path(
-                        ".".join([GCheck.TREE_SUFFIX, "conf"]), config_type
-                    )
-                )
-                for config_type in ("mandatory", "optional")
             }
 
             # If the project config file does not exists and does not belong to default
@@ -617,7 +644,8 @@ class GCheck(GCommand):
             # Read the Nextflow configuration file
             self.nxf_config.read(
                 project_config_path,
-                warnings=project_config_path in default_config_paths.get("mandatory"),
+                warnings=config_key
+                not in self.default_config.options(GCheck.GENIAC_CHECK_CONFIG),
             )
             if config_method:
                 self.info(
