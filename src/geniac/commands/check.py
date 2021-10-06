@@ -982,8 +982,8 @@ class GCheck(GCommand):
                 cross_labels,
             )
 
-        # TODO: Check if there is any inconsistencies with labels in other parts of config files
-        #  (post, envCustom)
+        # Check if there is any inconsistencies with labels in other parts of config files (post,
+        # envCustom)
         for extra_section in (
             "params.geniac.containers.cmd.post",
             "params.geniac.containers.cmd.envCustom",
