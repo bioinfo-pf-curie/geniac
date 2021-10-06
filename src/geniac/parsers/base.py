@@ -54,7 +54,7 @@ class GParser(GBase):
     @content.setter
     def content(self, value):
         """Content loaded from input file with read method"""
-        self._content = value
+        self._content |= value
 
     @property
     def path(self):
@@ -119,10 +119,8 @@ class GParser(GBase):
     def _read(
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
-        encoding: str = DEFAULT_ENCODING,
         in_path: PathLike = Path(""),
-        flush_content: bool = False,
-        warnings: bool = True,
+        **kwargs,
     ):
         """Load a file into content property
 
@@ -134,9 +132,9 @@ class GParser(GBase):
             warnings (bool): flag to turn on/off warning messages
         """
         self.debug(f"Reading file {in_path}")
-        if flush_content:
+        if kwargs.get("flush_content"):
             self.content = dotty(OrderedDict())
-        return StringIO(in_file.read().decode(encoding))
+        return StringIO(in_file.read().decode(kwargs.get("encoding", DEFAULT_ENCODING)))
 
     def read(self, in_paths, encoding=DEFAULT_ENCODING, warnings=True):
         """Read and parse a file or an iterable of files

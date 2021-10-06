@@ -642,11 +642,12 @@ class GCheck(GCommand):
                 continue
 
             # Read the Nextflow configuration file
-            self.nxf_config.read(
+            nxf_config_content = self.nxf_config.read(
                 project_config_path,
                 warnings=config_key
                 not in self.default_config.options(GCheck.GENIAC_CHECK_CONFIG),
             )
+            print(nxf_config_content)
             if config_method:
                 self.info(
                     "Checking Nextflow configuration file. %s",

@@ -29,10 +29,8 @@ class NextflowScript(GParser):
     def _read(
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
-        encoding: str = None,
         in_path: PathLike = None,
-        flush_content: bool = False,
-        warnings: bool = True,
+        **kwargs,
     ):
         """Load a Nextflow script file into content property
 
@@ -46,11 +44,7 @@ class NextflowScript(GParser):
         script_flag = False
         process = ""
         self.content["process"] = self.content.get("process") or OrderedDict()
-        for idx, line in enumerate(
-            super()._read(
-                in_file, encoding=encoding, in_path=in_path, flush_content=flush_content
-            )
-        ):
+        for idx, line in enumerate(super()._read(in_file, **kwargs)):
             if match := self.PROCESSRE.match(line):
                 values = match.groupdict()
                 # If process add it to the process dict
