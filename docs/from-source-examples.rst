@@ -95,9 +95,9 @@ The first step consist in writing the bash wrapper ``modules/fromSource/bamcmp/b
    $(dirname $(readlink -f $0))/bamcmpbin/bamcmp $@
 
 
-This wrapper expects to find relatively to its location (once installed) both  ``htslib`` and the original ``bamcmp`` binary. Therefore, the environment variable has to be properly set such that ``bamcmp`` can find ``htslib`` which is also installed duting the installation process. This is explained in :ref:`from-source-example-include`.
+This wrapper expects to find relatively to its location (once installed) both  ``htslib`` and the original ``bamcmp`` binary. Therefore, the environment variable has to be properly set such that ``bamcmp`` can find ``htslib`` which is also installed during the installation process. This is explained in :ref:`from-source-example-include`.
 
-The second step consist in writing the ``modules/fromSource/bamcmp/CMakeLists.txt`` to correctly install the wrapper with execution persmission and the exact same name as the original binary. Therefore, it should contain an ``install`` directive to install the compiled code in the folder ``bamcmpbin``. This folder name must to be somtehing different from the name of the binary as it will be available at the same level in the folder tree. Then it should contain another ``install`` directive to rename the bash wrapper with the expected name. The ``modules/fromSource/bamcmp/CMakeLists.txt`` must contain:
+The second step consist in writing the ``modules/fromSource/bamcmp/CMakeLists.txt`` to correctly install the wrapper with execution permission and the exact same name as the original binary. Therefore, it should contain an ``install`` directive to install the compiled code in the folder ``bamcmpbin``. This folder name must to be something different from the name of the binary as it will be available at the same level in the folder tree. Then it should contain another ``install`` directive to rename the bash wrapper with the expected name. The ``modules/fromSource/bamcmp/CMakeLists.txt`` must contain:
 
 ::
 

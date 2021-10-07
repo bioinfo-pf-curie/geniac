@@ -13,7 +13,7 @@ Within the ``conf/geniac.config`` file, there are two scopes which allows the de
 * ``params.geniac.containers.cmd.envCustom``: to define environment variables which will be set inside the docker and singularity images.
 
 
-For example, assume that you want to add to custom commands and two custom environment variables for the `fastqc` tool. Then, using the label of your tool (i.e. `fastqc`) add the folloing in the ``conf/geniac.config`` file:
+For example, assume that you want to add to custom commands and two custom environment variables for the `fastqc` tool. Then, using the label of your tool (i.e. `fastqc`) add the following in the ``conf/geniac.config`` file:
 
 ::
 
@@ -34,7 +34,7 @@ For example, assume that you want to add to custom commands and two custom envir
    }
 
 
-The command and environment varibles are provided as a list.
+The commands and environment variables are provided as a list.
 
 Singularity
 ===========
