@@ -48,7 +48,7 @@ class NextflowConfig(GParser):
             for pattern in self.get_config_option_list(nxf_config_scope, "patterns")
         ]
         if properties_pattern:
-            for property_name, property_value in scope.items():
+            for property_name, [property_value] in scope.items():
                 is_formatted = False
                 for reg in properties_pattern:
                     if reg.search(property_value):
@@ -325,11 +325,14 @@ class NextflowConfig(GParser):
             in_path (PathLike): path to input file
             flush_content (bool): flag used to flush previous content before reading
             warnings (bool): flag to turn on/off warning messages
+
+        Returns:
+            content (
         """
         def_flag = False
         selector = None
         scope_idx = ""
-        content_cache = self.content.copy()
+        content_cache = self.content
         for line_idx, line in enumerate(
             super()._read(in_file, encoding=encoding, flush_content=True)
         ):
@@ -345,7 +348,7 @@ class NextflowConfig(GParser):
             # If we find a new scope
             if match := self.SCOPERE.match(line):
                 (scope_idx, selector, def_flag) = self._set_scope(
-                    self.content, match.groupdict(), scope_idx, def_flag
+                    match.groupdict(), scope_idx, def_flag
                 )
                 continue
             # If we are not in a def scope and we find a parameter
@@ -356,6 +359,7 @@ class NextflowConfig(GParser):
                 continue
         content = self.content.copy()
         # If we don't want to flush, then we merge with previous content
+        # TODO: check if update does really work with the nested dict
         if not flush_content:
-            self.content |= content_cache
+            self.content.update(content_cache)
         return content

@@ -14,7 +14,7 @@ from json import dumps
 from os import PathLike
 from pathlib import Path
 
-from dotty_dict import dotty
+from dotty_dict import Dotty
 
 from geniac.base import GBase
 
@@ -23,6 +23,14 @@ __copyright__ = "Institut Curie 2020"
 
 _logger = logging.getLogger(__name__)
 DEFAULT_ENCODING = "UTF-8"
+
+
+class GDotty(Dotty):
+    """Add merge feature to dotty dict"""
+
+    def update(self, other: dict):
+        """Merge with another dotty dict"""
+        self._data.update(other)
 
 
 class GParser(GBase):
@@ -44,7 +52,7 @@ class GParser(GBase):
         self.params = None
         self._path = ""
         self._loaded_paths = []
-        self._content = dotty(OrderedDict())
+        self._content = OrderedDict()
 
     @property
     def content(self):
@@ -52,9 +60,11 @@ class GParser(GBase):
         return self._content
 
     @content.setter
-    def content(self, value):
+    def content(self, value: dict):
         """Content loaded from input file with read method"""
-        self._content |= value
+        self._content = (
+            value if isinstance(value, GDotty) else GDotty({} if not value else value)
+        )
 
     @property
     def path(self):
@@ -130,10 +140,13 @@ class GParser(GBase):
             in_path (PathLike): path to input file
             flush_content (bool): flag used to flush previous content before reading
             warnings (bool): flag to turn on/off warning messages
+
+        Returns:
+            content (TextIO): Raw content of the file
         """
         self.debug(f"Reading file {in_path}")
         if kwargs.get("flush_content"):
-            self.content = dotty(OrderedDict())
+            self.content = OrderedDict()
         return StringIO(in_file.read().decode(kwargs.get("encoding", DEFAULT_ENCODING)))
 
     def read(self, in_paths, encoding=DEFAULT_ENCODING, warnings=True):
@@ -159,7 +172,7 @@ class GParser(GBase):
                 ) as input_file, tempfile.TemporaryFile() as temp_file:
                     # Format files before reading
                     temp_file = self._remove_comments(input_file, temp_file)
-                    self._read(
+                    temp_content = self._read(
                         temp_file, encoding=encoding, in_path=in_path, warnings=warnings
                     )
                     self.debug(
@@ -170,5 +183,5 @@ class GParser(GBase):
                     self.loaded_paths += [in_path]
             except OSError:
                 continue
-            read_ok.append(in_path)
+            read_ok.append((in_path, temp_content))
         return read_ok
