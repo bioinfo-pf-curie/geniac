@@ -560,6 +560,7 @@ class GCheck(GCommand):
             (
                 default_config_name,
                 {
+                    "expected": True,
                     "path": self.get_config_path(
                         GCheck.GENIAC_CHECK_CONFIG,
                         default_config_name,
@@ -574,10 +575,13 @@ class GCheck(GCommand):
                 GCheck.GENIAC_CHECK_CONFIG
             )
             if default_config_name != "all"
-        ) | OrderedDict(
+        )
+        project_config_scopes |= OrderedDict(
             (
                 default_config_path.stem,
                 {
+                    "expected": default_config_path.stem
+                    in self.get_config_section_items(GCheck.GENIAC_CHECK_CONFIG),
                     "path": default_config_path,
                     "check_config": getattr(
                         self, f"_check_{default_config_path.stem}_config", None
@@ -587,13 +591,8 @@ class GCheck(GCommand):
             for default_config_path in self.get_config_path(
                 GCheck.GENIAC_CHECK_CONFIG, "all", single_path=False
             )
+            if default_config_path.stem not in project_config_scopes
         )
-
-        # Configuration files analyzed
-        project_config_paths = [
-            project_config_scopes[config_scope]["path"]
-            for config_scope in project_config_scopes
-        ]
 
         # Generate path to configuration files produced by geniac
         generated_geniac_config_paths = [
@@ -605,17 +604,11 @@ class GCheck(GCommand):
             )
         ]
 
-        default_config_paths = {
-            config_type: (
-                self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "base"]), config_type
-                )
-                + self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "conf"]), config_type
-                )
-            )
-            for config_type in ("mandatory", "optional")
-        }
+        expected_geniac_config_paths = [
+            config_scope.get("path")
+            for config, config_scope in project_config_scopes.items()
+            if config_scope.get("expected")
+        ]
 
         # For each Nextflow configuration file analyzed
         for config_key, project_config_scope in project_config_scopes.items():
@@ -623,7 +616,7 @@ class GCheck(GCommand):
             config_method = project_config_scope["check_config"]
             config_args = {
                 "config_path": project_config_path,
-                "default_config_paths": project_config_paths,
+                "default_config_paths": expected_geniac_config_paths,
                 "default_geniac_files_paths": generated_geniac_config_paths,
                 "conda_check": self.default_config.getboolean(
                     self.GENIAC_FLAGS, "condaCheck"
@@ -633,9 +626,7 @@ class GCheck(GCommand):
             # If the project config file does not exists and does not belong to default
             # geniac files
             if not project_config_path.exists():
-                if project_config_path not in default_config_paths.get(
-                    "optional"
-                ) + default_config_paths.get("mandatory"):
+                if project_config_path not in expected_geniac_config_paths:
                     self.error(
                         "Nextflow config file %s does not exist.",
                         project_config_path.relative_to(self.project_dir),
