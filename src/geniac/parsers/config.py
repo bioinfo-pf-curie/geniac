@@ -5,17 +5,12 @@
 
 import re
 import typing
-from collections import OrderedDict, defaultdict
+from collections import ChainMap, OrderedDict
 
-from geniac.parsers.base import DEFAULT_ENCODING, GParser, PathLike
+from geniac.parsers.base import DEFAULT_ENCODING, GBase, GParser, PathLike
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
-
-
-def _scope_tmpl():
-    """"""
-    return {"properties": defaultdict(dict), "selectors": ()}
 
 
 class NextflowConfig(GParser):
@@ -188,14 +183,15 @@ class NextflowConfig(GParser):
             if nested_scope not in skip_nested_scopes:
                 self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
-    def check_labels_in_section(self, section_name, labels):
+    @staticmethod
+    def check_labels_in_section(nxf_config, section_name, labels):
         """Check if given labels exists within a section"""
-        if x_section := self.get(section_name):
+        if x_section := nxf_config.get(section_name):
             # For each label in the section scope
             for label in x_section:
                 # If label is not present in labels
                 if label not in labels:
-                    self.error(
+                    nxf_config.error(
                         "Label %s of %s is not defined in params.geniac.tools.",
                         label,
                         section_name,
@@ -360,3 +356,15 @@ class NextflowConfig(GParser):
         if not flush_content:
             self.content.update(content_cache)
         return content
+
+
+class NextflowConfigContainer(GBase, ChainMap):
+    """Container object to save nextflow config files"""
+
+    def append(self, item: NextflowConfig):
+        """Add a new Nextflow Config"""
+        self.maps.append(item.content)
+
+    def check_labels_in_section(self, section_name, labels):
+        """Check if given labels exists within a section"""
+        return NextflowConfig.check_labels_in_section(self, section_name, labels)

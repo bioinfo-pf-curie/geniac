@@ -11,7 +11,7 @@ from pathlib import Path
 
 from geniac.commands.base import GCommand
 from geniac.parsers.base import DEFAULT_ENCODING
-from geniac.parsers.config import NextflowConfig
+from geniac.parsers.config import NextflowConfig, NextflowConfigContainer
 from geniac.parsers.scripts import NextflowScript
 
 __author__ = "Fabrice Allain"
@@ -61,7 +61,7 @@ class GCheck(GCommand):
         self._processes_from_workflow = OrderedDict()
         self._labels_from_workflow = []
         self._labels_all = []
-        self._nxf_config = NextflowConfig(project_dir=self.project_dir)
+        self._nxf_config_container = NextflowConfigContainer()
 
     @property
     def project_tree(self):
@@ -69,9 +69,9 @@ class GCheck(GCommand):
         return self._project_tree
 
     @property
-    def nxf_config(self):
+    def nxf_config_container(self):
         """Namespace for Nextflow configuration files"""
-        return self._nxf_config
+        return self._nxf_config_container
 
     @property
     def labels_from_folders(self):
@@ -466,7 +466,9 @@ class GCheck(GCommand):
             "params.geniac.containers.yum",
             "params.geniac.containers.git",
         ):
-            config.check_labels_in_section(extra_section, labels_geniac_tools)
+            NextflowConfig.check_labels_in_section(
+                config, extra_section, labels_geniac_tools
+            )
 
         return labels_geniac_tools
 
@@ -642,12 +644,13 @@ class GCheck(GCommand):
 
             # Read the Nextflow configuration file
             nxf_config = NextflowConfig(project_dir=self.project_dir)
-            nxf_config_content = nxf_config.read(
+            nxf_config.read(
                 project_config_path,
                 warnings=config_key
                 not in self.default_config.options(GCheck.GENIAC_CHECK_CONFIG),
             )
-            self.nxf_config.content.update(nxf_config_content)
+            self.nxf_config_container.append(nxf_config)
+
             if config_method:
                 self.info(
                     "Checking Nextflow configuration file. %s",
@@ -990,7 +993,9 @@ class GCheck(GCommand):
             "params.geniac.containers.cmd.post",
             "params.geniac.containers.cmd.envCustom",
         ):
-            self.nxf_config.check_labels_in_section(extra_section, self.labels_all)
+            self.nxf_config_container.check_labels_in_section(
+                extra_section, self.labels_all
+            )
 
         for process, process_scope in self.processes_from_workflow.items():
             # Get the diff of process labels not present in process scope in config
