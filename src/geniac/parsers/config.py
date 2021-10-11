@@ -84,10 +84,7 @@ class NextflowConfig(GParser):
             prohibited_patterns = self.get_config_section_items(
                 f"scope.{nxf_config_scope}.values.prohibited"
             ).get(config_prop)
-            cfg_vals = scope.get(config_prop)
-
-            if not cfg_vals:
-                continue
+            cfg_vals = scope.get(config_prop, [None])
 
             for cfg_val in cfg_vals:
                 # If the values doesn't match default values
