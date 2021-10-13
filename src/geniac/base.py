@@ -207,11 +207,13 @@ class GBase(ABC, LogMixin):
         )
         # Get Path instance for each file in the related configparser option. Glob
         # patterns are unpacked here
-        result = [
-            Path(in_path) if "*" not in in_path else glob_path
-            for in_path in option
-            for glob_path in glob_solver(in_path, lazy_flag=lazy_glob)
-        ]
+        result = sorted(
+            [
+                Path(in_path) if "*" not in in_path else glob_path
+                for in_path in option
+                for glob_path in glob_solver(in_path, lazy_flag=lazy_glob)
+            ]
+        )
         return result[0] if len(result) == 1 and single_path else result
 
     def get_config_subsection(self, subsection):
