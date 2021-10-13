@@ -499,7 +499,7 @@ class GCheck(GCommand):
                 )
 
         # Return list of labels defined with withLabel selector in the process.config file
-        return list(config.get("process", OrderedDict()).get("withLabel"))
+        return list(config.get("process", OrderedDict()).get("withLabel", []))
 
     def _check_nextflow_config(
         self,
