@@ -7,7 +7,7 @@ from configparser import ConfigParser
 
 import pytest
 
-from geniac.commands.base import GBase, glob_solver
+from geniac.base import GBase, glob_solver
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -50,7 +50,7 @@ def test_glob_solver(shared_datadir):
 
 
 def test_gbase(default_gbase):
-    """Check if default GConfor has been instantiated correctly with all default GBase properties"""
+    """Check if default GBase has been instantiated correctly with all default GBase properties"""
     assert default_gbase.project_dir is None
     assert default_gbase.config_file is None
-    assert isinstance(default_gbase.config, ConfigParser)
+    assert isinstance(default_gbase.default_config, ConfigParser)
