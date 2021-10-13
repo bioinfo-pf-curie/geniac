@@ -168,11 +168,13 @@ class GCheck(GCommand):
             " recursively" if recursive_flag else "",
         )
         return (
-            [
-                _
-                for _ in dir_path.glob("**/*" if recursive_flag else "*")
-                if _ not in excluded_files and not _.is_dir()
-            ]
+            sorted(
+                [
+                    _
+                    for _ in dir_path.glob("**/*" if recursive_flag else "*")
+                    if _ not in excluded_files and not _.is_dir()
+                ]
+            )
             if dir_path.exists()
             else ()
         )
@@ -212,18 +214,20 @@ class GCheck(GCommand):
                         tree_section, "mandatory", lazy_glob=True
                     ),
                     # Path(s) to optional file(s)
-                    "optional_files": list(
-                        set(
-                            [
-                                path
-                                for path in self.get_config_path(
-                                    tree_section, "optional"
-                                )
-                                if path
-                                not in self.get_config_path(
-                                    tree_section, "mandatory", lazy_glob=True
-                                )
-                            ]
+                    "optional_files": sorted(
+                        list(
+                            set(
+                                [
+                                    path
+                                    for path in self.get_config_path(
+                                        tree_section, "optional"
+                                    )
+                                    if path
+                                    not in self.get_config_path(
+                                        tree_section, "mandatory", lazy_glob=True
+                                    )
+                                ]
+                            )
                         )
                     ),
                     # Path(s) to file(s) excluded from the analysis
