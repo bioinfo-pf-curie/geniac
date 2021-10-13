@@ -90,6 +90,13 @@ set(ap_conda_release
         "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. When a tool is installed with Conda, the container obviously needs Conda. Therefore, this variable defines which Conda release to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac."
 )
 
+set(ap_mount_dir
+    ""
+    CACHE
+        STRING
+        "When using the docker/singularity profiles, the list of directories passed with this option will be made available inside the containers. The directories must be provided as a comma separated list (e.g. '/folder1,/folder2')."
+)
+
 # ##############################################################################
 # Set variables
 # ##############################################################################

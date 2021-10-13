@@ -59,6 +59,8 @@ params {
   // package manager for the Linux Distro
   params.yum = 'dnf'
 
+  // mount directories for the containers
+  mountDir = '@mount_dir@'
 }
 
 
