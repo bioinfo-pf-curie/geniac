@@ -29,10 +29,10 @@ of the license and that you accept its terms.
 
 def addYumAndGitAndCmdConfs(List input) {
   List<String> gitList = []
-  LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
-  LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-  LinkedHashMap cmdPostConf = params.geniac.containers.cmd.post ?: [:]
-  LinkedHashMap cmdEnvConf = params.geniac.containers.cmd.envCustom ?: [:]
+  LinkedHashMap gitConf = params.geniac.containers?.git ?: [:]
+  LinkedHashMap yumConf = params.geniac.containers?.yum ?: [:]
+  LinkedHashMap cmdPostConf = params.geniac.containers?.cmd?.post ?: [:]
+  LinkedHashMap cmdEnvConf = params.geniac.containers?.cmd?.envCustom ?: [:]
   (gitConf[input[0]] ?:'')
     .split()
     .each{ gitList.add(it.split('::')) }
@@ -569,7 +569,7 @@ process mergeSingularityConfig {
     singularity {
       enabled = true
       autoMounts = false
-      runOptions = "\\\${(params.geniac.containers.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')} -B \\\\"\\\\\\\$PWD\\\\":/tmp -B \\\\"\\\\\\\$PWD\\\\":/var/tmp -B \\\${projectDir} --containall"
+      runOptions = "\\\${(params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')} -B \\\\"\\\\\\\$PWD\\\\":/tmp -B \\\\"\\\\\\\$PWD\\\\":/var/tmp -B \\\${projectDir} --containall"
     }
 
     process {
@@ -625,7 +625,7 @@ process mergeDockerConfig {
     cat << EOF > "docker.config"
     docker {
       enabled = true
-      runOptions = "\\\${params.geniac.containers.dockerRunOptions}"
+      runOptions = "\\\${params.geniac.containers?.dockerRunOptions}"
     }
 
     process {
@@ -709,10 +709,10 @@ process buildMulticondaConfig {
     cplmt = condaDef == 'ENV' ? '.label' : ''
     """
     cat << EOF > "${key}MulticondaConfig.txt"
-      withLabel:${key}{ conda = "\\\${params.geniac.tools.${key}${cplmt}}" }
+      withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}${cplmt}}" }
     EOF
     """
-    // withLabel:${key}{ conda = "\\\${params.geniac.tools.${key}}" }
+    // withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}}" }
 }
 
 process mergeMulticondaConfig {
