@@ -561,25 +561,25 @@ process mergeSingularityConfig {
     import java.util.Map.Entry;
     import java.util.regex.Matcher;
     import java.util.regex.Pattern;
-    
+
     START_PATTERN = "__sta__";
     STOP_PATTERN = "__sto__";
     p1 = Pattern.compile("\\\"(.*?)\\\"");
     p2 = Pattern
             .compile("(" + START_PATTERN + "((?!" + STOP_PATTERN + ").)*?) +(.*?" + STOP_PATTERN + ")");
     SPECIAL_PATHS = Arrays.asList(new String[] { "\\\\\\\$PWD" });
-    
-    
+
+
     String sanitizePath(String path) throws Exception {
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-    
+
         if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
             throw new Exception(
                     "Invalid binding " + path + ". Must be an absolute path.");
         }
-    
+
         return path;
     }
 
@@ -588,11 +588,11 @@ process mergeSingularityConfig {
             throw new Exception("Invalid binding source " + source
                     + ". Indeed, as a result of this binding the user HOME directory will be available inside the container which can drive to unpredictible reproducibility issues");
         }
-    
+
         if (!target.startsWith("/")) {
             throw new Exception("Invalid binding target " + target + ". Must be an absolute path.");
         }
-    
+
         if (pathMap.containsKey(target) && !source.equals(pathMap.get(target))) {
             throw new Exception("Several bindings for to the same target " + target);
         }
@@ -601,18 +601,18 @@ process mergeSingularityConfig {
     void checkBindings() throws Exception {
         singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''}";
         String input = singularity.runOptions;
-    
+
         Matcher m = p1.matcher(input);
         if (m.find()) {
             input = m.replaceAll(START_PATTERN + "\\\\\\\$1" + STOP_PATTERN);
         }
-    
+
         m = p2.matcher(input);
         while (m.find()) {
             input = m.replaceAll("\\\\\\\$1##\\\\\\\$3");
             m = p2.matcher(input);
         }
-    
+
         String[] tab = input.split(" ");
         Map<String, String> pathMap = new HashMap<>();
         boolean curr = false;
@@ -621,23 +621,27 @@ process mergeSingularityConfig {
                 curr = true;
             } else if (!inputElem.startsWith("-") && curr) {
                 for (String path : inputElem.split(",")) {
+                    if (path.isEmpty()) {
+                        continue;
+                    }
+
                     path = path.replaceAll("##", " ");
                     path = path.replaceAll(START_PATTERN, "\"");
                     path = path.replaceAll(STOP_PATTERN, "\"");
                     String[] pathTab = path.split(":");
-    
+
                     String target = null;
                     String source = sanitizePath(pathTab[0]);
-    
+
                     if (pathTab.length > 1) {
                         target = sanitizePath(pathTab[1]);
                     } else {
                         target = source;
                     }
-    
+
                     checkPath(source, target, pathMap);
                     pathMap.put(target, source);
-    
+
                     // is symlink
                     File f = new File(source);
                     Path p = f.toPath();
@@ -645,14 +649,14 @@ process mergeSingularityConfig {
                         String symlinkPath = p.toRealPath();
                         checkPath(symlinkPath, symlinkPath, pathMap);
                         pathMap.put(symlinkPath, symlinkPath);
-                        singularity.runOptions += " -B \\\$symlinkPath"
+                        singularity.runOptions += " -B \\\$symlinkPath";
                     }
                 }
             } else {
                 curr = false;
             }
         }
-    
+
         for (Entry<String, String> entry : pathMap.entrySet()) {
             System.out.println("path " + entry.getValue() + " mounted in " + entry.getKey() + ".");
         }
