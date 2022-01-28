@@ -903,7 +903,7 @@ class GeniacLint(GeniacCommand):
                     if script := process_scope.get("script", []):
                         for line in script:
                             if re.search(
-                                fr"(source|\.) *{env_path.relative_to(self.src_path)}",
+                                fr"(source|\.)*{env_path.relative_to(self.src_path)}",
                                 line,
                             ):
                                 source_flag = True
