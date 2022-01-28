@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>Python</ID>
+  <OriginalElement>#/bioinfo/users/fallain/Projects/IC/bioinfo-guidelines/geniac/src/geniac</OriginalElement>
+  <nodes>
+    <node x="1724.6403061224487" y="88.0">abc.ABCMeta</node>
+    <node x="154.44132653061206" y="268.0">typing.MutableMapping</node>
+    <node x="425.31632653061206" y="268.0">typing.Sized</node>
+    <node x="1626.8903061224487" y="566.0">geniac.parsers.config.NextflowConfig</node>
+    <node x="2993.8903061224487" y="566.0">geniac.conf.logging.ExitOnExceptionHandler</node>
+    <node x="588.3163265306121" y="268.0">typing.Iterator</node>
+    <node x="994.9413265306121" y="268.0">typing.Iterable</node>
+    <node x="3120.3903061224487" y="178.0">logging.Filterer</node>
+    <node x="2361.8903061224487" y="566.0">geniac.commands.init.GInit</node>
+    <node x="1588.6403061224487" y="268.0">geniac.base.GBase</node>
+    <node x="3116.8903061224487" y="268.0">logging.Handler</node>
+    <node x="0.0" y="478.0">dotty_dict.dotty_dict.Dotty</node>
+    <node x="926.6403061224488" y="178.0">typing.Mapping</node>
+    <node x="645.9999999999999" y="478.0">typing.Collection</node>
+    <node x="2007.8903061224487" y="566.0">geniac.commands.confor.GConfor</node>
+    <node x="2651.8903061224487" y="566.0">geniac.commands.check.GCheck</node>
+    <node x="1156.6403061224487" y="0.0">typing.Hashable</node>
+    <node x="1432.344387755102" y="478.0">geniac.parsers.base.GParser</node>
+    <node x="2336.8903061224487" y="652.0">geniac.commands.install.GInstall</node>
+    <node x="0.0" y="566.0">geniac.parsers.base.GDotty</node>
+    <node x="1248.8903061224487" y="566.0">geniac.parsers.scripts.NextflowScript</node>
+    <node x="404.9999999999999" y="478.0">collections.ChainMap</node>
+    <node x="3085.3903061224487" y="478.0">logging.StreamHandler</node>
+    <node x="1741.6403061224487" y="178.0">abc.ABC</node>
+    <node x="2323.3903061224487" y="478.0">geniac.commands.base.GCommand</node>
+    <node x="1434.6403061224487" y="178.0">geniac.conf.logging.LogMixin</node>
+    <node x="795.9413265306121" y="268.0">typing.Container</node>
+    <node x="435.5433673469387" y="566.0">geniac.parsers.config.NextflowConfigContainer</node>
+    <node x="1116.6403061224487" y="178.0">geniac.__main__.GEntryPoint</node>
+    <node x="1533.6403061224487" y="88.0">object</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="dotty_dict.dotty_dict.Dotty" target="typing.Iterable" relationship="INTERFACE">
+      <point x="0.0" y="18.0" />
+      <point x="136.5" y="537.0" />
+      <point x="1074.941" y="537.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+    <edge source="typing.Collection" target="typing.Iterable" relationship="REALIZATION">
+      <point x="27.816326530612173" y="-18.0" />
+      <point x="764.8163265306121" y="250.5" />
+      <point x="1074.941326530612" y="250.5" />
+      <point x="0.0" y="-18.0" />
+    </edge>
+    <edge source="geniac.parsers.config.NextflowConfig" target="geniac.parsers.base.GParser" relationship="REALIZATION">
+      <point x="-3.061224485918501E-4" y="-18.0" />
+      <point x="1807.39" y="540.0" />
+      <point x="1594.5" y="540.0" />
+      <point x="23.155612244898066" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.config.NextflowConfigContainer" target="collections.ChainMap" relationship="REALIZATION">
+      <point x="-142.5433673469388" y="-18.0" />
+      <point x="0.0" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.base.GDotty" target="dotty_dict.dotty_dict.Dotty" relationship="REALIZATION">
+      <point x="-15.0" y="-18.0" />
+      <point x="-15.0" y="18.0" />
+    </edge>
+    <edge source="geniac.base.GBase" target="geniac.conf.logging.LogMixin" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="109.0" y="18.0" />
+    </edge>
+    <edge source="geniac.commands.confor.GConfor" target="geniac.commands.base.GCommand" relationship="REALIZATION">
+      <point x="-3.061224488192238E-4" y="-18.0" />
+      <point x="2174.89" y="540.0" />
+      <point x="2496.89" y="540.0" />
+      <point x="-3.061224488192238E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.commands.check.GCheck" target="geniac.commands.base.GCommand" relationship="REALIZATION">
+      <point x="-3.061224488192238E-4" y="-18.0" />
+      <point x="2812.89" y="540.0" />
+      <point x="2496.89" y="540.0" />
+      <point x="-3.061224488192238E-4" y="18.0" />
+    </edge>
+    <edge source="collections.ChainMap" target="typing.MutableMapping" relationship="REALIZATION">
+      <point x="-110.5" y="15.0" />
+      <point x="290.5" y="511.0" />
+      <point x="15.55867346938794" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.base.GParser" target="typing.Container" relationship="INTERFACE">
+      <point x="14.999612244898117" y="-18.0" />
+      <point x="1586.344" y="413.0" />
+      <point x="885.441" y="413.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+    <edge source="dotty_dict.dotty_dict.Dotty" target="typing.Sized" relationship="INTERFACE">
+      <point x="136.5" y="0.0" />
+      <point x="339.0" y="496.0" />
+      <point x="339.0" y="391.0" />
+      <point x="496.316" y="391.0" />
+      <point x="-3.265306120852074E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.__main__.GEntryPoint" target="object" relationship="REALIZATION">
+      <point x="-3.061224485918501E-4" y="-18.0" />
+      <point x="1262.64" y="151.0" />
+      <point x="1578.14" y="151.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.conf.logging.LogMixin" target="object" relationship="REALIZATION">
+      <point x="-3.061224485918501E-4" y="-18.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="typing.Collection" target="typing.Sized" relationship="INTERFACE">
+      <point x="1.1368683772161603E-13" y="-18.0" />
+      <point x="737.0" y="391.0" />
+      <point x="496.316" y="391.0" />
+      <point x="-3.265306120852074E-4" y="18.0" />
+    </edge>
+    <edge source="dotty_dict.dotty_dict.Dotty" target="typing.Iterator" relationship="INTERFACE">
+      <point x="-15.0" y="-18.0" />
+      <point x="121.5" y="435.0" />
+      <point x="667.816" y="435.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.conf.logging.ExitOnExceptionHandler" target="logging.StreamHandler" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="0.0" y="18.0" />
+    </edge>
+    <edge source="collections.ChainMap" target="typing.Sized" relationship="INTERFACE">
+      <point x="-110.49999999999989" y="0.0" />
+      <point x="339.0" y="496.0" />
+      <point x="339.0" y="391.0" />
+      <point x="496.316" y="391.0" />
+      <point x="-3.265306120852074E-4" y="18.0" />
+    </edge>
+    <edge source="abc.ABC" target="object" relationship="REALIZATION">
+      <point x="-3.061224485918501E-4" y="-18.0" />
+      <point x="1796.14" y="151.0" />
+      <point x="1578.14" y="151.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="object" target="typing.Hashable" relationship="INTERFACE">
+      <point x="-3.061224485918501E-4" y="-18.0" />
+      <point x="1578.14" y="62.0" />
+      <point x="1244.14" y="62.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.base.GBase" target="abc.ABC" relationship="REALIZATION">
+      <point x="91.0" y="-18.0" />
+      <point x="-18.0" y="18.0" />
+    </edge>
+    <edge source="logging.Filterer" target="object" relationship="REALIZATION">
+      <point x="-3.061224488192238E-4" y="-18.0" />
+      <point x="3203.39" y="151.0" />
+      <point x="1578.14" y="151.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="dotty_dict.dotty_dict.Dotty" target="typing.Container" relationship="INTERFACE">
+      <point x="-45.0" y="-18.0" />
+      <point x="91.5" y="413.0" />
+      <point x="885.441" y="413.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+    <edge source="logging.StreamHandler" target="logging.Handler" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="0.0" y="18.0" />
+    </edge>
+    <edge source="dotty_dict.dotty_dict.Dotty" target="object" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="136.5" y="151.0" />
+      <point x="1578.14" y="151.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.commands.install.GInstall" target="geniac.commands.init.GInit" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="0.0" y="18.0" />
+    </edge>
+    <edge source="typing.Collection" target="typing.Container" relationship="REALIZATION">
+      <point x="83.5" y="-18.0" />
+      <point x="-64.94132653061217" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.scripts.NextflowScript" target="geniac.parsers.base.GParser" relationship="REALIZATION">
+      <point x="166.6096938775513" y="-18.0" />
+      <point x="23.155612244898066" y="18.0" />
+    </edge>
+    <edge source="abc.ABC" target="abc.ABCMeta" relationship="INSTANCEOF">
+      <point x="14.999693877551408" y="-18.0" />
+      <point x="9.999693877551408" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.config.NextflowConfigContainer" target="geniac.base.GBase" relationship="REALIZATION">
+      <point x="187.45663265306132" y="-18.0" />
+      <point x="845.5" y="457.0" />
+      <point x="1687.14" y="457.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="logging.Handler" target="logging.Filterer" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="0.0" y="18.0" />
+    </edge>
+    <edge source="dotty_dict.dotty_dict.Dotty" target="typing.Hashable" relationship="INTERFACE">
+      <point x="-30.0" y="-18.0" />
+      <point x="106.5" y="62.0" />
+      <point x="1244.14" y="62.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.commands.init.GInit" target="geniac.commands.base.GCommand" relationship="REALIZATION">
+      <point x="-3.061224488192238E-4" y="-18.0" />
+      <point x="-3.061224488192238E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.commands.base.GCommand" target="geniac.base.GBase" relationship="REALIZATION">
+      <point x="-3.061224488192238E-4" y="-18.0" />
+      <point x="2496.89" y="457.0" />
+      <point x="1687.14" y="457.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="typing.MutableMapping" target="typing.Mapping" relationship="REALIZATION">
+      <point x="0.0" y="-18.0" />
+      <point x="274.94132653061206" y="196.0" />
+      <point x="-85.0" y="0.0" />
+    </edge>
+    <edge source="geniac.parsers.base.GParser" target="typing.Iterator" relationship="INTERFACE">
+      <point x="-3.877551018831582E-4" y="-18.0" />
+      <point x="1571.344" y="435.0" />
+      <point x="667.816" y="435.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.base.GParser" target="geniac.base.GBase" relationship="REALIZATION">
+      <point x="-18.344387755101934" y="-18.0" />
+      <point x="1553.0" y="457.0" />
+      <point x="1687.14" y="457.0" />
+      <point x="-3.061224485918501E-4" y="18.0" />
+    </edge>
+    <edge source="geniac.parsers.base.GParser" target="typing.Iterable" relationship="INTERFACE">
+      <point x="-3.877551018831582E-4" y="18.0" />
+      <point x="1571.344" y="537.0" />
+      <point x="1074.941" y="537.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+    <edge source="collections.ChainMap" target="typing.Iterator" relationship="INTERFACE">
+      <point x="1.1368683772161603E-13" y="-18.0" />
+      <point x="515.5" y="435.0" />
+      <point x="667.816" y="435.0" />
+      <point x="-3.26530612028364E-4" y="18.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="0.8240023303233324" showDependencies="false" x="776.3482634053069" y="357.81032034794237" />
+  <SelectedNodes />
+  <Categories />
+</Diagram>

@@ -7,28 +7,28 @@ import re
 import typing
 from collections import ChainMap, OrderedDict
 
-from geniac.parsers.base import DEFAULT_ENCODING, GBase, GParser, PathLike
+from geniac.cli.parsers.base import DEFAULT_ENCODING, GeniacBase, GeniacParser, PathLike
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
 
 
-class NextflowConfig(GParser):
+class NextflowConfig(GeniacParser):
     """Nextflow config file parser"""
 
     # Param = value
-    PARAMRE = re.compile(
+    PARAM_RE = re.compile(
         r"^ *(?P<scope>[\w.]+(?=\.))?\.?(((?P<property>[\w]+)\s*=\s*"
         r"(?P<elvis>[.\w]+\s*\?:\s*)?(?P<value>([\"\']?.*[\"\']?)|(\d+\.?\w*)|"
         r"(\[[\w\s\'\"/,-]*])|({[\w\s\'\"/,.\-*()]*})))|"
         r"((?P<includeConfig>includeConfig) +['\"](?P<confPath>[\w/.]+))['\"].*) *$"
     )
-    SCOPERE = re.compile(
+    SCOPE_RE = re.compile(
         r"^ *(['\"]?(?P<scope>[\w]+)(?<!try)['\"]?|"
         r"(?P<selector>[\w]+) *: *(?P<label>[\w]+)|"
         r"(?P<beforeClose>})?(?P<other>.+)(?<!\$)) *{ *(?P<afterClose>})?$"
     )
-    ESCOPERE = re.compile(r"^ *}\s*$")
+    ESCOPE_RE = re.compile(r"^ *}\s*$")
 
     def _check_config_scope_format(self, nxf_config_scope: str, scope: dict):
         """Check all the properties in a Nextflow config scope if there is a pattern related to the
@@ -40,7 +40,9 @@ class NextflowConfig(GParser):
         """
         properties_pattern = [
             re.compile(pattern)
-            for pattern in self.get_config_option_list(nxf_config_scope, "patterns")
+            for pattern in self.get_config_scope_option_list(
+                nxf_config_scope, "patterns"
+            )
         ]
         if properties_pattern:
             for property_name, [property_value] in scope.items():
@@ -67,8 +69,8 @@ class NextflowConfig(GParser):
         self._check_config_scope_format(nxf_config_scope=nxf_config_scope, scope=scope)
 
         config_properties = [
-            *self.get_config_option_list(nxf_config_scope, "paths"),
-            *self.get_config_option_list(nxf_config_scope, "properties"),
+            *self.get_config_scope_option_list(nxf_config_scope, "paths"),
+            *self.get_config_scope_option_list(nxf_config_scope, "properties"),
         ]
         # If there is mandatory properties, we check against default values and/or prohibited
         # patterns
@@ -122,7 +124,7 @@ class NextflowConfig(GParser):
                             cfg_val,
                             nxf_config_scope,
                             config_prop,
-                            self.path.relative_to(self.project_dir),
+                            self.path.relative_to(self.src_path),
                             ", ".join(
                                 [
                                     _ if '"' in _ or "'" in _ else f"'{_}'"
@@ -135,7 +137,7 @@ class NextflowConfig(GParser):
                             "Missing %s.%s parameter in file %s.",
                             nxf_config_scope,
                             config_prop,
-                            self.path.relative_to(self.project_dir),
+                            self.path.relative_to(self.src_path),
                         )
 
     def check_config_scope(self, nxf_config_scope: str, skip_nested_scopes=None):
@@ -148,7 +150,7 @@ class NextflowConfig(GParser):
         self.info(
             "Checking %s scope in %s.",
             nxf_config_scope,
-            self.path.relative_to(self.project_dir),
+            self.path.relative_to(self.src_path),
         )
 
         skip_nested_scopes = [""] if skip_nested_scopes is None else skip_nested_scopes
@@ -163,14 +165,14 @@ class NextflowConfig(GParser):
             self.error(
                 "Required section %s in Nextflow configuration file %s is missing.",
                 nxf_config_scope,
-                self.path.relative_to(self.project_dir),
+                self.path.relative_to(self.src_path),
             )
         # Else if the scope is empty
         elif nxf_config_scope and not scope:
             self.error(
                 "Section %s in Nextflow configuration file %s is empty.",
                 nxf_config_scope,
-                self.path.relative_to(self.project_dir),
+                self.path.relative_to(self.src_path),
             )
 
         # Check if config_paths/config_props in the Nextflow config corresponds to
@@ -179,7 +181,9 @@ class NextflowConfig(GParser):
             self._check_config_scope(nxf_config_scope, scope)
 
         # Recursive call to do checks on nested scopes
-        for nested_scope in self.get_config_option_list(nxf_config_scope, "scopes"):
+        for nested_scope in self.get_config_scope_option_list(
+            nxf_config_scope, "scopes"
+        ):
             if nested_scope not in skip_nested_scopes:
                 self.check_config_scope(".".join((nxf_config_scope, nested_scope)))
 
@@ -251,7 +255,6 @@ class NextflowConfig(GParser):
             scope_idx (str): Index of the scope in content tree structure
             line_idx (int): Index of the current line in the file
         """
-        warnings = True
         prop_key = "property" if values.get("property") else "includeConfig"
         value_key = "value" if values.get("value") else "confPath"
         prop = values.get(prop_key, "")
@@ -281,7 +284,7 @@ class NextflowConfig(GParser):
             and prop_key != "includeConfig"
         ):
             history_paths = [
-                conf_path.relative_to(self.project_dir).name
+                conf_path.relative_to(self.src_path).name
                 for conf_path in self.loaded_paths
             ]
             extra_msg = (
@@ -292,7 +295,7 @@ class NextflowConfig(GParser):
             self.warning(
                 "Parameter %s from %s at line %s has already been defined%s.",
                 param_idx,
-                self.path.relative_to(self.project_dir),
+                self.path.relative_to(self.src_path),
                 line_idx + 1,
                 extra_msg,
             )
@@ -309,6 +312,7 @@ class NextflowConfig(GParser):
         in_path: PathLike = None,
         flush_content: bool = False,
         warnings: bool = True,
+        **kwargs,
     ):
         """Load a Nextflow config file into content property
 
@@ -327,11 +331,11 @@ class NextflowConfig(GParser):
         scope_idx = ""
         content_cache = self.content
         for line_idx, line in enumerate(
-            super()._read(in_file, encoding=encoding, flush_content=True)
+            super()._read(in_file, encoding=encoding, flush_content=True, **kwargs)
         ):
             # Pop scope index list if we find a curly bracket
             # Turn off def flag if we reach the last scope in a def
-            if self.ESCOPERE.match(line):
+            if self.ESCOPE_RE.match(line):
                 depth = 1 if not selector else 2
                 scope_idx = ".".join(scope_idx.split(".")[:-depth])
                 selector = None
@@ -339,26 +343,25 @@ class NextflowConfig(GParser):
                     def_flag = False
                 continue
             # If we find a new scope
-            if match := self.SCOPERE.match(line):
+            if match := self.SCOPE_RE.match(line):
                 (scope_idx, selector, def_flag) = self._set_scope(
                     match.groupdict(), scope_idx, def_flag
                 )
                 continue
             # If we are not in a def scope and we find a parameter
-            if not def_flag and (match := self.PARAMRE.match(line)):
+            if not def_flag and (match := self.PARAM_RE.match(line)):
                 self._set_param(
                     match.groupdict(), scope_idx, line_idx, warnings=warnings
                 )
                 continue
         content = self.content.copy()
         # If we don't want to flush, then we merge with previous content
-        # TODO: check if update does really work with the nested dict
         if not flush_content:
             self.content.update(content_cache)
         return content
 
 
-class NextflowConfigContainer(GBase, ChainMap):
+class NextflowConfigContainer(GeniacBase, ChainMap):
     """Container object to save nextflow config files"""
 
     def append(self, item: NextflowConfig):

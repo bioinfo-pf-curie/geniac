@@ -16,7 +16,7 @@ from pathlib import Path
 
 from dotty_dict import Dotty
 
-from geniac.base import GBase
+from geniac.cli.utils.base import GeniacBase
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -33,10 +33,10 @@ class GDotty(Dotty):
         self._data.update(other)
 
 
-class GParser(GBase):
+class GeniacParser(GeniacBase):
     """Geniac file parser"""
 
-    COMRE = re.compile(
+    COM_RE = re.compile(
         r"(?P<tdquote>\"{3}[\S\s]*?\"{3})|"
         r"(?P<tquote>\'{3}[\S\s]*?\'{3})|"
         r"(?P<squote>\'[^\']*\')|"
@@ -114,13 +114,12 @@ class GParser(GBase):
 
     def _remove_comments(self, in_file, temp_file):
         # Remove comments for the analysis
-        # input_content = self.UCOMRE.sub("", self.MCOMRE.sub("", in_file.read()))
 
         def match_comments(match):
             """Filter comments from match object"""
             return "" if match.group("mcom") or match.group("scom") else match.group(0)
 
-        input_content = self.COMRE.sub(match_comments, in_file.read())
+        input_content = self.COM_RE.sub(match_comments, in_file.read())
         temp_file.write(bytes(input_content, encoding=DEFAULT_ENCODING))
         temp_file.seek(0)
         return temp_file
@@ -149,13 +148,17 @@ class GParser(GBase):
             self.content = OrderedDict()
         return StringIO(in_file.read().decode(kwargs.get("encoding", DEFAULT_ENCODING)))
 
-    def read(self, in_paths, encoding=DEFAULT_ENCODING, warnings=True):
+    def read(
+        self,
+        in_paths: [str, PathLike, list],
+        encoding: str = DEFAULT_ENCODING,
+        **kwargs,
+    ) -> [bool]:
         """Read and parse a file or an iterable of files
 
         Args:
             in_paths: path to input file(s)
             encoding (str): name of the encoding used to decode files
-            warnings (bool): flag to turn on/off warning messages
 
         Returns:
             read_ok (list): list of successfully read files
@@ -165,7 +168,7 @@ class GParser(GBase):
             in_paths = [in_paths]
         read_ok = []
         for in_path in in_paths:
-            in_path = Path(in_path)
+            in_path = Path(in_path) if not isinstance(in_path, PathLike) else in_path
             try:
                 with in_path.open(
                     mode="r", encoding=encoding
@@ -173,7 +176,7 @@ class GParser(GBase):
                     # Format files before reading
                     temp_file = self._remove_comments(input_file, temp_file)
                     temp_content = self._read(
-                        temp_file, encoding=encoding, in_path=in_path, warnings=warnings
+                        temp_file, encoding=encoding, in_path=in_path, **kwargs
                     )
                     self.debug(
                         "LOADED %s scope:\n%s.",

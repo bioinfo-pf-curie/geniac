@@ -16,7 +16,7 @@
     },
     "handlers": {
         "console": {
-            "()": "geniac.conf.logging.ExitOnExceptionHandler",
+            "()": "geniac.cli.utils.logging.ExitOnExceptionHandler",
             "level": "DEBUG",
             "formatter": "colored",
             "stream": "ext://sys.stdout"

@@ -7,21 +7,21 @@ import re
 import typing
 from collections import OrderedDict, defaultdict
 
-from geniac.parsers.base import GParser, PathLike
+from geniac.cli.parsers.base import GeniacParser, PathLike
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2021"
 
 
-class NextflowScript(GParser):
+class NextflowScript(GeniacParser):
     """Nextflow script file parser"""
 
     # process flag
-    PROCESSRE = re.compile(r"^ *process +(?P<processName>\w+) *{")
+    PROCESS_RE = re.compile(r"^ *process +(?P<processName>\w+) *{")
     # process label
-    LABELRE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
+    LABEL_RE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
     # script flag
-    SCRIPTRE = re.compile(
+    SCRIPT_RE = re.compile(
         r"^ *(?P<startScript>[\"']{3})"
         r"((?P<script>.+)(?<=(?P<endScript>[\"']{3})))? *$"
     )
@@ -43,15 +43,17 @@ class NextflowScript(GParser):
         """
         script_flag = False
         process = ""
+        # TODO: change process keys to ("processName", filePath)
         self.content["process"] = self.content.get("process") or OrderedDict()
         for idx, line in enumerate(super()._read(in_file, **kwargs)):
-            if match := self.PROCESSRE.match(line):
+            if match := self.PROCESS_RE.match(line):
                 values = match.groupdict()
                 # If process add it to the process dict
                 process = values.get("processName")
                 self.content["process"][process] = defaultdict(list)
+                # Save the path to the nextflow script for future logs
                 self.content["process"][process]["NextflowScriptPath"] = str(in_path)
-            if match := self.LABELRE.match(line):
+            if match := self.LABEL_RE.match(line):
                 values = match.groupdict()
                 label = values.get("labelName")
                 self.debug("FOUND label %s in process %s.", label, process)
@@ -59,7 +61,7 @@ class NextflowScript(GParser):
                 continue
             # For the moment we append everything into the same list even with conditional nextflow
             # script
-            if match := self.SCRIPTRE.match(line):
+            if match := self.SCRIPT_RE.match(line):
                 values = match.groupdict()
                 if process:
                     script_flag = not script_flag

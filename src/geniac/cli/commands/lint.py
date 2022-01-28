@@ -9,52 +9,63 @@ from collections import OrderedDict
 from inspect import getfullargspec
 from pathlib import Path
 
-from geniac.commands.base import GCommand
-from geniac.parsers.base import DEFAULT_ENCODING
-from geniac.parsers.config import NextflowConfig, NextflowConfigContainer
-from geniac.parsers.scripts import NextflowScript
+from geniac.cli.commands.base import GeniacCommand
+from geniac.cli.parsers.base import DEFAULT_ENCODING
+from geniac.cli.parsers.config import NextflowConfig, NextflowConfigContainer
+from geniac.cli.parsers.scripts import NextflowScript
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
 
 
-class GCheck(GCommand):
+class GeniacLint(GeniacCommand):
     """Linter command for geniac"""
 
+    # REGEX check if a string is a valid conda recipe
     CONDA_RECIPES_RE = re.compile(
         r"(?P<recipes>(([\w-]+::[\w-]+==?[\d.]+==?[\w]+) ?)+)"
     )
+    # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
+    # REGEX to check if install cmake directive has been correctly added in the main CMakeLists.txt
     INSTALL_MAIN_CMAKE_RE = re.compile(
         r"install\([\s\w_${}\-/=]*DESTINATION +"
         r"(?P<destination>\${CMAKE_INSTALL_PREFIX}/\${pipeline_dir}/bin/fromSource)[\s)]"
     )
+    # REGEX to check if install cmake directive has been correctly added in the
+    # module CMakeLists.txt
     INSTALL_MODULE_CMAKE_RE = re.compile(
         r"install\([\s\w_${}\-/=]*DESTINATION +[\s\w_${}\-/=]*\)"
     )
+    # REGEX to check if ExternalProject cmake directive has been correctly added in the main
+    # CMakeLists.txt
     PROJECT_ADD_MAIN_CMAKE_RE_TEMP = (
         r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
         r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|"
         r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
     )
+    # REGEX to check if a dependency has been correctly added in a singularity
+    # recipe
     SINGULARITY_DEP_RE_TEMP = (
         r"\%files[\/\w.\s]*\s+(?P<mydep>{tool}/{dependency} +[\/\w.]+{dependency})"
     )
+    # REGEX to check if a dependency has been correctly added in a docker
+    # recipe
     DOCKER_DEP_RE_TEMP = r"ADD +{tool}/{dependency} [\/\w.]+{dependency}"
 
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
     PROJECT_WORKFLOW = "project.workflow"
-    GENIAC_FLAGS = "geniac.flags"
-    GENIAC_DIRS = "geniac.directories"
-    GENIAC_CONFIG_FILES = "geniac.generated.config"
-    GENIAC_CHECK_CONFIG = "geniac.check.config"
+    GENIAC_PARAMS = "geniac.lint"
+    GENIAC_DIRS = "geniac.lint.directories"
+    GENIAC_CONFIG_FILES = "geniac.lint.generated.config"
+    GENIAC_CHECK_CONFIG = "geniac.lint.expected.config"
 
-    def __init__(self, project_dir, *args, **kwargs):
+    def __init__(self, src_path, *args, **kwargs):
         """Init flags specific to GCheck command"""
-        super().__init__(*args, project_dir=project_dir, **kwargs)
+        super().__init__(*args, src_path=src_path, **kwargs)
         self._project_tree = self._format_tree_config()
         self._labels_from_folders = OrderedDict()
         self._labels_from_configs = OrderedDict()
@@ -208,10 +219,24 @@ class GCheck(GCommand):
                     # Path to the folder
                     "path": Path(self.default_config.get(tree_section, "path"))
                     if self.default_config.get(tree_section, "path")
-                    else Path(self.project_dir),
+                    else Path(self.src_path),
                     # Path(s) to mandatory file(s)
-                    "required_files": self.get_config_path(
-                        tree_section, "mandatory", lazy_glob=True
+                    "required_files":  sorted(
+                        list(
+                            set(
+                                [
+                                    path
+                                    for path in self.get_config_path(tree_section,
+                                                                     "mandatory",
+                                                                     lazy_glob=True
+                                                                     )
+                                    if path not in self.get_config_path(tree_section,
+                                                                        "excluded",
+                                                                        lazy_glob=True
+                                                                        )
+                                ]
+                            )
+                        )
                     ),
                     # Path(s) to optional file(s)
                     "optional_files": sorted(
@@ -256,7 +281,7 @@ class GCheck(GCommand):
 
     def check_tree_folder(self):
         """Check the directory in order to set the flags"""
-        self.info("Checking tree structure of %s.", self.project_dir)
+        self.info("Checking tree structure of %s.", self.src_path)
         self.debug(
             "Sections parsed from config file: %s.", self.default_config.sections()
         )
@@ -290,19 +315,19 @@ class GCheck(GCommand):
 
             # If folder exists and is not empty (excluded files are ignored)
             if path:
-                is_project_dir = path.resolve() == self.project_dir.resolve()
+                is_src_path = path.resolve() == self.src_path.resolve()
                 formatted_path = (
-                    path.relative_to(self.project_dir)
-                    if not is_project_dir
-                    else self.project_dir.relative_to(Path.cwd())
-                    if self.project_dir.is_relative_to(Path.cwd())
-                    else self.project_dir
+                    path.relative_to(self.src_path)
+                    if not is_src_path
+                    else self.src_path.relative_to(Path.cwd())
+                    if self.src_path.is_relative_to(Path.cwd())
+                    else self.src_path
                 )
                 if required and not path.exists():
                     extra_msg = (
                         " Add it to your project if you want your "
                         "workflow to be compatible with geniac tools."
-                        if not is_project_dir
+                        if not is_src_path
                         else ""
                     )
                     self.critical(
@@ -325,7 +350,7 @@ class GCheck(GCommand):
                     self.error(
                         "File %s is missing. Add it to your project if you want to be compatible "
                         "with geniac.",
-                        file.relative_to(self.project_dir),
+                        file.relative_to(self.src_path),
                     )
 
             # Trigger a warning if an optional file is missing
@@ -336,7 +361,7 @@ class GCheck(GCommand):
                     self.warning(
                         "Optional file %s does not exist. It is recommended to have one in your "
                         "project.",
-                        file.relative_to(self.project_dir),
+                        file.relative_to(self.src_path),
                     )
 
     def get_processes_from_workflow(self):
@@ -345,7 +370,7 @@ class GCheck(GCommand):
         Returns:
             labels_from_main (dict): dictionary of processes in the main nextflow file
         """
-        script = NextflowScript(project_dir=self.project_dir)
+        script = NextflowScript(src_path=self.src_path)
 
         geniac_dir = self.project_tree.get("geniac").get("path")
 
@@ -355,9 +380,9 @@ class GCheck(GCommand):
                 f"{config_key}_{index}",
                 path,
             )
-            for config_key in self.default_config.options(GCheck.PROJECT_WORKFLOW)
+            for config_key in self.default_config.options(GeniacLint.PROJECT_WORKFLOW)
             for index, path in enumerate(
-                self.get_config_path(GCheck.PROJECT_WORKFLOW, config_key)
+                self.get_config_path(GeniacLint.PROJECT_WORKFLOW, config_key)
             )
             if not path.is_relative_to(geniac_dir)
         )
@@ -368,7 +393,7 @@ class GCheck(GCommand):
             else:
                 self.error(
                     "Workflow script %s does not exist.",
-                    script_path.relative_to(self.project_dir),
+                    script_path.relative_to(self.src_path),
                 )
 
         # Check if there is processes without label in the actual workflow
@@ -377,7 +402,7 @@ class GCheck(GCommand):
             if not processes.get(process).get("label"):
                 process_path = Path(
                     processes.get(process).get('NextflowScriptPath')
-                ).relative_to(self.project_dir)
+                ).relative_to(self.src_path)
                 self.error(
                     "Process %s in %s does not have any label.",
                     process, process_path
@@ -386,7 +411,9 @@ class GCheck(GCommand):
 
         self.processes_from_workflow = script.content.get("process", OrderedDict())
 
-    def _check_geniac_config(self, config: NextflowConfig, conda_check: bool = True):
+    def _check_geniac_config(
+        self, config: NextflowConfig, conda_check: bool = True
+    ) -> list:
         """Check the content of params scope in a geniac config file
 
         Args:
@@ -419,7 +446,7 @@ class GCheck(GCommand):
         for label, [recipe] in config.get("params.geniac.tools", OrderedDict()).items():
             labels_geniac_tools.append(label)
             # If the tool value is a conda recipe
-            if match := GCheck.CONDA_RECIPES_RE.match(recipe):
+            if match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
                 if not conda_check:
                     continue
                 # The related recipe is a correct conda recipe
@@ -446,15 +473,15 @@ class GCheck(GCommand):
                         self.debug("Conda search output:\n%s", conda_search.stdout)
             # Elif the tool value is a path to an environment file (yml or yaml ext),
             # check if the path exists
-            elif match := GCheck.CONDA_PATH_RE.search(recipe):
+            elif match := GeniacLint.CONDA_PATH_RE.search(recipe):
                 if (
                     conda_path := Path(
-                        self.project_dir / match.groupdict().get("basepath")
+                        self.src_path / match.groupdict().get("basepath")
                     )
                 ) and not conda_path.exists():
                     self.error(
                         "Conda file %s related to %s tool does not exist.",
-                        conda_path.relative_to(self.project_dir),
+                        conda_path.relative_to(self.src_path),
                         label,
                     )
             # else check if it's a valid path
@@ -494,7 +521,7 @@ class GCheck(GCommand):
                 self.error(
                     "withName:%s is defined in %s file but the process %s is not used anywhere.",
                     config_process,
-                    config_path.relative_to(self.project_dir),
+                    config_path.relative_to(self.src_path),
                     config_process,
                 )
 
@@ -516,11 +543,11 @@ class GCheck(GCommand):
             default_config_paths (list):
         """
         include_config_paths = [
-            self.project_dir / Path(include_path)
+            self.src_path / Path(include_path)
             for include_path in config.get("includeConfig", [])
         ]
         profile_config_paths = [
-            self.project_dir / Path(conf_path)
+            self.src_path / Path(conf_path)
             for conf_profile in config.get("profiles", OrderedDict())
             for conf_path in config.get("profiles", OrderedDict())
             .get(conf_profile, {})
@@ -534,13 +561,13 @@ class GCheck(GCommand):
             ):
                 msg = (
                     f"Main configuration file "
-                    f"{config_path.relative_to(self.project_dir)} does not "
+                    f"{config_path.relative_to(self.src_path)} does not "
                     f"include configuration file "
-                    f"{default_config_path.relative_to(self.project_dir)}."
+                    f"{default_config_path.relative_to(self.src_path)}."
                 )
                 # Trigger a warning if optional file. Otherwise trigger an error
                 if default_config_path in self.get_config_path(
-                    ".".join([GCheck.TREE_SUFFIX, "conf"]), "optional"
+                    ".".join([GeniacLint.TREE_SUFFIX, "conf"]), "optional"
                 ):
                     self.warning(msg)
                 else:
@@ -566,7 +593,7 @@ class GCheck(GCommand):
                 {
                     "expected": True,
                     "path": self.get_config_path(
-                        GCheck.GENIAC_CHECK_CONFIG,
+                        GeniacLint.GENIAC_CHECK_CONFIG,
                         default_config_name,
                         single_path=default_config_name,
                     ),
@@ -576,7 +603,7 @@ class GCheck(GCommand):
                 },
             )
             for default_config_name in self.get_config_section_items(
-                GCheck.GENIAC_CHECK_CONFIG
+                GeniacLint.GENIAC_CHECK_CONFIG
             )
             if default_config_name != "all"
         )
@@ -585,7 +612,7 @@ class GCheck(GCommand):
                 default_config_path.stem,
                 {
                     "expected": default_config_path.stem
-                    in self.get_config_section_items(GCheck.GENIAC_CHECK_CONFIG),
+                    in self.get_config_section_items(GeniacLint.GENIAC_CHECK_CONFIG),
                     "path": default_config_path,
                     "check_config": getattr(
                         self, f"_check_{default_config_path.stem}_config", None
@@ -593,7 +620,7 @@ class GCheck(GCommand):
                 },
             )
             for default_config_path in self.get_config_path(
-                GCheck.GENIAC_CHECK_CONFIG, "all", single_path=False
+                GeniacLint.GENIAC_CHECK_CONFIG, "all", single_path=False
             )
             if default_config_path.stem not in project_config_scopes
         )
@@ -601,10 +628,10 @@ class GCheck(GCommand):
         # Generate path to configuration files produced by geniac
         generated_geniac_config_paths = [
             self.get_config_path(
-                GCheck.GENIAC_CONFIG_FILES, geniac_config_file, single_path=True
+                GeniacLint.GENIAC_CONFIG_FILES, geniac_config_file, single_path=True
             )
             for geniac_config_file in self.default_config.options(
-                GCheck.GENIAC_CONFIG_FILES
+                GeniacLint.GENIAC_CONFIG_FILES
             )
         ]
 
@@ -623,7 +650,7 @@ class GCheck(GCommand):
                 "default_config_paths": expected_geniac_config_paths,
                 "default_geniac_files_paths": generated_geniac_config_paths,
                 "conda_check": self.default_config.getboolean(
-                    self.GENIAC_FLAGS, "condaCheck"
+                    self.GENIAC_PARAMS, "condaCheck"
                 ),
             }
 
@@ -633,23 +660,23 @@ class GCheck(GCommand):
                 if project_config_path not in expected_geniac_config_paths:
                     self.error(
                         "Nextflow config file %s does not exist.",
-                        project_config_path.relative_to(self.project_dir),
+                        project_config_path.relative_to(self.src_path),
                     )
                 continue
 
             # Read the Nextflow configuration file
-            nxf_config = NextflowConfig(project_dir=self.project_dir)
+            nxf_config = NextflowConfig(src_path=self.src_path)
             nxf_config.read(
                 project_config_path,
                 warnings=config_key
-                not in self.default_config.options(GCheck.GENIAC_CHECK_CONFIG),
+                not in self.default_config.options(GeniacLint.GENIAC_CHECK_CONFIG),
             )
             self.nxf_config_container.append(nxf_config)
 
             if config_method:
                 self.info(
                     "Checking Nextflow configuration file. %s",
-                    project_config_path.relative_to(self.project_dir),
+                    project_config_path.relative_to(self.src_path),
                 )
                 self.labels_from_configs[config_key] = config_method(
                     **{
@@ -671,7 +698,7 @@ class GCheck(GCommand):
                 self.error(
                     "Folder %s requires a CMakeLists.txt file in order to automatically "
                     "build containers.",
-                    modules_dir.relative_to(self.project_dir),
+                    modules_dir.relative_to(self.src_path),
                 )
             return []
 
@@ -692,7 +719,7 @@ class GCheck(GCommand):
                 self.debug("Found module directory with label %s.", module_name)
                 # Parse the CMakeLists.txt file to see if the label is correctly defined
                 check_main_cmlist_reg = re.compile(
-                    GCheck.PROJECT_ADD_MAIN_CMAKE_RE_TEMP.format(label=module_name)
+                    GeniacLint.PROJECT_ADD_MAIN_CMAKE_RE_TEMP.format(label=module_name)
                 )
 
                 with open(
@@ -705,40 +732,42 @@ class GCheck(GCommand):
                     self.debug(
                         "Module %s correctly added within %s.",
                         module_name,
-                        main_cmake_lists.relative_to(self.project_dir),
+                        main_cmake_lists.relative_to(self.src_path),
                     )
                 else:
                     self.error(
                         "Module %s not added with ExternalProject_Add directive within %s file.",
                         module_name,
-                        main_cmake_lists.relative_to(self.project_dir),
+                        main_cmake_lists.relative_to(self.src_path),
                     )
 
                 # Then look in the CMakeLists.txt if install DESTINATION is correct
-                if GCheck.INSTALL_MAIN_CMAKE_RE.search(main_cmake_lists_content):
+                if GeniacLint.INSTALL_MAIN_CMAKE_RE.search(main_cmake_lists_content):
                     self.debug(
                         "Module %s correctly setup in %s to install tools inside "
                         "${projectDir}/bin/fromSource",
                         module_name,
-                        main_cmake_lists.relative_to(self.project_dir),
+                        main_cmake_lists.relative_to(self.src_path),
                     )
                 else:
                     self.error(
                         "DESTINATION in '%s' is not set to '${projectDir}/bin/fromSource'. Please "
                         "update DESTINATION section in this file to "
                         '"DESTINATION ${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/bin/fromSource."',
-                        main_cmake_lists.relative_to(self.project_dir),
+                        main_cmake_lists.relative_to(self.src_path),
                     )
 
                 # Then look in the module cmakeLists.txt if install directive has been set
-                if GCheck.INSTALL_MODULE_CMAKE_RE.search(module_cmake_lists_content):
+                if GeniacLint.INSTALL_MODULE_CMAKE_RE.search(
+                    module_cmake_lists_content
+                ):
                     self.debug("Module %s have an install directive", module_name)
                 else:
                     self.warning(
                         "Module %s doesn't setup an install directive within %s file. "
                         "It needs one in order to install sources inside this module.",
                         module_name,
-                        cmakelists_child.relative_to(self.project_dir),
+                        cmakelists_child.relative_to(self.src_path),
                     )
 
         return OrderedDict([("modules", labels_from_modules)])
@@ -804,7 +833,7 @@ class GCheck(GCommand):
                     "Dependency %s can't be used for container recipes. It should be located "
                     "inside a custom folder with the name corresponding to the container recipe "
                     "file.",
-                    dependency_path.relative_to(self.project_dir),
+                    dependency_path.relative_to(self.src_path),
                 )
                 continue
 
@@ -820,7 +849,7 @@ class GCheck(GCommand):
                     if recipe_path.suffix == recipe_ext:
                         dependency_reg = re.compile(
                             getattr(
-                                GCheck, f"{recipe_type.upper()}_DEP_RE_TEMP", ""
+                                GeniacLint, f"{recipe_type.upper()}_DEP_RE_TEMP", ""
                             ).format(dependency=dependency_path.name, tool=tool_name)
                         )
                         with open(
@@ -833,12 +862,13 @@ class GCheck(GCommand):
                             )
 
                 # Throw an error if dependency not found in any recipe file
+                # TODO: should throw an error if dependency not found in one of the recipe files
                 if not recipe_flag:
                     self.warning(
                         "Dependency file %s not used in any %s recipe files %s.",
                         dependency_path.name,
                         recipe_type,
-                        tree.get("path").relative_to(self.project_dir),
+                        tree.get("path").relative_to(self.src_path),
                     )
 
     def _check_env_dir(self, env_tree: dict):
@@ -873,7 +903,8 @@ class GCheck(GCommand):
                     if script := process_scope.get("script", []):
                         for line in script:
                             if re.search(
-                                f"{env_path.relative_to(self.project_dir)}", line
+                                fr"(source|\.) *{env_path.relative_to(self.src_path)}",
+                                line,
                             ):
                                 source_flag = True
                                 envs_sourced += [env_path]
@@ -883,14 +914,14 @@ class GCheck(GCommand):
                             "Process %s with label %s does not source %s.",
                             process,
                             env_path.stem,
-                            env_path.relative_to(self.project_dir),
+                            env_path.relative_to(self.src_path),
                         )
 
         if envs_unsourced := set(envs_found) - set(envs_sourced):
             for env_path in sorted(envs_unsourced):
                 self.warning(
                     "Env file %s not used in the workflow.",
-                    env_path.relative_to(self.project_dir),
+                    env_path.relative_to(self.src_path),
                 )
 
     def get_labels_from_folders(self):
@@ -905,7 +936,7 @@ class GCheck(GCommand):
                 geniac_dir,
                 {
                     "tree": self.project_tree.get(
-                        self.default_config.get(GCheck.GENIAC_DIRS, geniac_dir)
+                        self.default_config.get(GeniacLint.GENIAC_DIRS, geniac_dir)
                     ),
                     "get_labels": getattr(
                         self, f"_get_labels_from_{geniac_dir}_dir", None
@@ -913,7 +944,7 @@ class GCheck(GCommand):
                     "check_dir": getattr(self, f"_check_{geniac_dir}_dir", None),
                 },
             )
-            for geniac_dir in self.default_config.options(GCheck.GENIAC_DIRS)
+            for geniac_dir in self.default_config.options(GeniacLint.GENIAC_DIRS)
         )
 
         geniac_trees = OrderedDict(
@@ -1016,14 +1047,14 @@ class GCheck(GCommand):
             ]
             if len(unmatched_labels) >= 1:
                 process_path = self.get_config_path(
-                    GCheck.GENIAC_CHECK_CONFIG, "process", single_path=True
-                ).relative_to(self.project_dir)
+                    GeniacLint.GENIAC_CHECK_CONFIG, "process", single_path=True
+                ).relative_to(self.src_path)
                 self.error(
                     "Label(s) %s from process %s in the file %s not defined in the file %s.",
                     unmatched_labels,
                     process,
                     Path(process_scope.get("NextflowScriptPath")).relative_to(
-                        self.project_dir
+                        self.src_path
                     ),
                     process_path,
                 )
