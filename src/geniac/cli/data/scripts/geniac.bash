@@ -9,6 +9,11 @@ type cmake3 && export CMAKE_BIN="cmake3" || export CMAKE_BIN="cmake"
 option=$1
 
 # TODO: should be internal/ run before any build step
+# CMD: geniac.bash init DIR URL
+# - MKDIR GENIAC_TEMP_DIR
+# - CLONE PROJECT IN GENIAC_TEMP_DIR/SRC
+# - MKDIR GENIAC_TEMP_DIR/build
+# - MKDIR GENIAC_TEMP_DIR/.geniac
 function geniac_init {
   # - Create a new working directory for geniac with src, build and .geniac subfolders
   # - Clone the source code into the src folder
@@ -28,7 +33,14 @@ function geniac_init {
   $SHELL
 }
 
-# TODO: geniac help
+# TODO: geniac install -h
+# CMD:
+# - GENIAC INIT
+# - CD GENIAC_TEMP_DIR/build
+# - RUN CMAKE GENIAC_TEMP_DIR/src/geniac > /dev/null
+# - CLEAN GENIAC_TEMP_DIR/build IF CMAKE FAIL
+# - RUN & CATCH CMAKE -LAH GENIAC_TEMP_DIR/src/geniac 2> /dev/null
+# - FORMAT CMAKE OUTPUT
 function geniac_options {
   if [[ ! -d .geniac ]]; then
     echo "ERROR: you are not in a folder created by geniac init"
@@ -210,7 +222,7 @@ function geniac_configfiles {
   cd ${current_dir}
 }
 
-
+# Remove the build folder
 function geniac_clean {
   if [[ ! -d .geniac ]]; then
     echo "ERROR: you are not in a folder created by geniac init"

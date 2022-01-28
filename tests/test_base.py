@@ -7,7 +7,7 @@ from configparser import ConfigParser
 
 import pytest
 
-from geniac.base import GBase, glob_solver
+from geniac.cli.utils import GBase, glob_solver
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"

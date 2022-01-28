@@ -40,12 +40,12 @@ before_script:
   # - pytest
 
 py39:
-  image: "python:3.9"
+  image: "python:3.10"
   <<: *test_script
 
 
 docs:
-  image: "python:3.9"
+  image: "python:3.10"
   script:
     - tox -e docs
 

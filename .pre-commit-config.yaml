@@ -1,8 +1,11 @@
 exclude: '^docs/conf.py'
 
+#default_language_version:
+#    python: python3.8
+
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v3.4.0
+  rev: v4.0.1
   hooks:
   - id: trailing-whitespace
   - id: check-added-large-files
@@ -29,15 +32,14 @@ repos:
 #     ]
 
 - repo: https://github.com/pycqa/isort
-  rev: 5.7.0
+  rev: 5.10.0
   hooks:
   - id: isort
 
 - repo: https://github.com/psf/black
-  rev: 20.8b1
+  rev: 21.10b0
   hooks:
   - id: black
-    language_version: python3
 
 ## If like to embrace black styles even in the docs:
 # - repo: https://github.com/asottile/blacken-docs
@@ -47,7 +49,7 @@ repos:
 #     additional_dependencies: [black]
 
 - repo: https://gitlab.com/pycqa/flake8
-  rev: 3.8.4
+  rev: 4.0.1
   hooks:
   - id: flake8
   ## You can add flake8 plugins via `additional_dependencies`:
