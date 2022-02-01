@@ -21,4 +21,4 @@ def gcheck_data(shared_datadir):
 
 def test_data_gcheck(gcheck_data, shared_datadir):
     """Check if  GChek with data has been instantiated correctly"""
-    assert gcheck_data.project_dir == Path(shared_datadir)
+    assert gcheck_data.src_path == Path(shared_datadir)
