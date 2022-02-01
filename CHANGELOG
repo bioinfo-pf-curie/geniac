@@ -10,6 +10,7 @@ NEW FEATURES
    - Singularity image extension is now '.sif' instead of '.simg'
    - Add params.yum to use 'dnf' instead of yum to install packages in the linux distros
    - New custom target 'build_config_files'
+   - Add new functionalities in geniac CLI (init, install, test, options)
 
 BUGFIX
    - Copy files in /usr/local/bin in the singularity image when the tool is built from source code
