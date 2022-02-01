@@ -134,6 +134,8 @@ ap_linux_distro
 | When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry |4geniac|_. This variable defines which Linux distro (i.e. which repository) and which version (i.e. which tag) to use from |4geniac|_. For details, about the docker containers see |4geniacgithub|_.
 | Default is ``almalinux:8.4``. See also options :ref:`install-ap_conda_release` and :ref:`install-ap_docker_registry`.
 
+.. _install-ap_mount_dir:
+
 ap_mount_dir
 ++++++++++++
 

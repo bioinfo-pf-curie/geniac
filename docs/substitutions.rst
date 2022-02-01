@@ -81,5 +81,5 @@
 .. _rockylinux: https://rockylinux.org
 
 .. |singularity| replace:: Singularity
-.. _singularity: https://sylabs.io/docs/#singularity
+.. _singularity: https://apptainer.org/
 
