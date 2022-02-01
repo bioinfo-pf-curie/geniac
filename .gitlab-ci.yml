@@ -39,7 +39,7 @@ before_script:
   # OR if you don't use tox:
   # - pytest
 
-py39:
+py:
   image: "python:3.10"
   <<: *test_script
 
