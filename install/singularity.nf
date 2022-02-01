@@ -599,7 +599,7 @@ process mergeSingularityConfig {
     }
 
     void checkBindings() throws Exception {
-        singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''},\\\${params.mountDir?:''}";
+        singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''},${params.mountDir?:''}";
         String input = singularity.runOptions;
 
         Matcher m = p1.matcher(input);
