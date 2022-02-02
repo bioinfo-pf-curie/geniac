@@ -40,7 +40,7 @@ Geniac Command Line Interface comes with several options to initiate, install an
 
    export WORK_DIR="${HOME}/tmp/myPipeline"
    export INSTALL_DIR="${WORK_DIR}/install"
-   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"geniac init -w ${WORK_DIR} ${GIT_URL}
+   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
 
    # Initialization of a working directory
    # with the src and build folders
