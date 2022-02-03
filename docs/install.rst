@@ -218,7 +218,7 @@ In order to build the containers, you can either pass the required options durin
 Custom targets
 ==============
 
-The custon targets will be available once you have performed the configuration step with ``cmake``.
+The custom targets will be available once you have performed the configuration step with ``cmake``.
 
 .. _install-target-config:
 
@@ -229,9 +229,7 @@ Assume you are in the ``build`` directory. The following custom target allows yo
 
 * ``make build_config_files``
 
-The configuration files will be generated in:
-
-* Recipes will be generated in ``build/workDir/results/conf``.
+The configuration files will be generated in ``build/workDir/results/conf``.
 
 .. _install-target-containers:
 
