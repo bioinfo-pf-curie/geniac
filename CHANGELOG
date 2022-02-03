@@ -5,9 +5,11 @@ NEW FEATURES
    - Use the nextflow '-resume' options when building the configuration files en containers
    - New cmake options ap_linux_distro and ap_conda_release to bootstrap on containers available on 4geniac docker hub repositories
    - New cmake option ap_mount_dir to bind folders inside containers
+   - 'autoMounts = false' when nextflow launches singularity profile
+   - checkBindinds function added in singularity.config to avoid any interaction with HOME of the host for better reproducibility
+   - Singularity image extension is now '.sif' instead of '.simg'
    - Allow multi-stage building when build docker container with tools from source code
    - Activate the conda environment inside the docker/singularity images
-   - Singularity image extension is now '.sif' instead of '.simg'
    - Add params.yum to use 'dnf' instead of yum to install packages in the linux distros
    - New custom target 'build_config_files'
    - Add new functionalities in geniac CLI (init, install, test, options)
