@@ -7,7 +7,7 @@ How can a conda environment be activated in docker or singularity containers?
 
 The `conda documentation <https://docs.conda.io/projects/conda/en/master/user-guide/tasks/manage-environments.html>`_ says that: *Activating environments is essential to making the software in the environments work well. Activation entails two primary functions: adding entries to PATH for the environment and running any activation scripts that the environment may contain. These activation scripts are how packages can set arbitrary environment variables that may be necessary for their operation*. Therefore, it is important to launch the command ``conda activate myTool_env``. 
 
-This section describes how to activate a conda environment inside a container. First somes basics about shells are details to better understand how to write the docker and singularity recipes.
+This section describes how to activate a conda environment inside a container. First some basics about shells are details to better understand how to write the docker and singularity recipes.
 
 
 Properties of shells
@@ -34,7 +34,7 @@ Interactive shells
 
 An `interactive` shell is a shell that has its input, output and error streams connected to a terminal. This is typically the case when you start a shell inside another shell or when starting a shell in a docker container. The typical case of a `non-interactive` shell is a shell that is started in order to run a script. The option ``-i`` can be used to explicitly turn a shell into an interactive shell.
 
-In addition to these option there are other switches that can be used to customize the behaviour which startup scripts get run and we will go over them and their effects later.
+In addition to these option there are other switches that can be used to customize the behavior which startup scripts get run and we will go over them and their effects later.
 
 
 Configuration files
@@ -59,9 +59,9 @@ Singularity
 ===========
 
 
-It is important to remind the behaviour of singularity:
+It is important to remind the behavior of singularity:
 
-* singularity launches any ``bash`` with the ``--norc`` option. From ``man bash``, this option means: "Do not read and execute the system wide initialization file  ``/etc/bash.bashrc`` and  the  personal initialization file ``~/.bashrc`` if the shell is interactive". Note that this default behaviour of singularity can be changed if the ``SINGULARITY_SHELL`` environment variable is set to ``/bin/bash`` (but this is no recommended).
+* singularity launches any ``bash`` with the ``--norc`` option. From ``man bash``, this option means: "Do not read and execute the system wide initialization file  ``/etc/bash.bashrc`` and  the  personal initialization file ``~/.bashrc`` if the shell is interactive". Note that this default behavior of singularity can be changed if the ``SINGULARITY_SHELL`` environment variable is set to ``/bin/bash`` (but this is no recommended).
 
 * Inside the ``%post`` section any file referred to as ``~/fileName`` or ``${HOME}/fileName`` is in ``/root`` inside the container as it is built with root privilege. This means that a standard user who launches a singularity image can never access such files. Therefore, if they are really needed by a standard user, they must be available elsewhere inside the image.
 
@@ -114,7 +114,7 @@ This way, the conda environment ``myTool_env`` is not activated at startup. Inde
    (myTool_env) Singularity> 
 
 
-The behaviour and outputs are the same if you run the following commands (note that the ``/bin/bash -c`` passed to singularity makes the shell `non-interactive`):
+The behavior and outputs are the same if you run the following commands (note that the ``/bin/bash -c`` passed to singularity makes the shell `non-interactive`):
 
 ::
 
@@ -243,7 +243,7 @@ As the section ``%environment`` is copied inside the singularity image in the fi
 Docker
 ======
 
-It is important to remind the behaviour of Docker:
+It is important to remind the behavior of Docker:
 
 * Docker is run with root privilege. All the files created inside the container such as  ``~/fileName`` or ``${HOME}/fileName`` are in ``/root`` inside the container. These files will be available when the container is run.
 
