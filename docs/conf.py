@@ -94,7 +94,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "geniac"
-copyright = "2019-2021, Institut Curie"
+copyright = "2019-2022, Institut Curie"
 author = "Philippe Hupé"
 
 # The version info for the project you're documenting, acts as replacement for
