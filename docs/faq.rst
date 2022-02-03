@@ -290,7 +290,7 @@ To ensure reproducibility, the singularity profile does the following:
 This means that if the pipeline needs any file located in a folder which is not mounted by singularity, it will not be available unless you explicitly tells singularity to mount the folder you need. This can be done using :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted.
 
 
-Moreover, we avoid the interaction between the singularity images and the HOME directory which can drive to unpredictible reproducibility issues. Indeed, if the HOME directory would be available, some libraries installed in the user’s $HOME could be loaded by some programming languages (such as python). If the pipeline throws a message error ``Invalid binding source``, move your data from your HOME directoryr into a subfolder.
+Moreover, we avoid the interaction between the singularity images and the HOME directory which can drive to unpredictible reproducibility issues. Indeed, if the HOME directory would be available, some libraries installed in the user’s $HOME could be loaded by some programming languages (such as python). If the pipeline throws a message error ``Invalid binding source``, move your data from your HOME directory into a subfolder.
 
 What is the difference between singularity and apptainer?
 =========================================================
