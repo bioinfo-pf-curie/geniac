@@ -158,6 +158,11 @@ How can I see the recipes for the containers?
 
 As geniac automatically generates the recipes of the containers, they are not available in the git repository. However, they can be easily retrieved in several ways. An example to :ref:`install-generate-recipes` is provided.
 
+How can I generate all the files automatically created by geniac without installing the pipeline?
+=================================================================================================
+
+See :ref:`install-target-config` and :ref:`install-target-containers`.
+
 Is geniac compatible with nextflow DSL2?
 ========================================
 
