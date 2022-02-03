@@ -29,10 +29,10 @@ of the license and that you accept its terms.
 
 def addYumAndGitAndCmdConfs(List input) {
   List<String> gitList = []
-  LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
-  LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-  LinkedHashMap cmdPostConf = params.geniac.containers.cmd.post ?: [:]
-  LinkedHashMap cmdEnvConf = params.geniac.containers.cmd.envCustom ?: [:]
+  LinkedHashMap gitConf = params.geniac.containers?.git ?: [:]
+  LinkedHashMap yumConf = params.geniac.containers?.yum ?: [:]
+  LinkedHashMap cmdPostConf = params.geniac.containers?.cmd?.post ?: [:]
+  LinkedHashMap cmdEnvConf = params.geniac.containers?.cmd?.envCustom ?: [:]
   (gitConf[input[0]] ?:'')
     .split()
     .each{ gitList.add(it.split('::')) }
