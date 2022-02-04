@@ -13,9 +13,11 @@ Install the geniac command line interface
 
 ::
 
-   conda create -n geniac-cli python=3.10
-   conda activate geniac-cli
-   pip install git+https://github.com/bioinfo-pf-curie/geniac.git@release
+   # Create the geniac conda environment
+   export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
+   wget ${GENIAC_CONDA}
+   conda create env -f environment.yml
+   conda activate geniac
 
 Launch the geniac linter
 ========================
