@@ -13,6 +13,13 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
 
 ::
 
+   # Create the geniac conda environment
+   export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
+   wget ${GENIAC_CONDA}
+   conda create env -f environment.yml
+   conda activate geniac
+   
+   # Prepare the working directory for the use case
    export WORK_DIR="${HOME}/tmp/myPipeline"
    export SRC_DIR="${WORK_DIR}/src"
    export INSTALL_DIR="${WORK_DIR}/install"
