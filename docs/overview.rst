@@ -43,12 +43,29 @@ As a quick start, you can try the |geniacdemo|_ pipeline as follows:
 
 ::
 
+   # Create the geniac conda environment
+   export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
+   wget ${GENIAC_CONDA}
+   conda create env -f environment.yml
+   conda activate geniac
+   
+   # Prepare the working directory for the use case
    export WORK_DIR="${HOME}/tmp/myPipeline"
    export INSTALL_DIR="${WORK_DIR}/install"
    export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
    
-   geniac init ${WORK_DIR} ${GIT_URL}
-   geniac install ${INSTALL_DIR}
+   # Initialization of a working directory
+   # with the src and build folders
+   geniac init -w ${WORK_DIR} ${GIT_URL}
+   cd ${WORK_DIR}
+   
+   # Check the code
+   geniac lint
+   
+   # Install the pipeline
+   geniac install . ${INSTALL_DIR}
+   
+   # Test the pipeline with the multiconda profile
    geniac test multiconda
 
 Start a new repository
