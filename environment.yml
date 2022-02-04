@@ -6,6 +6,7 @@ channels:
 dependencies:
   - certifi==2021.5.30
   - cmake==3.20.2
+  - git==2.34.1
   - make==4.3
   - nextflow==21.10.6
   - pip==21.3
