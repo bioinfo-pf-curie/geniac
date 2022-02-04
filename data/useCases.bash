@@ -108,6 +108,7 @@ nextflow -c conf/test.config run main.nf -profile singularity,cluster
 #####################################
 
 export WORK_DIR="${HOME}/tmp/myPipeline_CLI"
+export INSTALL_DIR="${WORK_DIR}/install"
 
 geniac init -w ${WORK_DIR} ${GIT_URL}
 cd ${WORK_DIR}
