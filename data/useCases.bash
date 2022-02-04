@@ -20,6 +20,19 @@
 # of the license and that you accept its terms.
 #######################################################################################
 
+#########################################
+# Create the geniac conda environment ###
+#########################################
+
+export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
+wget ${GENIAC_CONDA}
+conda create env -f environment.yml
+conda activate geniac
+
+####################################################
+# Prepare the working directory for the use case ###
+####################################################
+
 export WORK_DIR="${HOME}/tmp/myPipeline"
 export SRC_DIR="${WORK_DIR}/src"
 export INSTALL_DIR="${WORK_DIR}/install"
@@ -46,14 +59,8 @@ cat ${SRC_DIR}/main.nf
 # Use case: check the code with the linter ###
 ##############################################
 
-### install the geniac command line interface:
-conda create -n geniac-cli python=3.9
-conda activate geniac-cli
-pip install git+https://github.com/bioinfo-pf-curie/geniac.git@release
-
 ### check the code
 geniac lint ${SRC_DIR}
-
 
 ################################################
 # Use case: build the singularity containers ###
