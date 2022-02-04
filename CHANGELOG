@@ -1,19 +1,27 @@
 NEW FEATURES
-   - Tools from source: they are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
-   - Tools from source: the sh script which allowed the installation inside the container is not needed anymore
-   - Tools with custom install: their dependencies files needed to build the containers have to be located in recipes/dependencies/label_name (to allow the -resume option)
+   - Tools from source: 
+      * they are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
+      * the sh script which allowed the installation inside the container is not needed anymore
+      * allow multi-stage building when building docker containers
+   - Tools with custom install:
+      * their dependencies files needed to build the containers have to be located in recipes/dependencies/label_name (to allow the -resume option)
    - Use the nextflow '-resume' options when building the configuration files en containers
-   - New cmake options ap_linux_distro and ap_conda_release to bootstrap on containers available on 4geniac docker hub repositories
-   - New cmake option ap_mount_dir to bind folders inside containers
-   - 'autoMounts = false' when nextflow launches singularity profile
-   - checkBindinds function added in singularity.config to avoid any interaction with HOME of the host for better reproducibility
-   - Singularity image extension is now '.sif' instead of '.simg'
-   - Allow multi-stage building when build docker container with tools from source code
-   - Activate the conda environment inside the docker/singularity images
+   - New cmake options:
+      * ap_linux_distro and ap_conda_release to bootstrap on containers available on 4geniac docker hub repositories
+      * ap_mount_dir to bind folders inside containers
+   - singularity profile:
+      * 'autoMounts = false' when nextflow launches singularity profile
+      * checkBindinds function added in singularity.config to avoid any interaction with HOME of the host for better reproducibility
+      * image extension is now '.sif' instead of '.simg'
+   - singularity/docker profile:
+      * the conda environment is activated inside images
    - Add params.yum to use 'dnf' instead of yum to install packages in the linux distros
    - New custom target 'build_config_files'
-   - Add new functionalities in geniac CLI (init, install, test, options)
+   - Geniac CLI:
+      * options init, install, test, options have been added
+      * available on PyPI (https://pypi.org/project/geniac)
    - Minimal versions for nextflow (21.10.6) and singularity (3.8.5)
+   - environment.yml includes all dependencies requires by geniac and geniac CLI
 
 BUGFIX
    - Copy files in /usr/local/bin in the singularity image when the tool is built from source code
