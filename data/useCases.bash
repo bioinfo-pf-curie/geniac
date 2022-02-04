@@ -101,3 +101,18 @@ nextflow -c conf/test.config run main.nf -profile singularity
 
 ### on a computing cluster with slurm
 nextflow -c conf/test.config run main.nf -profile singularity,cluster
+
+
+#####################################
+### Geniac command line interface ###
+#####################################
+
+export WORK_DIR="${HOME}/tmp/myPipeline_CLI"
+
+geniac init -w ${WORK_DIR} ${GIT_URL}
+cd ${WORK_DIR}
+geniac lint
+geniac install . ${INSTALL_DIR} -m singularity
+sudo chown -R  $(id -gn):$(id -gn) build
+geniac test singularity
+geniac test singularity --check-cluster

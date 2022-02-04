@@ -21,7 +21,7 @@ NEW FEATURES
       * options init, install, test, options have been added
       * available on PyPI (https://pypi.org/project/geniac)
    - Minimal versions for nextflow (21.10.6) and singularity (3.8.5)
-   - environment.yml includes all dependencies requires by geniac and geniac CLI
+   - environment.yml includes all dependencies required by geniac and geniac CLI
 
 BUGFIX
    - Copy files in /usr/local/bin in the singularity image when the tool is built from source code
