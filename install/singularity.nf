@@ -577,7 +577,7 @@ process mergeSingularityConfig {
 
         if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
             throw new Exception(
-                    "Invalid binding " + path + ". Must be an absolute path.");
+                    "ERROR reported from conf/singularity.config. \'" + path + "\' is an invalid binding, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
         }
 
         return path;
@@ -585,12 +585,12 @@ process mergeSingularityConfig {
 
     void checkPath(String source, String target, Map pathMap) {
         if ("\\\$HOME".contains(source)) {
-            throw new Exception("Invalid binding source " + source
-                    + ". Indeed, as a result of this binding the user HOME directory will be available inside the container which can drive to unpredictible reproducibility issues");
+            throw new Exception("ERROR reported from conf/singularity.config. \'" + source
+                    + "\' is an invalid binding source. Indeed, as a result of this binding the user HOME directory would be available inside the container which can drive to unpredictible reproducibility issues. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
         }
 
         if (!target.startsWith("/")) {
-            throw new Exception("Invalid binding target " + target + ". Must be an absolute path.");
+            throw new Exception("ERROR reported from conf/singularity.config. \'" + target + "\' is an invalid binding target, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
         }
 
         if (pathMap.containsKey(target) && !source.equals(pathMap.get(target))) {

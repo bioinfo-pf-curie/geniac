@@ -283,8 +283,8 @@ Make this bash script executable with ``chmod +x ${INSTALL_DIR}/pipeline/bin/hel
 Then, the file ``${INSTALL_DIR}/pipeline/results/helloWorld/helloWorld.txt`` will contain `Buenos dias!` instead of `Hello World!`. This means that singularity uses the bash script in ``${INSTALL_DIR}/pipeline/bin/helloWorld`` instead of the ``helloWorld`` executable which has been installed inside the image which raises reproducibility issue we can avoid by installing the tools in the folder `pipeline/bin/fromSource` which is not in the ``PATH``.
 
 
-Why does the singularity profile complain of folder which does not exist or invalid binding targets?
-====================================================================================================
+Why does the singularity profile complain of folder which does not exist or invalid binding?
+============================================================================================
 
 To ensure reproducibility, the singularity profile does the following:
 
@@ -295,7 +295,7 @@ To ensure reproducibility, the singularity profile does the following:
 This means that if the pipeline needs any file located in a folder which is not mounted by singularity, it will not be available unless you explicitly tells singularity to mount the folder you need. This can be done using :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted.
 
 
-Moreover, we avoid the interaction between the singularity images and the HOME directory which can drive to unpredictible reproducibility issues. Indeed, if the HOME directory would be available, some libraries installed in the user’s $HOME could be loaded by some programming languages (such as python). If the pipeline throws a message error ``Invalid binding source``, move your data from your HOME directory into a subfolder.
+Moreover, we avoid the interaction between the singularity images and the HOME directory which can drive to unpredictible reproducibility issues. Indeed, if the HOME directory would be available, some libraries installed in the user’s $HOME could be loaded by some programming languages (such as python). If the pipeline throws a message error  containing ``invalid binding``, move your data from your HOME directory into a subfolder.
 
 What is the difference between singularity and apptainer?
 =========================================================
