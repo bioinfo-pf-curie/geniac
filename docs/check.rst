@@ -16,7 +16,7 @@ Install the geniac command line interface
    # Create the geniac conda environment
    export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
    wget ${GENIAC_CONDA}
-   conda create env -f environment.yml
+   conda env create -f environment.yml
    conda activate geniac
 
 Launch the geniac linter
