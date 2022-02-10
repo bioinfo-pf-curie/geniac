@@ -1,3 +1,6 @@
+version-2.0.0
+02/10/2021
+
 NEW FEATURES
    - Tools from source: 
       * they are installed in ${projectDir}/bin/fromSource in order to allow their usage inside the containers
