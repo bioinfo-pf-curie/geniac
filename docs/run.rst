@@ -216,7 +216,7 @@ Depending on the process type, the tool is not available with all the different 
    :widths: 10, 10, 10, 10, 10, 10, 10, 10
 
    ":ref:`process-unix`", |ok|, |ok|, |ok|, |ok|, |ok|, |ok|, |ok|
-   ":ref:`process-source-code`", |ok|, |ok|, |ok|, |ok|, |ok|, |ok|, |ok|
+   ":ref:`process-source-code`", |ko|, |ok|, |ok|, |ok|, |ok|, |ko|, |ko|
    ":ref:`process-exec`", |ok|, |ok|, |ok|, |ok|, |ok|, |ok|, |ok|
    ":ref:`process-easy-conda`", |ko|, |ok|, |ok|, |ok|, |ok|, |path|, |path|
    ":ref:`process-custom-conda`", |ko|, |ko|, |ok|, |ok|, |ok|, |path|, |path|
@@ -452,7 +452,7 @@ Then, make the ``helloWorld`` tool unavailable:
 ::
 
    cd ..
-   mv pipeline/bin/helloWorld path/helloWorld/bin/helloWorld
+   mv pipeline/bin/geniac/helloWorld multipath/helloWorld/bin/helloWorld
    cd -
    nextflow -c conf/test.config run main.nf -profile multiconda
 
@@ -464,7 +464,7 @@ Thus try:
 
    nextflow -c conf/test.config run main.nf -profile multiconda,multipath
 
-Of course, it works!
+It works!
 
 .. note::
 

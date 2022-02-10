@@ -37,10 +37,10 @@ set(workdir_depends_files
     ${CMAKE_SOURCE_DIR}/install/nextflow.config.in
     ${CMAKE_SOURCE_DIR}/install/docker.nf)
 
-if(EXISTS ${pipeline_source_dir}/modules/)
+if(EXISTS ${pipeline_source_dir}/modules/fromSource/)
     set(workdir_depends_files
         ${workdir_depends_files}
-        ${pipeline_source_dir}/modules/*)
+        ${pipeline_source_dir}/modules/fromSource/*)
 endif()
 
 if(EXISTS ${pipeline_source_dir}/recipes/)
@@ -56,6 +56,9 @@ add_custom_command(
             -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
             -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
             -Ddocker_registry=${ap_docker_registry}
+            -Dlinux_distro=${ap_linux_distro}
+            -Dconda_release=${ap_conda_release}
+            -Dmount_dir=${ap_mount_dir}
             -P ${CMAKE_SOURCE_DIR}/cmake/createWorkDir.cmake
     COMMAND ${CMAKE_COMMAND} -E echo "workDir/ has been created"
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
@@ -72,11 +75,11 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
+        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildConfigFiles true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
@@ -101,10 +104,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
+        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityRecipes true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/deffiles.done"
@@ -116,9 +119,9 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerfiles true
+        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done"
@@ -147,10 +150,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
+        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf --buildSingularityImages true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/singularityImages.done"
@@ -162,18 +165,26 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
+        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf --buildDockerImages true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/dockerImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
+# allows the build of the configuration files with "make
+# build_config_files"
+add_custom_target(
+    build_config_files
+    COMMAND ${CMAKE_COMMAND} -E echo "Build configuration files"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/conf.done)
+
 # allows the build of the singularity recipes and images with "make
 # build_singularity_images"
+
 add_custom_target(
     build_singularity_images
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"

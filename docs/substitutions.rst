@@ -1,3 +1,22 @@
+.. |4geniac| replace:: 4geniac
+.. _4geniac: https://hub.docker.com/u/4geniac
+
+
+.. |4geniacalmalinux| replace:: 4geniac/almalinux
+.. _4geniacalmalinux: https://hub.docker.com/r/4geniac/almalinux/tags
+
+.. |4geniaccentos| replace:: 4geniac/centos
+.. _4geniaccentos: https://hub.docker.com/r/4geniac/centos/tags
+
+.. |4geniacrockylinux| replace:: 4geniac/rockylinux
+.. _4geniacrockylinux: https://hub.docker.com/r/4geniac/rockylinux/tags
+
+.. |4geniacgithub| replace:: 4geniac on GitHub
+.. _4geniacgithub: https://github.com/bioinfo-pf-curie/4geniac
+
+.. |almalinux| replace:: AlmaLinux
+.. _almalinux: https://almalinux.org
+
 .. |biogitflow| replace:: biogitflow
 .. _biogitflow: https://biogitflow.readthedocs.io
 
@@ -58,6 +77,9 @@
 .. |nfcore| replace:: nf-core
 .. _nfcore: https://nf-co.re/
 
+.. |rockylinux| replace:: Rocky Linux
+.. _rockylinux: https://rockylinux.org
+
 .. |singularity| replace:: Singularity
-.. _singularity: https://sylabs.io/docs/#singularity
+.. _singularity: https://apptainer.org/
 

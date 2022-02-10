@@ -22,3 +22,5 @@ geniac's documentation!
    run
    admin
    faq
+   misc
+

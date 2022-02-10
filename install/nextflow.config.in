@@ -46,9 +46,21 @@ params {
   gitUrl = 'unknown'
   gitCommit = 'unknown'
 
+
+  // docker containers from 4geniac docker hub repository
+  dockerCondaRelease = '@conda_release@'
+  dockerLinuxDistro = '@linux_distro@'
+  dockerLinuxDistroConda = "${params.dockerLinuxDistro}_conda-${params.dockerCondaRelease}"
+  dockerLinuxDistroSdk = "${params.dockerLinuxDistro}_sdk-conda-${params.dockerCondaRelease}"
+
   // docker registry
   dockerRegistry = '@docker_registry@'
 
+  // package manager for the Linux Distro
+  params.yum = 'dnf'
+
+  // mount directories for the containers
+  mountDir = '@mount_dir@'
 }
 
 

@@ -55,3 +55,9 @@ MANIFEST
 # Nextflow output results
 work/
 results/
+
+*.error
+
+*.debug
+
+CMakeFiles/

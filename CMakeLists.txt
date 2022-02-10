@@ -86,6 +86,20 @@ add_subdirectory(cmake)
 # exists
 # ##############################################################################
 
-if(EXISTS ${pipeline_source_dir}/modules/CMakeLists.txt)
-    add_subdirectory(${pipeline_source_dir}/modules modules)
+# Test if some modules can be installed from source code
+if(EXISTS ${pipeline_source_dir}/modules/fromSource/CMakeLists.txt)
+
+    file(GLOB ap_module_list LIST_DIRECTORIES true "${pipeline_source_dir}/modules/fromSource")
+    list(LENGTH ap_module_list ap_module_number)
+
+    if(${ap_module_number} EQUAL 0)
+      message_color(INFO "There is no module available: the directory ${pipeline_source_dir}/modules/fromSource does not have any folder.")
+    else()
+      add_subdirectory(${pipeline_source_dir}/modules/fromSource modules/fromSource)
+      message_color(INFO "Modules from source code available in the directory ${pipeline_source_dir}/modules/fromSource will be installed.")
+    endif()
+else()
+  message_color(INFO "The is no tool to be installed from source code.")
+
 endif()
+
