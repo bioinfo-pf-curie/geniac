@@ -27,20 +27,22 @@ of the license and that you accept its terms.
  * CUSTOM FUNCTIONS
  **/
 
-def addYumAndGitToCondaCh(List condaIt) {
+def addYumAndGitAndCmdConfs(List input) {
   List<String> gitList = []
-  LinkedHashMap gitConf = params.geniac.containers.git ?: [:]
-  LinkedHashMap yumConf = params.geniac.containers.yum ?: [:]
-  (gitConf[condaIt[0]] ?:'')
+  LinkedHashMap gitConf = params.geniac.containers?.git ?: [:]
+  LinkedHashMap yumConf = params.geniac.containers?.yum ?: [:]
+  LinkedHashMap cmdPostConf = params.geniac.containers?.cmd?.post ?: [:]
+  LinkedHashMap cmdEnvConf = params.geniac.containers?.cmd?.envCustom ?: [:]
+  (gitConf[input[0]] ?:'')
     .split()
     .each{ gitList.add(it.split('::')) }
 
-  return [
-    condaIt[0],
-    condaIt[1],
-    yumConf[condaIt[0]],
-    gitList
-  ]
+  List result = new ArrayList<>(input)
+  result.add(yumConf[input[0]])
+  result.add(gitList)
+  result.add(cmdPostConf[input[0]])
+  result.add(cmdEnvConf[input[0]])
+  return result
 }
 
 String buildCplmtGit(def gitEntries) {
@@ -70,49 +72,47 @@ String buildCplmtPath(List gitEntries) {
 
 condaPackagesCh = Channel.create()
 condaFilesCh = Channel.create()
+condaEnvsCh = Channel.create()
 Channel
   .from(params.geniac.tools)
   .flatMap {
     List<String> result = []
     for (Map.Entry<String, String> entry : it.entrySet()) {
-      List<String> tab = entry.value.split()
+      if (entry.value instanceof String) {
+        List<String> tab = entry.value.split()
+        for (String s : tab) {
+          result.add([entry.key, s.split('::')])
+        }
 
-      for (String s : tab) {
-        result.add([entry.key, s.split('::')])
-      }
-
-      if (tab.size == 0) {
-        result.add([entry.key, null])
+        if (tab.size == 0) {
+          result.add([entry.key, null])
+        }
+      } else {
+        result.add([entry.key, entry.value])
       }
     }
 
     return result
   }.branch {
-  condaFilesCh:
-  (it[1] && it[1][0].endsWith('.yml'))
-  return [it[0], file(it[1][0])]
-  condaPackagesCh: true
-  return it
-}.set { condaForks }
-(condaFilesCh, condaPackagesCh) = [condaForks.condaFilesCh, condaForks.condaPackagesCh]
+    condaExistingEnvsCh:
+      (it[1] && it[1] instanceof Map)
+      return [it[0], 'ENV']
+    condaFilesCh:
+      (it[1] && it[1][0].endsWith('.yml'))
+      return [it[0], file(it[1][0])]
+    condaPackagesCh: true
+      return it
+  }.set{ condaForks }
 
-condaPackagesCh.into { condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh }
-condaFilesCh.into { condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh }
+(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+condaPackagesCh.into{ condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
+condaFilesCh.into{ condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
+
 
 Channel
   .fromPath("${projectDir}/recipes/singularity/*.def")
-  .map {
-    String optionalFile = null
-    if (it.simpleName == 'r') {
-      optionalFile = "${projectDir}/../preconfs/renv.lock"
-    } else {
-      optionalFile = 'EMPTY'
-    }
-
-    return [it.simpleName, it, optionalFile]
-  }
-  .set { singularityRecipeCh1 }
-
+  .map{ [it.simpleName, it] }
+  .set{ singularityRecipeCh1 }
 
 /**
  * CONDA RECIPES
@@ -120,7 +120,8 @@ Channel
 
 Channel
   .fromPath("${projectDir}/recipes/conda/*.yml")
-  .set { condaRecipes }
+  .map{ [it.simpleName, it] }
+  .set{ condaRecipes }
 
 
 /**
@@ -128,8 +129,9 @@ Channel
  **/
 
 Channel
-  .fromPath("${projectDir}/recipes/dependencies/*")
-  .set { fileDependencies }
+  .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
+  .map{ [it.name, it] }
+  .set{ fileDependencies }
 
 /**
  * SOURCE CODE
@@ -137,16 +139,11 @@ Channel
 
 
 Channel
-  .fromPath("${projectDir}/modules", type: 'dir', checkIfExists: true)
-  .set { sourceCodeDirCh }
+  .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
+  .map{ [it.name, it] }
+  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
 
 
-Channel
-  .fromPath("${projectDir}/modules/*.sh")
-  .map {
-    return [it.simpleName, it]
-  }
-  .set { sourceCodeCh }
 
 /**
  * PROCESSES
@@ -157,10 +154,10 @@ Channel
 // TODO: Check if order of dependencies can be an issue
 condaChannelFromSpecsCh = Channel.create()
 condaDepFromSpecsCh = Channel.create()
-condaSpecsCh = condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh) { pTool -> [pTool[1][0], pTool[1][1]] }
+condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh){ pTool -> [pTool[1][0], pTool[1][1]] }
 
 process buildCondaDepFromRecipes {
-  tag { "condaDepBuild-" + key }
+  tag{ "condaDepBuild-" + key }
 
   input:
     set val(key), file(condaFile) from condaFilesForCondaDepCh
@@ -184,9 +181,9 @@ process buildCondaEnvFromCondaPackages {
   publishDir "${projectDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
 
   input:
-    val condaDependencies from condaDepFromFilesCh.flatMap { it.text.split() }.mix(condaDepFromSpecsCh).unique().toSortedList()
-    val condaChannels from condaChanFromFilesCh.flatMap { it.text.split() }.mix(condaChannelFromSpecsCh).filter(~/!(bioconda|conda-forge|defaults)/).unique().toSortedList().ifEmpty('NO_CHANNEL')
-    val condaPipDependencies from condaPipDepFromFilesCh.flatMap { it.text.split() }.unique().toSortedList().ifEmpty("")
+    val condaDependencies from condaDepFromFilesCh.flatMap{ it.text.split() }.mix(condaDepFromSpecsCh).unique().toSortedList()
+    val condaChannels from condaChanFromFilesCh.flatMap{ it.text.split() }.mix(condaChannelFromSpecsCh).filter(~/!(bioconda|conda-forge|defaults)/).unique().toSortedList().ifEmpty('NO_CHANNEL')
+    val condaPipDependencies from condaPipDepFromFilesCh.flatMap{ it.text.split() }.unique().toSortedList().ifEmpty("")
 
   output:
     file("environment.yml")
@@ -219,26 +216,26 @@ process buildDefaultSingularityRecipe {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   output:
-    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh2
+    set val(key), file("${key}.def") into singularityRecipeCh2
 
   script:
     key = 'onlyLinux'
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}centos:7
+    From: ${params.dockerRegistry}${params.dockerLinuxDistro}
 
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
-    %post
-        yum install -y which \\\\
-        && yum clean all
-
     %environment
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
     EOF
     """
 }
@@ -248,45 +245,68 @@ process buildSingularityRecipeFromCondaFile {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git) from condaFiles4SingularityRecipesCh
+    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4SingularityRecipesCh
+
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh1, remainder: true)
+      .filter{ it[1] && !it[2] }
+
+      .map{ [it[0], it[1]] }
       .groupTuple()
-      .map { addYumAndGitToCondaCh(it) }
+      .map{ addYumAndGitAndCmdConfs(it) }
 
   output:
-    set val(key), file("${key}.def"), file(condaFile) into singularityRecipeCh3
+    set val(key), file("${key}.def") into singularityRecipeCh3
 
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
 
     """
     declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
 
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}conda/miniconda3-centos7
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
     %environment
-        PATH=/usr/local/envs/\${env_name}/bin:${cplmtPath}\\\$PATH
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
 
     # real path from projectDir: ${condaFile}
     %files
         \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
     %post
-        yum install -y which ${yumPkgs} ${cplmtGit} \\\\
-        && yum clean all \\\\
+        ${cplmtYum}${params.yum} clean all \\\\
         && conda env create -f /opt/\$(basename ${condaFile}) \\\\
-        && echo "source activate \${env_name}" > ~/.bashrc \\\\
-        && conda clean -a
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
@@ -299,47 +319,76 @@ process buildSingularityRecipeFromCondaPackages {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
-
   input:
-    set val(key), val(tools), val(yum), val(git) from condaPackages4SingularityRecipesCh
+    set val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaPackages4SingularityRecipesCh
+
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh2, remainder: true)
+      .filter{ it[1] && !it[2] }
+
+      .map{ [it[0], it[1]] }
       .groupTuple()
-      .map { addYumAndGitToCondaCh(it) }
+      .map{ addYumAndGitAndCmdConfs(it) }
 
   output:
-    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh4
+    set val(key), file("${key}.def") into singularityRecipeCh4
 
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
     yumPkgs = git ? "${yumPkgs} git" : yumPkgs
 
-    def cplmtConda = ''
+
+    List condaChannels = []
+    List condaPackages = []
     for (String[] tab : tools) {
-      cplmtConda += """ \\\\
-        && conda install -y -c ${tab[0]} -n ${key}_env ${tab[1]}"""
+      if (!condaChannels.contains(tab[0])) {
+        condaChannels.add(tab[0])
+      }
+      condaPackages.add(tab[1])
+    }
+    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
+    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
     }
 
     """
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}conda/miniconda3-centos7
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
     %environment
-        PATH=/usr/local/envs/${key}_env/bin:${cplmtPath}\\\$PATH
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
 
     %post
-        yum install -y which ${yumPkgs} ${cplmtGit} \\\\
-        && yum clean all \\\\
-        && conda create -y -n ${key}_env ${cplmtConda} \\\\
-        && echo "source activate ${key}_env" > ~/.bashrc \\\\
-        && conda clean -a
+        ${cplmtYum}${params.yum} clean all \\\\
+        && conda create -y -n ${key}_env \\\\
+        && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -a ${cplmtCmdPost}
 
     EOF
     """
@@ -351,32 +400,49 @@ process buildSingularityRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(installFile) from sourceCodeCh
+    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs(it) }
 
   output:
-    set val(key), file("${key}.def"), val('EMPTY') into singularityRecipeCh5
+    set val(key), file("${key}.def") into singularityRecipeCh5
 
   script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
     """
+
+    image_name=\$(grep -q conda ${cmdPost} && echo "${params.dockerLinuxDistroConda}" || echo "${params.dockerLinuxDistro}")
+
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}centos:7
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
     Stage: devel
 
     %setup
         mkdir -p \\\${SINGULARITY_ROOTFS}/opt/modules
 
     %files
-        modules/${installFile} /opt/modules
-        modules/${key}/ /opt/modules
+        ${key}/ /opt/modules
 
     %post
-        yum install -y epel-release which gcc gcc-c++ make \\\\
-        && cd /opt/modules \\\\
-        && bash ${installFile} \\\\
+        ${cplmtYum}cd /opt/modules \\\\
+        && mkdir build && cd build || exit \\\\
+        && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
+        && make && make install ${cplmtCmdPost}
 
     Bootstrap: docker
-    From: ${params.dockerRegistry}centos:7
+    From: ${params.dockerRegistry}\${image_name}
     Stage: final
 
     %labels
@@ -384,31 +450,44 @@ process buildSingularityRecipeFromSourceCode {
         gitCommit ${params.gitCommit}
 
     %files from devel
-        /usr/local/bin /usr/local/bin
+        /usr/local/bin/${key}/ /usr/local/bin/
 
+    %post
+        ${cplmtYum}${params.yum} install -y glibc-devel libstdc++-devel
 
     %environment
-        LC_ALL=en_US.utf-8
-        LANG=en_US.utf-8
-        PATH=/usr/local/bin:\\\$PATH
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
+        ${cplmtCmdEnv}
 
     EOF
     """
 }
 
-onlyCondaRecipeCh = singularityRecipeCh3.mix(singularityRecipeCh4)
-onlyCondaRecipeCh.into {
-  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh;
-  onlyCondaRecipe4buildImagesCh
+// onlyCondaRecipeCh = condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh)
+condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
+  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh
 }
 
-singularityAllRecipeCh = singularityRecipeCh1.mix(singularityRecipeCh2).mix(onlyCondaRecipe4buildImagesCh).mix(singularityRecipeCh5)
-singularityAllRecipeCh.into {
-  singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
-  singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
-}
+
+singularityRecipeCh1
+  .mix(singularityRecipeCh2)
+  .mix(singularityRecipeCh5)
+  .mix(singularityRecipeCh3)
+  .mix(singularityRecipeCh4)
+  .unique{ it[0] }
+  .into {
+    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
+    singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
+  }
 
 process buildImages {
+  // maxForks 1
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
@@ -416,17 +495,18 @@ process buildImages {
     params.buildSingularityImages
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildImagesCh
-    file condaYml from condaRecipes.collect().ifEmpty([])
-    file fileDep from fileDependencies.collect().ifEmpty([])
-    file moduleDir from sourceCodeDirCh.collect().ifEmpty([])
+    set val(key), file(singularityRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) from singularityAllRecipe4buildImagesCh
+      .join(fileDependencies, remainder: true)
+      .join(condaRecipes, remainder: true)
+      .join(sourceCodeCh4, remainder: true)
+      .filter{ it[1] }
 
   output:
-    file("${key.toLowerCase()}.simg")
+    file("${key.toLowerCase()}.sif")
 
   script:
     """
-    singularity build ${key.toLowerCase()}.simg ${singularityRecipe}
+    singularity build ${key.toLowerCase()}.sif ${singularityRecipe}
     """
 }
 
@@ -442,7 +522,7 @@ process buildSingularityConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildSingularityCh
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildSingularityCh
 
   output:
     file("${key}SingularityConfig.txt") into mergeSingularityConfigCh
@@ -450,7 +530,7 @@ process buildSingularityConfig {
   script:
     """
     cat << EOF > "${key}SingularityConfig.txt"
-      withLabel:${key} { container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.simg" }
+      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.sif" }
     EOF
     """
 }
@@ -471,11 +551,123 @@ process mergeSingularityConfig {
   script:
     """
     cat << EOF > "singularity.config"
+    import java.io.File;
+    import java.nio.file.Files;
+    import java.nio.file.Path;
+    import java.util.Arrays;
+    import java.util.HashMap;
+    import java.util.List;
+    import java.util.Map;
+    import java.util.Map.Entry;
+    import java.util.regex.Matcher;
+    import java.util.regex.Pattern;
+
+    START_PATTERN = "__sta__";
+    STOP_PATTERN = "__sto__";
+    p1 = Pattern.compile("\\\"(.*?)\\\"");
+    p2 = Pattern
+            .compile("(" + START_PATTERN + "((?!" + STOP_PATTERN + ").)*?) +(.*?" + STOP_PATTERN + ")");
+    SPECIAL_PATHS = Arrays.asList(new String[] { "\\\\\\\$PWD" });
+
+
+    String sanitizePath(String path) throws Exception {
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+
+        if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
+            throw new Exception(
+                    "ERROR reported from conf/singularity.config. \'" + path + "\' is an invalid binding, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
+        }
+
+        return path;
+    }
+
+    void checkPath(String source, String target, Map pathMap) {
+        if ("\\\$HOME".contains(source)) {
+            throw new Exception("ERROR reported from conf/singularity.config. \'" + source
+                    + "\' is an invalid binding source. Indeed, as a result of this binding the user HOME directory would be available inside the container which can drive to unpredictible reproducibility issues. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
+        }
+
+        if (!target.startsWith("/")) {
+            throw new Exception("ERROR reported from conf/singularity.config. \'" + target + "\' is an invalid binding target, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
+        }
+
+        if (pathMap.containsKey(target) && !source.equals(pathMap.get(target))) {
+            throw new Exception("Several bindings for to the same target " + target);
+        }
+    }
+
+    void checkBindings() throws Exception {
+        singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''},${params.mountDir?:''}";
+        String input = singularity.runOptions;
+
+        Matcher m = p1.matcher(input);
+        if (m.find()) {
+            input = m.replaceAll(START_PATTERN + "\\\\\\\$1" + STOP_PATTERN);
+        }
+
+        m = p2.matcher(input);
+        while (m.find()) {
+            input = m.replaceAll("\\\\\\\$1##\\\\\\\$3");
+            m = p2.matcher(input);
+        }
+
+        String[] tab = input.split(" ");
+        Map<String, String> pathMap = new HashMap<>();
+        boolean curr = false;
+        for (String inputElem : tab) {
+            if (inputElem.equals("-B") || inputElem.equals("--bind")) {
+                curr = true;
+            } else if (!inputElem.startsWith("-") && curr) {
+                for (String path : inputElem.split(",")) {
+                    if (path.isEmpty()) {
+                        continue;
+                    }
+
+                    path = path.replaceAll("##", " ");
+                    path = path.replaceAll(START_PATTERN, "\"");
+                    path = path.replaceAll(STOP_PATTERN, "\"");
+                    String[] pathTab = path.split(":");
+
+                    String target = null;
+                    String source = sanitizePath(pathTab[0]);
+
+                    if (pathTab.length > 1) {
+                        target = sanitizePath(pathTab[1]);
+                    } else {
+                        target = source;
+                    }
+
+                    checkPath(source, target, pathMap);
+                    pathMap.put(target, source);
+
+                    // is symlink
+                    File f = new File(source);
+                    Path p = f.toPath();
+                    if(Files.isSymbolicLink(p)) {
+                        String symlinkPath = p.toRealPath();
+                        checkPath(symlinkPath, symlinkPath, pathMap);
+                        pathMap.put(symlinkPath, symlinkPath);
+                        singularity.runOptions += " -B \\\$symlinkPath";
+                    }
+                }
+            } else {
+                curr = false;
+            }
+        }
+
+        for (Entry<String, String> entry : pathMap.entrySet()) {
+            System.out.println("path " + entry.getValue() + " mounted in " + entry.getKey() + ".");
+        }
+    }
+
+
     def checkProfileSingularity(path){
       if (new File(path).exists()){
         File directory = new File(path)
         def contents = []
-        directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
           println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
           System.exit(-1)
@@ -488,12 +680,13 @@ process mergeSingularityConfig {
 
     singularity {
       enabled = true
-      autoMounts = true
-      runOptions = "\\\${params.geniac.containers.singularityRunOptions}"
+      autoMounts = false
+      runOptions = "--containall \\\${(params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')}"
     }
 
     process {
       checkProfileSingularity("\\\${params.geniac.singularityImagePath}")
+      checkBindings()
     EOF
     for keyFile in ${key}
     do
@@ -514,7 +707,7 @@ process buildDockerConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildDockerCh
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildDockerCh
 
   output:
     file("${key}DockerConfig.txt") into mergeDockerConfigCh
@@ -522,7 +715,7 @@ process buildDockerConfig {
   script:
     """
     cat << EOF > "${key}DockerConfig.txt"
-      withLabel:${key} { container = "${key.toLowerCase()}" }
+      withLabel:${key}{ container = "${key.toLowerCase()}" }
     EOF
     """
 }
@@ -545,7 +738,7 @@ process mergeDockerConfig {
     cat << EOF > "docker.config"
     docker {
       enabled = true
-      runOptions = "\\\${params.geniac.containers.dockerRunOptions}"
+      runOptions = "\\\${params.geniac.containers?.dockerRunOptions}"
     }
 
     process {
@@ -557,6 +750,7 @@ process mergeDockerConfig {
     echo "}"  >> docker.config
     """
 }
+
 /**
  * Generate conda.config
  **/
@@ -568,7 +762,7 @@ process buildCondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildCondaCh
+    set val(key), val(singularityRecipe) from onlyCondaRecipe4buildCondaCh
 
   output:
     file("${key}CondaConfig.txt") into mergeCondaConfigCh
@@ -576,7 +770,7 @@ process buildCondaConfig {
   script:
     """
     cat << EOF > "${key}CondaConfig.txt"
-      withLabel:${key} { conda = "\\\${projectDir}/environment.yml" }
+      withLabel:${key}{ conda = "\\\${projectDir}/environment.yml" }
     EOF
     """
 }
@@ -596,9 +790,9 @@ process mergeCondaConfig {
 
   script:
     """
-    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> conda.config
+    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n}\n" >> conda.config
     echo "process {"  >> conda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; \\\"export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; \\\"export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> conda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config
@@ -619,17 +813,19 @@ process buildMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from onlyCondaRecipe4buildMulticondaCh
+    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsCh)
 
   output:
     file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
 
   script:
+    cplmt = condaDef == 'ENV' ? '.label' : ''
     """
     cat << EOF > "${key}MulticondaConfig.txt"
-      withLabel:${key} { conda = "\\\${params.geniac.tools.${key}}" }
+      withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}${cplmt}}" }
     EOF
     """
+    // withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}}" }
 }
 
 process mergeMulticondaConfig {
@@ -647,9 +843,9 @@ process mergeMulticondaConfig {
 
   script:
     """
-    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n}\n" >> multiconda.config
+    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; \\\"export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; \\\"export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1\\\"\n" >> multiconda.config
+    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> multiconda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> multiconda.config
@@ -670,7 +866,7 @@ process buildMultiPathConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe), val(optionalPath) from singularityAllRecipe4buildPathCh
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildPathCh
 
   output:
     file("${key}MultiPathConfig.txt") into mergeMultiPathConfigCh
@@ -679,7 +875,7 @@ process buildMultiPathConfig {
   script:
     """
     cat << EOF > "${key}MultiPathConfig.txt"
-      withLabel:${key} { beforeScript = "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" }
+      withLabel:${key}{ beforeScript = "export PATH=\\\${params.geniac.multiPath}/${key}/bin:\\\$PATH" }
     EOF
     cat << EOF > "${key}MultiPathLink.txt"
     ${key}/bin
@@ -707,7 +903,7 @@ process mergeMultiPathConfig {
       if (new File(path).exists()){
         File directory = new File(path)
         def contents = []
-        directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
           println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
           System.exit(-1)
@@ -804,7 +1000,7 @@ process globalPathConfig {
       if (new File(path).exists()){
         File directory = new File(path)
         def contents = []
-        directory.eachFileRecurse (groovy.io.FileType.FILES) { file -> contents << file }
+        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
           println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
           System.exit(-1)
@@ -833,3 +1029,22 @@ process globalPathConfig {
     EOF
     """
 }
+
+
+
+workflow.onComplete {
+  Map endSummary = [:]
+  endSummary['Completed on'] = workflow.complete
+  endSummary['Duration']     = workflow.duration
+  endSummary['Success']      = workflow.success
+  endSummary['exit status']  = workflow.exitStatus
+  endSummary['Error report'] = workflow.errorReport ?: '-'
+  endSummary['Distro Linux'] = "${params.dockerLinuxDistro}"
+  endSummary['Distro Linux / Conda'] ="${params.dockerLinuxDistroConda}"
+  endSummary['Docker registry'] = "${params.dockerRegistry}"
+  endSummary['Cluster executor'] = "${params.clusterExecutor}"
+  String endWfSummary = endSummary.collect { k,v -> "${k.padRight(30, '.')}: $v" }.join("\n")
+  println endWfSummary
+
+}
+

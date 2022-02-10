@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""parser.py: Geniac file parser"""
+"""base.py: Geniac base file parser"""
 
 import logging
 import re
@@ -10,12 +10,13 @@ import typing
 from abc import abstractmethod
 from collections import OrderedDict
 from io import StringIO
+from json import dumps
 from os import PathLike
 from pathlib import Path
 
-from dotty_dict import dotty
+from dotty_dict import Dotty
 
-from geniac.commands.base import GBase
+from geniac.cli.utils.base import GeniacBase
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -24,10 +25,18 @@ _logger = logging.getLogger(__name__)
 DEFAULT_ENCODING = "UTF-8"
 
 
-class GParser(GBase):
+class GDotty(Dotty):
+    """Add merge feature to dotty dict"""
+
+    def update(self, other: dict):
+        """Merge with another dotty dict"""
+        self._data.update(other)
+
+
+class GeniacParser(GeniacBase):
     """Geniac file parser"""
 
-    COMRE = re.compile(
+    COM_RE = re.compile(
         r"(?P<tdquote>\"{3}[\S\s]*?\"{3})|"
         r"(?P<tquote>\'{3}[\S\s]*?\'{3})|"
         r"(?P<squote>\'[^\']*\')|"
@@ -43,12 +52,19 @@ class GParser(GBase):
         self.params = None
         self._path = ""
         self._loaded_paths = []
-        self._content = dotty(OrderedDict())
+        self._content = OrderedDict()
 
     @property
     def content(self):
         """Content loaded from input file with read method"""
         return self._content
+
+    @content.setter
+    def content(self, value: dict):
+        """Content loaded from input file with read method"""
+        self._content = (
+            value if isinstance(value, GDotty) else GDotty({} if not value else value)
+        )
 
     @property
     def path(self):
@@ -98,13 +114,12 @@ class GParser(GBase):
 
     def _remove_comments(self, in_file, temp_file):
         # Remove comments for the analysis
-        # input_content = self.UCOMRE.sub("", self.MCOMRE.sub("", in_file.read()))
 
         def match_comments(match):
             """Filter comments from match object"""
             return "" if match.group("mcom") or match.group("scom") else match.group(0)
 
-        input_content = self.COMRE.sub(match_comments, in_file.read())
+        input_content = self.COM_RE.sub(match_comments, in_file.read())
         temp_file.write(bytes(input_content, encoding=DEFAULT_ENCODING))
         temp_file.seek(0)
         return temp_file
@@ -113,17 +128,32 @@ class GParser(GBase):
     def _read(
         self,
         in_file: typing.Union[typing.IO, typing.BinaryIO],
-        encoding=DEFAULT_ENCODING,
-        config_path="",
+        in_path: PathLike = Path(""),
+        **kwargs,
     ):
         """Load a file into content property
 
         Args:
-            in_file (TextIO): path to nextflow config file
-        """
-        return StringIO(in_file.read().decode(encoding))
+            in_file (TextIO): input file
+            encoding (str): encoding type used to read the input file
+            in_path (PathLike): path to input file
+            flush_content (bool): flag used to flush previous content before reading
+            warnings (bool): flag to turn on/off warning messages
 
-    def read(self, in_paths, encoding=DEFAULT_ENCODING):
+        Returns:
+            content (TextIO): Raw content of the file
+        """
+        self.debug(f"Reading file {in_path}")
+        if kwargs.get("flush_content"):
+            self.content = OrderedDict()
+        return StringIO(in_file.read().decode(kwargs.get("encoding", DEFAULT_ENCODING)))
+
+    def read(
+        self,
+        in_paths: [str, PathLike, list],
+        encoding: str = DEFAULT_ENCODING,
+        **kwargs,
+    ) -> [bool]:
         """Read and parse a file or an iterable of files
 
         Args:
@@ -137,16 +167,24 @@ class GParser(GBase):
         if isinstance(in_paths, (str, bytes, PathLike)):
             in_paths = [in_paths]
         read_ok = []
-        for filename in in_paths:
-            filename = Path(filename)
+        for in_path in in_paths:
+            in_path = Path(in_path) if not isinstance(in_path, PathLike) else in_path
             try:
-                with filename.open(
+                with in_path.open(
                     mode="r", encoding=encoding
                 ) as input_file, tempfile.TemporaryFile() as temp_file:
+                    # Format files before reading
                     temp_file = self._remove_comments(input_file, temp_file)
-                    self._read(temp_file, encoding=encoding, config_path=filename)
-                    self.loaded_paths += [filename]
+                    temp_content = self._read(
+                        temp_file, encoding=encoding, in_path=in_path, **kwargs
+                    )
+                    self.debug(
+                        "LOADED %s scope:\n%s.",
+                        temp_file,
+                        dumps(dict(self.content), indent=2),
+                    )
+                    self.loaded_paths += [in_path]
             except OSError:
                 continue
-            read_ok.append(filename)
+            read_ok.append((in_path, temp_content))
         return read_ok

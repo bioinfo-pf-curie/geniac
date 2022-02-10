@@ -3,82 +3,73 @@
 
 """scripts.py: Nextflow scripts parser."""
 
-import json
-import logging
 import re
 import typing
 from collections import OrderedDict, defaultdict
 
-from geniac.parsers.base import GParser
+from geniac.cli.parsers.base import GeniacParser, PathLike
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2021"
 
-_logger = logging.getLogger(__name__)
 
-
-class NextflowScript(GParser):
+class NextflowScript(GeniacParser):
     """Nextflow script file parser"""
 
     # process flag
-    PROCESSRE = re.compile(r"^ *process +(?P<processName>\w+) *{")
+    PROCESS_RE = re.compile(r"^ *process +(?P<processName>\w+) *{")
     # process label
-    LABELRE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
+    LABEL_RE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
     # script flag
-    SCRIPTRE = re.compile(
+    SCRIPT_RE = re.compile(
         r"^ *(?P<startScript>[\"']{3})"
         r"((?P<script>.+)(?<=(?P<endScript>[\"']{3})))? *$"
     )
 
-    def __init__(self, *args, **kwargs):
-        """Constructor for NextflowScript parser"""
-        super().__init__(*args, **kwargs)
-
     def _read(
         self,
-        config_file: typing.Union[typing.IO, typing.BinaryIO],
-        config_path="",
-        encoding=None,
+        in_file: typing.Union[typing.IO, typing.BinaryIO],
+        in_path: PathLike = None,
+        **kwargs,
     ):
         """Load a Nextflow script file into content property
 
         Args:
-            config_file (BinaryIO): path to nextflow config file
+            in_file (BinaryIO): path to nextflow script file
             encoding (str): name of the encoding use to decode config files
+            in_path (PathLike): path to the input file
+            flush_content (bool): flag used to flush previous content before reading
+            warnings (bool): flag to turn on/off warning messages
         """
         script_flag = False
         process = ""
+        # TODO: change process keys to ("processName", filePath)
         self.content["process"] = self.content.get("process") or OrderedDict()
-        # TODO: add if condition within scripts who should break the actual
-        #       process scope
-        for idx, line in enumerate(super()._read(config_file, encoding=encoding)):
-            if match := self.PROCESSRE.match(line):
+        for idx, line in enumerate(super()._read(in_file, **kwargs)):
+            if match := self.PROCESS_RE.match(line):
                 values = match.groupdict()
                 # If process add it to the process dict
                 process = values.get("processName")
                 self.content["process"][process] = defaultdict(list)
-                self.content["process"][process]["NextflowScriptPath"] = str(
-                    config_path
-                )
-            if match := self.LABELRE.match(line):
+                # Save the path to the nextflow script for future logs
+                self.content["process"][process]["NextflowScriptPath"] = str(in_path)
+            if match := self.LABEL_RE.match(line):
                 values = match.groupdict()
                 label = values.get("labelName")
-                _logger.debug(f"FOUND label {label} in process {process}.")
+                self.debug("FOUND label %s in process %s.", label, process)
                 self.content["process"][process]["label"].append(label)
                 continue
-            # TODO: what about conditionals nextflow scripts ?
-            if match := self.SCRIPTRE.match(line):
+            # For the moment we append everything into the same list even with conditional nextflow
+            # script
+            if match := self.SCRIPT_RE.match(line):
                 values = match.groupdict()
                 if process:
-                    script_flag = False if script_flag else True
+                    script_flag = not script_flag
                     if values.get("script"):
                         self.content["process"][process]["script"].append(line.strip())
                 continue
             # Add to script part if script_flag
             if process and script_flag:
-                _logger.debug(f"Add line {idx} to process {process} scope.")
+                self.debug("Add line %s to process %s scope.", idx, process)
                 self.content["process"][process]["script"].append(line.strip())
                 continue
-        _logger.debug(
-            f"LOADED {config_file} scope:\n{json.dumps(dict(self.content), indent=2)}."
-        )

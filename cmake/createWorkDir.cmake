@@ -38,10 +38,10 @@ file(COPY ${geniac_source_dir}/install/singularity.nf DESTINATION ${geniac_binar
 file(COPY ${geniac_source_dir}/install/docker.nf DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${pipeline_source_dir}/conf/ DESTINATION ${geniac_binary_dir}/workDir/conf)
 
-if(EXISTS ${pipeline_source_dir}/modules/)
-    file(COPY ${pipeline_source_dir}/modules/ DESTINATION ${geniac_binary_dir}/workDir/modules)
+if(EXISTS ${pipeline_source_dir}/modules/fromSource/)
+    file(COPY ${pipeline_source_dir}/modules/fromSource/ DESTINATION ${geniac_binary_dir}/workDir/modules/fromSource)
 else()
-    file(MAKE_DIRECTORY ${geniac_binary_dir}/workDir/modules)
+    file(MAKE_DIRECTORY ${geniac_binary_dir}/workDir/modules/fromSource)
 endif()
 
 if(EXISTS ${pipeline_source_dir}/recipes/)

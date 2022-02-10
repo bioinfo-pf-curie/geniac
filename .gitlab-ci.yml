@@ -1,27 +1,11 @@
----
-# This file is a template, and might need editing before it works on your project.
+stages:
+  - check           # check that requirements are met before starting the deployement
+  - deploy
 
-# Official language image. Look for the different tagged releases at:
-
-# Pick zero or more services to be used on all builds.
-# Only needed when using a docker container to run your tests in.
-# Check out: http://docs.gitlab.com/ce/ci/docker/using_docker_images.html#what-is-service
-
-# services:
-#   - mysql:latest
-#   - redis:latest
-#   - postgres:latest
-
-# variables:
-#   POSTGRES_DB: database_name
-
-# Cache packages in between builds
 cache:
   paths:
     - vendor/python
 
-# This is a basic example for a packages or script which doesn't use
-# services such as redis or postgres
 before_script:
   - python -v                                   # Print out Python version for debugging
   # Setup git
@@ -32,28 +16,28 @@ before_script:
   # Install dependencies for the testing environment
   - pip install -U pip setuptools setuptools-scm wheel
   - pip install -U tox-conda
+  - pip install -U twine
 
 .test_script: &test_script
+  stage: check
   script:
     - tox
-  # OR if you don't use tox:
-  # - pytest
-
-py39:
-  image: "python:3.9"
-  <<: *test_script
-
 
 docs:
-  image: "python:3.9"
+  stage: check
+  image: "python:3.10"
   script:
     - tox -e docs
 
-# This deploy job uses a simple deploy flow to Heroku, other providers, e.g. AWS Elastic Beanstalk
-# are supported too: https://github.com/travis-ci/dpl
-#deploy:
-#  type: deploy
-#  environment: production
-#  script:
-#    - python setup.py
-#    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_PRODUCTION_KEY
+pypi:
+  image: "python:3.10"
+  stage: deploy
+  script:
+    - env
+    - python -m pip install --upgrade build
+    - python -m build
+    - ls dist/*
+    - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ python -m twine upload dist/*
+  only:
+    - tags
+

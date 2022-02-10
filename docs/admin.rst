@@ -35,13 +35,13 @@ Among the different files and folders created in the ``build`` directory, we jus
                │   ├── python.def
                │   └── trickySoftware.def
                └── images
-                   ├── alpine.simg
-                   ├── fastqc.simg
-                   ├── helloworld.simg
-                   ├── multiqc.simg
-                   ├── onlylinux.simg
-                   ├── python.simg
-                   └── trickysoftware.simg
+                   ├── alpine.sif
+                   ├── fastqc.sif
+                   ├── helloworld.sif
+                   ├── multiqc.sif
+                   ├── onlylinux.sif
+                   ├── python.sif
+                   └── trickysoftware.sif
 
 The |nextflow|_ scripts that are used to generate the ``*.config`` files and containers are also located in the ``workDir`` folder. There are:
 

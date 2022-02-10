@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'geniac'
-copyright = u'2019-2021, Institut Curie'
+copyright = u'2019-2022, Institut Curie'
 author = u'Philippe Hupé'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -72,7 +72,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*.inc.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
