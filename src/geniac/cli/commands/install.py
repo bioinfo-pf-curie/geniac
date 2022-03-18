@@ -85,7 +85,7 @@ class GeniacInstall(GeniacInit):
             "".join(
                 [
                     f"-D{option.removeprefix(CMAKE_OPTION_PREFIX)}",
-                    f'="{value}"'.strip()
+                    f'={value}'.strip()
                     if not isinstance(value, bool) and value
                     else "=ON"
                     if value
