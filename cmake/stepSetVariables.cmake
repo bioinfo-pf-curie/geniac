@@ -42,7 +42,7 @@ set(ap_singularity_image_path
     ""
     CACHE
         STRING
-        "Path to the singularity images. If the variable ap_use_singularity_image_link is ON, a symlink containers/singularity with the given target will be created."
+        "Path to the singularity images. A symlink containers/singularity with the given target will be created."
 )
 
 set(ap_install_singularity_recipes
