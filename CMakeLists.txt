@@ -99,7 +99,7 @@ if(EXISTS ${pipeline_source_dir}/modules/fromSource/CMakeLists.txt)
       message_color(INFO "Modules from source code available in the directory ${pipeline_source_dir}/modules/fromSource will be installed.")
     endif()
 else()
-  message_color(INFO "The is no tool to be installed from source code.")
+  message_color(INFO "There is no tool to be installed from source code.")
 
 endif()
 
