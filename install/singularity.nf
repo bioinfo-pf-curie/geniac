@@ -475,12 +475,13 @@ condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
 }
 
 
-singularityRecipeCh1
-  .mix(singularityRecipeCh2)
-  .mix(singularityRecipeCh5)
-  .mix(singularityRecipeCh3)
-  .mix(singularityRecipeCh4)
-  .unique{ it[0] }
+singularityRecipeCh5
+  .concat(singularityRecipeCh5)
+  .concat(singularityRecipeCh3)
+  .concat(singularityRecipeCh2)
+  .concat(singularityRecipeCh1) // DONT'T MOVE: this channel must be the last one to be concatenated
+  .groupTuple()
+  .map{ key, tab -> [key, tab[0]] }
   .into {
     singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
     singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh

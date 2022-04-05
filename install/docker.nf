@@ -396,12 +396,13 @@ condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
 }
 
 
-dockerRecipeCh1
-  .mix(dockerRecipeCh2)
-  .mix(dockerRecipeCh5)
-  .mix(dockerRecipeCh3)
-  .mix(dockerRecipeCh4)
-  .unique{ it[0] }
+dockerRecipeCh5
+  .concat(dockerRecipeCh4)
+  .concat(dockerRecipeCh3)
+  .concat(dockerRecipeCh2)
+  .concat(dockerRecipeCh1) // DONT'T MOVE: this channel must be the last one to be concatenated
+  .groupTuple()
+  .map{ key, tab -> [key, tab[0]] }
   .into {
     dockerAllRecipe4buildImagesCh; dockerAllRecipe4buildDockerCh;
     dockerAllRecipe4buildPathCh
