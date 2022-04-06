@@ -1064,7 +1064,7 @@ class GeniacLint(GeniacCommand):
     ):
         """Check labels for containers"""
         
-        for label_name in ["conda", "modules"]:
+        for label_name in ["modules"]:
             if container_diff := sorted(
                 list(
                     set(
