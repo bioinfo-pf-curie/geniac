@@ -42,9 +42,9 @@ class GeniacLint(GeniacCommand):
     # REGEX to check if ExternalProject cmake directive has been correctly added in the main
     # CMakeLists.txt
     PROJECT_ADD_MAIN_CMAKE_RE_TEMP = (
-        r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
+        r"ExternalProject_Add\(\s.*\s*SOURCE_"
         r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|"
-        r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
+        r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}\n"
     )
     # REGEX to check if a dependency has been correctly added in a singularity
     # recipe
@@ -443,58 +443,62 @@ class GeniacLint(GeniacCommand):
             if conda_check
             else "Checking of conda recipes turned off."
         )
-
-        for label, value in config.get("params.geniac.tools", OrderedDict()).items():
+        geniac_tools_list = config.get("params.geniac.tools", OrderedDict()).items()
+        for label, value in geniac_tools_list:
             if len(value) == 1:
                 [recipe] = value
+                (recipe, n_sub) = re.subn(r"\s*\$\{params.geniac.tools.*\}\s*", "", recipe)
+                if n_sub > 0:
+                    self.info("The label '%s' defined in the geniac.config file uses information from other labels.", label)
                 labels_geniac_tools.append(label)
+                if len(recipe) != 0:
                 # If the tool value is a conda recipe
-                if match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
-                    if not conda_check:
-                        continue
-                    # The related recipe is a correct conda recipe
-                    # Check if the recipes exists in the actual OS with conda search
-                    for conda_recipe in match.groupdict().get("recipes").split(" "):
-                        try:
-                            conda_search = subprocess.run(
-                                ["conda", "search", conda_recipe],
-                                capture_output=True,
-                                check=True,
+                    if match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
+                        if not conda_check:
+                            continue
+                        # The related recipe is a correct conda recipe
+                        # Check if the recipes exists in the actual OS with conda search
+                        for conda_recipe in match.groupdict().get("recipes").split(" "):
+                            try:
+                                conda_search = subprocess.run(
+                                    ["conda", "search", conda_recipe],
+                                    capture_output=True,
+                                    check=True,
+                                )
+                            except subprocess.CalledProcessError:
+                                self.error(
+                                    "Conda search command returned non-zero exit status for the recipe "
+                                    "%s[%s]. Either conda is not available or the recipe does not link "
+                                    "to an existing package or build. Check if the requested build is "
+                                    "still available on conda with the following command:"
+                                    "\n\t> conda search %s.",
+                                    conda_recipe,
+                                    label,
+                                    conda_recipe,
+                                )
+                            else:
+                                self.debug("Conda search output:\n%s", conda_search.stdout)
+                    # Elif the tool value is a path to an environment file (yml or yaml ext),
+                    # check if the path exists
+                    elif match := GeniacLint.CONDA_PATH_RE.search(recipe):
+                        if (
+                            conda_path := Path(
+                                self.src_path / match.groupdict().get("basepath")
                             )
-                        except subprocess.CalledProcessError:
+                        ) and not conda_path.exists():
                             self.error(
-                                "Conda search command returned non-zero exit status for the recipe "
-                                "%s[%s]. Either conda is not available or the recipe does not link "
-                                "to an existing package or build. Check if the requested build is "
-                                "still available on conda with the following command:"
-                                "\n\t> conda search %s.",
-                                conda_recipe,
+                                "Conda file %s related to %s tool does not exist.",
+                                conda_path.relative_to(self.src_path),
                                 label,
-                                conda_recipe,
                             )
-                        else:
-                            self.debug("Conda search output:\n%s", conda_search.stdout)
-                # Elif the tool value is a path to an environment file (yml or yaml ext),
-                # check if the path exists
-                elif match := GeniacLint.CONDA_PATH_RE.search(recipe):
-                    if (
-                        conda_path := Path(
-                            self.src_path / match.groupdict().get("basepath")
-                        )
-                    ) and not conda_path.exists():
+                    # else check if it's a valid path
+                    else:
                         self.error(
-                            "Conda file %s related to %s tool does not exist.",
-                            conda_path.relative_to(self.src_path),
+                            "Value %s of %s tool does not follow the pattern "
+                            '"condaChannelName::softName=version=buildString".',
+                            recipe,
                             label,
                         )
-                # else check if it's a valid path
-                else:
-                    self.error(
-                        "Value %s of %s tool does not follow the pattern "
-                        '"condaChannelName::softName=version=buildString".',
-                        recipe,
-                        label,
-                    )
 
         for extra_section in (
             "params.geniac.containers.yum",
@@ -739,9 +743,11 @@ class GeniacLint(GeniacCommand):
                     )
                 else:
                     self.error(
-                        "Module %s not added with ExternalProject_Add directive within %s file.",
+                            "Module %s not added with ExternalProject_Add directive within %s file, or the ExternalProject_Add is not correctly formatted. It should look like this:\nExternalProject_Add(\n\t%s\n\tSOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/%s\n\tCMAKE_ARGS\n\t-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/externalProject/bin)",
                         module_name,
                         main_cmake_lists.relative_to(self.src_path),
+                        module_name,
+                        module_name,
                     )
 
                 # Then look in the CMakeLists.txt if install DESTINATION is correct
