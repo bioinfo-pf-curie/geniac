@@ -37,7 +37,7 @@ class GeniacLint(GeniacCommand):
     # REGEX to check if install cmake directive has been correctly added in the
     # module CMakeLists.txt
     INSTALL_MODULE_CMAKE_RE = re.compile(
-        r"install\([\s\w_${}\-/=]*DESTINATION +[\s\w_${}\-/=]*\)"
+        r"install\s*\([\s\w_${}\-/=]*DESTINATION +[\s\w_${}\-/=]*\)"
     )
     # REGEX to check if ExternalProject cmake directive has been correctly added in the main
     # CMakeLists.txt
