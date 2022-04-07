@@ -500,14 +500,6 @@ class GeniacLint(GeniacCommand):
                             label,
                         )
 
-        for extra_section in (
-            "params.geniac.containers.yum",
-            "params.geniac.containers.git",
-        ):
-            NextflowConfig.check_labels_in_section(
-                config, extra_section, labels_geniac_tools
-            )
-
         return labels_geniac_tools
 
     def _check_process_config(self, config: NextflowConfig, config_path):
@@ -1072,7 +1064,6 @@ class GeniacLint(GeniacCommand):
         self, container
     ):
         """Check labels for containers"""
-        
         for label_name in ["modules"]:
             if container_diff := sorted(
                 list(
@@ -1099,6 +1090,15 @@ class GeniacLint(GeniacCommand):
                     container, label_name, container_diff, container,
                 )
 
+    def check_extra_section_geniac_config(self):
+        labels = set(self.labels_from_folders.get("modules", []) + self.labels_from_configs.get("geniac", []))
+        for extra_section in (
+            "params.geniac.containers.yum",
+            "params.geniac.containers.git",
+        ):
+            self.nxf_config_container.check_labels_in_section(
+                extra_section, labels
+            )
 
     def run(self):
         """Execute the main routine
@@ -1122,6 +1122,10 @@ class GeniacLint(GeniacCommand):
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
         self.check_labels()
+
+        # Check if there is any inconsistency between the labels  in the extra sections
+        # from geniac.config
+        self.check_extra_section_geniac_config()
 
         # Check that labels from container recipes have not been used elsewhere.
         # This checks that the containers receipes have not been pushed in the git repository

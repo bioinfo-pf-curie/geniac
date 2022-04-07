@@ -196,7 +196,7 @@ class NextflowConfig(GeniacParser):
                 # If label is not present in labels
                 if label not in labels:
                     nxf_config.error(
-                        "Label %s of %s is not defined in params.geniac.tools.",
+                        "Label %s of %s is not defined neither in params.geniac.tools nor availabe as a module.",
                         label,
                         section_name,
                     )
