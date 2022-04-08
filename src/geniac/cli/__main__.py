@@ -301,7 +301,7 @@ class GeniacEntryPoint:
 
     def recipes_cmd(self):
         """Geniac recipes subcommand"""
-        return GeniacConfigs(**self.parsed_args, parser=self.parser)
+        return GeniacRecipes(**self.parsed_args, parser=self.parser)
 
     def lint_cmd(self):
         """Geniac Lint subcommand"""
