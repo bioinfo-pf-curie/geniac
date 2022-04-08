@@ -6,7 +6,7 @@
 Add a process
 *************
 
-This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the |singularity|_ and |docker|_ containers. Note that a geniac command line interface is provided to :ref:`check-page` and ensure that the pipeline is compliant with the following guidelines.
+This section provides the guidelines for adding a new process in the ``main.nf`` file such that it allows the automatic generation of the ``config`` files and recipes to build the |singularity|_ and |docker|_ containers. Note that a geniac command line interface is provided to :ref:`cli-page` and ensure that the pipeline is compliant with the following guidelines.
 
 .. note::
 

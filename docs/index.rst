@@ -20,6 +20,7 @@ geniac's documentation!
    install
    devcycle
    run
+   cli
    admin
    faq
    misc
