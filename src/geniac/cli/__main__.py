@@ -11,6 +11,7 @@ from logging.config import dictConfig
 from sys import argv
 
 from geniac import __version__
+from geniac.cli.commands.configs import GeniacConfigs
 from geniac.cli.commands.init import GeniacInit
 from geniac.cli.commands.install import GeniacInstall
 from geniac.cli.commands.lint import GeniacLint
@@ -88,6 +89,7 @@ class GeniacEntryPoint:
         "lint": logging.WARNING,
         "install": logging.INFO,
         "options": logging.INFO,
+        "configs": logging.INFO,
     }
     DEFAULT_OPTS = (
         MethodRecord(
@@ -179,6 +181,12 @@ class GeniacEntryPoint:
         ),
     )
     OPTIONS_ARGS = tuple(
+        list(INIT_ARGS)
+        + [
+            # Put here specific args for options cmd
+        ]
+    )
+    CONFIGS_ARGS = tuple(
         list(INIT_ARGS)
         + [
             # Put here specific args for options cmd
@@ -279,6 +287,10 @@ class GeniacEntryPoint:
         self.args = args
         self.parsed_args = None
 
+    def configs_cmd(self):
+        """Geniac configs subcommand"""
+        return GeniacConfigs(**self.parsed_args, parser=self.parser)
+
     def lint_cmd(self):
         """Geniac Lint subcommand"""
         return GeniacLint(**self.parsed_args, parser=self.parser)
@@ -296,7 +308,7 @@ class GeniacEntryPoint:
         return GeniacOptions(**self.parsed_args, parser=self.parser)
 
     def test_cmd(self):
-        """Geniac options subcommand"""
+        """Geniac tests subcommand"""
         return GeniacTest(**self.parsed_args, parser=self.parser)
 
     def parse_args(self):
@@ -338,6 +350,17 @@ class GeniacEntryPoint:
             formatter_class=ArgumentDefaultsHelpFormatter,
         )
         parser_options.set_defaults(func=self.options_cmd, which="options")
+
+        # Geniac configs
+        parser_configs = subparsers.add_parser(
+            "configs",
+            help=_(
+                "Call CMake help utility on a Nextflow project compatible with geniac"
+            ),
+            parents=[parent_parser],
+            formatter_class=ArgumentDefaultsHelpFormatter,
+        )
+        parser_configs.set_defaults(func=self.configs_cmd, which="configs")
 
         # Geniac test
         parser_test = subparsers.add_parser(
