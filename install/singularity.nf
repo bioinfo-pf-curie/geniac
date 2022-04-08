@@ -476,7 +476,7 @@ condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
 
 
 singularityRecipeCh5
-  .concat(singularityRecipeCh5)
+  .concat(singularityRecipeCh4)
   .concat(singularityRecipeCh3)
   .concat(singularityRecipeCh2)
   .concat(singularityRecipeCh1) // DONT'T MOVE: this channel must be the last one to be concatenated
