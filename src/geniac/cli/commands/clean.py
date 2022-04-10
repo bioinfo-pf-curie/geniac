@@ -36,9 +36,9 @@ class GeniacClean(GeniacInit):
 
         build_dir = self.working_dirs["build"].as_posix()
         if os.path.isdir(build_dir):
-            shutil.rmtree(output_dir)
+            shutil.rmtree(build_dir)
+            os.mkdir(build_dir)
             self.info("The folder '%s' has been cleaned.", build_dir)
-
 
     def run(self):
         """

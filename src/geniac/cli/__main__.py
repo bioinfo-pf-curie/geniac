@@ -305,11 +305,11 @@ class GeniacEntryPoint:
 
     def clean_cmd(self):
         """geniac clean subcommand"""
-        return geniacClean(**self.parsed_args, parser=self.parser)
+        return GeniacClean(**self.parsed_args, parser=self.parser)
 
     def configs_cmd(self):
         """geniac configs subcommand"""
-        return geniacConfigs(**self.parsed_args, parser=self.parser)
+        return GeniacConfigs(**self.parsed_args, parser=self.parser)
 
     def recipes_cmd(self):
         """Geniac recipes subcommand"""
