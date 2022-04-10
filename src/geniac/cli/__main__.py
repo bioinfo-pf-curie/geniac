@@ -11,6 +11,7 @@ from logging.config import dictConfig
 from sys import argv
 
 from geniac import __version__
+from geniac.cli.commands.clean import GeniacClean
 from geniac.cli.commands.configs import GeniacConfigs
 from geniac.cli.commands.init import GeniacInit
 from geniac.cli.commands.install import GeniacInstall
@@ -90,6 +91,7 @@ class GeniacEntryPoint:
         "lint": logging.WARNING,
         "install": logging.INFO,
         "options": logging.INFO,
+        "clean": logging.INFO,
         "configs": logging.INFO,
         "recipes": logging.INFO,
     }
@@ -183,6 +185,12 @@ class GeniacEntryPoint:
         ),
     )
     OPTIONS_ARGS = tuple(
+        list(INIT_ARGS)
+        + [
+            # Put here specific args for options cmd
+        ]
+    )
+    CLEAN_ARGS = tuple(
         list(INIT_ARGS)
         + [
             # Put here specific args for options cmd
@@ -295,9 +303,13 @@ class GeniacEntryPoint:
         self.args = args
         self.parsed_args = None
 
+    def clean_cmd(self):
+        """geniac clean subcommand"""
+        return geniacClean(**self.parsed_args, parser=self.parser)
+
     def configs_cmd(self):
-        """Geniac configs subcommand"""
-        return GeniacConfigs(**self.parsed_args, parser=self.parser)
+        """geniac configs subcommand"""
+        return geniacConfigs(**self.parsed_args, parser=self.parser)
 
     def recipes_cmd(self):
         """Geniac recipes subcommand"""
@@ -362,6 +374,17 @@ class GeniacEntryPoint:
             formatter_class=ArgumentDefaultsHelpFormatter,
         )
         parser_options.set_defaults(func=self.options_cmd, which="options")
+
+        # Geniac clean
+        parser_clean = subparsers.add_parser(
+            "clean",
+            help=_(
+                "Clean build directoty"
+            ),
+            parents=[parent_parser],
+            formatter_class=ArgumentDefaultsHelpFormatter,
+        )
+        parser_clean.set_defaults(func=self.clean_cmd, which="clean")
 
         # Geniac configs
         parser_configs = subparsers.add_parser(
