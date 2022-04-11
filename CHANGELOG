@@ -1,5 +1,6 @@
 
 NEW FEATURES
+   - conda 4.11.0 and almalinux:8.5 set as default for the containers
    - Geniac CLI:
       * clean, configs and recipes commands have been added
       * allow labels in geniac.config to use variable
