@@ -8,6 +8,7 @@ import subprocess
 from collections import OrderedDict
 from inspect import getfullargspec
 from pathlib import Path
+from shutil import which
 
 from geniac.cli.commands.base import GeniacCommand
 from geniac.cli.parsers.base import DEFAULT_ENCODING
@@ -412,7 +413,7 @@ class GeniacLint(GeniacCommand):
         self.processes_from_workflow = script.content.get("process", OrderedDict())
 
     def _check_geniac_config(
-        self, config: NextflowConfig, conda_check: bool = True
+        self, config: NextflowConfig, conda_check: bool = False
     ) -> list:
         """Check the content of params scope in a geniac config file
 
@@ -428,14 +429,15 @@ class GeniacLint(GeniacCommand):
         config.check_config_scope("params")
 
         # Check if conda command exists
-        try:
-            subprocess.run(["conda", "-h"], capture_output=True, check=True)
-        except subprocess.CalledProcessError:
-            self.error(
-                "Conda is not available in your path. Geniac will not check if tool "
-                "recipes are correct."
-            )
-            conda_check = False
+        if conda_check:
+           cmd = which("conda")
+           if cmd == None:
+              self.error(
+                  "Conda is not available in your path. Geniac will not check if tool "
+                  "recipes are correct. Add conda in your PATH: export PATH=/path/to/conda/bin:$PATH"
+              )
+           else:
+              self.info("conda is in the PATH")
 
         # Check each label in params.geniac.tools
         self.info(
