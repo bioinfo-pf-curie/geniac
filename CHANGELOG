@@ -10,6 +10,7 @@ NEW FEATURES
       * geniac folder with the same version of geniac CLI is now included in the python packageD
 DOCUMENTATION
    - New section with the Geniac CLI commands
+   - Explain how to add a process with R and renv to manage package dependencies
 
 BUGFIX:
    - Geniac CLI:
