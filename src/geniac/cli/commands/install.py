@@ -5,6 +5,7 @@
 
 import logging
 import re
+import os
 from gettext import gettext as _
 from importlib.resources import files
 from pathlib import Path
@@ -209,8 +210,12 @@ class GeniacInstall(GeniacInit):
             self.warning(
                 "Detected options require sudo privileges. Will try to launch in sudo mode"
             )
+        user_uid=str(os.getuid())
+        user_gid=str(os.getgid())
+        chown_command='sudo -S -k chown -R ' + user_uid + ':' + user_gid + ' ' + (self.working_dirs["build"]).as_posix()
         commands = {
             "make": f"{'sudo -S -k ' if self.is_sudo else ''}make",
+            "chown": f"{chown_command if self.is_sudo else 'echo OK'}",
             "make install": "make install",
         }
         for command_name, command in commands.items():
