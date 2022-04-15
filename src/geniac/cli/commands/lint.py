@@ -30,6 +30,10 @@ class GeniacLint(GeniacCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
+    # REGEX to check if a string is a path for renv.lock file
+    RENV_LOCKFILE_PATH_RE = re.compile(
+        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>lock))"
+    )
     # REGEX to check if install cmake directive has been correctly added in the main CMakeLists.txt
     INSTALL_MAIN_CMAKE_RE = re.compile(
         r"install\([\s\w_${}\-/=]*DESTINATION +"
@@ -501,6 +505,34 @@ class GeniacLint(GeniacCommand):
                             recipe,
                             label,
                         )
+            else:
+                if bool(re.match("^renv.*", label)):
+                    [renvBase] = value.get('base')
+                    renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
+                    for scope in ['base', 'label', 'bioc']:
+                        if value.get(scope) == None:
+                            self.error("In the renv label '%s', the scope '%s' is missing.", label, scope)
+
+                    if match := GeniacLint.CONDA_PATH_RE.search(renvBase):
+                        if (
+                            conda_path := Path(
+                                self.src_path / match.groupdict().get("basepath")
+                            )
+                        ) and not conda_path.exists():
+                            self.error(
+                                "Conda file %s related to the renv %s tool does not exist.",
+                                conda_path.relative_to(self.src_path),
+                                label,
+                            )
+
+
+                    if match := GeniacLint.RENV_LOCKFILE_PATH_RE.search(renvLockfile):
+                        if (
+                            dep_path := Path(
+                                self.src_path / match.groupdict().get("basepath")
+                            )
+                        ) and not dep_path.exists():
+                            self.error("There is no 'recipes/dependencies/%s/renv.lock' file for the renv '%s' tool. You must add the renv.lock file.", label, label)
 
         return labels_geniac_tools
 
@@ -867,12 +899,14 @@ class GeniacLint(GeniacCommand):
                 # Throw an error if dependency not found in any recipe file
                 # TODO: should throw an error if dependency not found in one of the recipe files
                 if not recipe_flag:
-                    self.warning(
-                        "Dependency file %s not used in any %s recipe files %s.",
-                        dependency_path.name,
-                        recipe_type,
-                        tree.get("path").relative_to(self.src_path),
-                    )
+                    if dependency_path.name != "renv.lock":
+                       self.warning(
+                           "Dependency file %s/%s not used in any %s recipe files %s.",
+                           tool_name,
+                           dependency_path.name,
+                           recipe_type,
+                           tree.get("path").relative_to(self.src_path),
+                       )
 
     def _check_env_dir(self, env_tree: dict):
         """
@@ -1102,6 +1136,28 @@ class GeniacLint(GeniacCommand):
                 extra_section, labels
             )
 
+    def check_labels_renv(
+        self
+    ):
+        """Check labels for renv"""
+
+        for (folder_name, label_list) in self.labels_from_folders.items():
+            if folder_name != 'conda':
+                for label_name in label_list:
+                    if bool(re.match("^renv.*", label_name)):
+                        self.error("In the folder for '%s', you have the label '%s'. Label which starts by 'renv' is only allowed for tools with R and renv. Change the name of your label.",
+                                folder_name,
+                                label_name)
+
+        for (config_name, label_list) in self.labels_from_configs.items():
+            if config_name == 'geniac':
+                for label_name in label_list:
+                    if bool(re.match("^renv.*", label_name)):
+                        self.error("In the config for '%s', you have the label '%s'. Label which starts by 'renv' is only allowed for tools with R and renv. Change the name of your label.",
+                                config_name,
+                                label_name)
+
+
     def run(self):
         """Execute the main routine
 
@@ -1133,6 +1189,9 @@ class GeniacLint(GeniacCommand):
         # This checks that the containers receipes have not been pushed in the git repository
         self.check_labels_containers(container="singularity")
         self.check_labels_containers(container="docker")
+
+        # Check labels for renv
+        self.check_labels_renv()
 
         # End the run with exit code
         if self.error_flag:
