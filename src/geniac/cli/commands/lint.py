@@ -507,24 +507,25 @@ class GeniacLint(GeniacCommand):
                         )
             else:
                 if bool(re.match("^renv.*", label)):
-                    [renvBase] = value.get('base')
                     renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
                     for scope in ['base', 'label', 'bioc']:
                         if value.get(scope) == None:
                             self.error("In the renv label '%s', the scope '%s' is missing.", label, scope)
+                        else:
+                            if scope == 'base':
+                                [renvBase] = value.get('base')
 
-                    if match := GeniacLint.CONDA_PATH_RE.search(renvBase):
-                        if (
-                            conda_path := Path(
-                                self.src_path / match.groupdict().get("basepath")
-                            )
-                        ) and not conda_path.exists():
-                            self.error(
-                                "Conda file %s related to the renv %s tool does not exist.",
-                                conda_path.relative_to(self.src_path),
-                                label,
-                            )
-
+                                if match := GeniacLint.CONDA_PATH_RE.search(renvBase):
+                                    if (
+                                        conda_path := Path(
+                                            self.src_path / match.groupdict().get("basepath")
+                                        )
+                                    ) and not conda_path.exists():
+                                        self.error(
+                                            "Conda file %s related to the renv %s tool does not exist.",
+                                            conda_path.relative_to(self.src_path),
+                                            label,
+                                        )
 
                     if match := GeniacLint.RENV_LOCKFILE_PATH_RE.search(renvLockfile):
                         if (
