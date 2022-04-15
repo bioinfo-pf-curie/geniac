@@ -104,7 +104,11 @@ Channel
       return it
   }.set{ condaForks }
 
-(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+(condaExistingEnvs, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh }
+condaExistingRenvCh
+  .filter {  it[0] =~/^renv.*/ }
+  .set { condaFiles4DockerRecipesCh4Renv } // Channel for Renv environment
 condaPackagesCh.into{ condaPackages4DockerRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
 condaFilesCh.into{ condaFiles4DockerRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
 
@@ -142,7 +146,7 @@ Channel
 Channel
   .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
   .map{ [it.name, it] }
-  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
+  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4; sourceCodeCh5 }
 
 
 
@@ -185,11 +189,9 @@ process buildDockerRecipeFromCondaFile {
 
   input:
     set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4DockerRecipesCh
-
       // to prevent conda recipes for specific fromSourceCode cases
       .join(sourceCodeCh1, remainder: true)
       .filter{ it[1] && !it[2] }
-
       .map{ [it[0], it[1]] }
       .groupTuple()
       .map{ addYumAndGitAndCmdConfs(it) }
@@ -243,11 +245,92 @@ process buildDockerRecipeFromCondaFile {
     && cp ~/.bashrc /opt/etc/bashrc \\\\
     && conda clean -a  ${cplmtCmdPost}
 
+    ENV PATH /usr/local/conda/envs/\${env_name}/bin:\\\$PATH
 
     EOF
     """
 }
 
+process buildDockerRecipeFromCondaFile4Renv {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+
+  input:
+    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4DockerRecipesCh4Renv
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh5, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+
+  output:
+    set val(key), file("${key}.Dockerfile") into dockerRecipeCh6
+
+  script:
+    def renvBase = params.geniac.tools.get(key).get('base')
+    def bioc = params.geniac.tools.get(key).get('bioc')
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+    declare env_name=\$(head -1 ${renvBase} | cut -d' ' -f2)
+
+    cat << EOF > ${key}.Dockerfile
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
+
+    ENV R_LIBS_USER "-"
+    ENV R_PROFILE_USER "-"
+    ENV R_ENVIRON_USER "-"
+    ENV PYTHONNOUSERSITE 1
+    ENV PATH ${cplmtPath}\\\$PATH
+    ENV LC_ALL en_US.utf-8
+    ENV LANG en_US.utf-8
+    ENV BASH_ENV /opt/etc/bashrc
+    ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig
+    ENV PKG_LIBS -liconv
+    ${cplmtCmdEnv}
+
+    ARG R_MIRROR=https://cloud.r-project.org
+    ARG R_ENV_DIR=/opt/renv
+    ARG CACHE=TRUE
+    ARG CACHE_DIR=/opt/renv_cache
+
+    # real path from projectDir: ${renvBase}
+    ADD conda/\$(basename ${renvBase}) /opt/\$(basename ${renvBase})
+    ADD dependencies/${key}/renv.lock /opt/renv/renv.lock
+
+    RUN ${cplmtYum}${params.yum} clean all \\\\
+    && conda env create -f /opt/\$(basename ${renvBase}) \\\\
+    && mkdir -p /opt/etc \\\\
+    && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+    && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
+    && conda init bash \\\\
+    && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+    && mkdir -p /opt/etc \\\\
+    && cp ~/.bashrc /opt/etc/bashrc \\\\
+    && conda clean -a ${cplmtCmdPost}
+    RUN source /opt/etc/bashrc \\\\
+    && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
+
+    ENV PATH /usr/local/conda/envs/\${env_name}/bin:\\\$PATH
+
+    EOF
+    """
+}
 /**
  * Build Docker recipe from conda specifications in params.geniac.tools
  **/
@@ -322,6 +405,7 @@ process buildDockerRecipeFromCondaPackages {
     && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
+    && conda clean -a ${cplmtCmdPost}
     EOF
     """
 }
@@ -396,7 +480,8 @@ condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
 }
 
 
-dockerRecipeCh5
+dockerRecipeCh6
+  .concat(dockerRecipeCh5)
   .concat(dockerRecipeCh4)
   .concat(dockerRecipeCh3)
   .concat(dockerRecipeCh2)
@@ -426,6 +511,9 @@ process buildImages {
 
   script:
     String contextDir
+    if (key ==~ /^renv.*/ ) {
+      contextDir = "${projectDir}/recipes"
+    } else
     if (fileDepDir.name.toString() == key) {
       contextDir = "${projectDir}/recipes/dependencies"
     } else
