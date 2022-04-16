@@ -508,14 +508,14 @@ class GeniacLint(GeniacCommand):
             else:
                 if bool(re.match("^renv.*", label)):
                     renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
-                    for scope in ['base', 'label', 'bioc']:
+                    for scope in ['yml', 'env', 'bioc']:
                         if value.get(scope) == None:
                             self.error("In the renv label '%s', the scope '%s' is missing.", label, scope)
                         else:
-                            if scope == 'base':
-                                [renvBase] = value.get('base')
+                            if scope == 'yml':
+                                [renvYml] = value.get('yml')
 
-                                if match := GeniacLint.CONDA_PATH_RE.search(renvBase):
+                                if match := GeniacLint.CONDA_PATH_RE.search(renvYml):
                                     if (
                                         conda_path := Path(
                                             self.src_path / match.groupdict().get("basepath")

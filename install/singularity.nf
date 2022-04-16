@@ -330,7 +330,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
     set val(key), file("${key}.def") into singularityRecipeCh6
 
   script:
-    def renvBase = params.geniac.tools.get(key).get('base')
+    def renvYml = params.geniac.tools.get(key).get('yml')
     def bioc = params.geniac.tools.get(key).get('bioc')
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
@@ -346,7 +346,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
     }
 
     """
-    declare env_name=\$(head -1 ${renvBase} | cut -d' ' -f2)
+    declare env_name=\$(head -1 ${renvYml} | cut -d' ' -f2)
 
     cat << EOF > ${key}.def
     Bootstrap: docker
@@ -370,9 +370,9 @@ process buildSingularityRecipeFromCondaFile4Renv {
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
 
-    # real path from projectDir: ${renvBase}
+    # real path from projectDir: ${renvYml}
     %files
-        \$(basename ${renvBase}) /opt/\$(basename ${renvBase})
+        \$(basename ${renvYml}) /opt/\$(basename ${renvYml})
         ${key}/renv.lock /opt/renv/renv.lock
 
     %post
@@ -381,7 +381,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
         CACHE=TRUE
         CACHE_DIR=/opt/renv_cache
         ${cplmtYum}${params.yum} clean all \\\\
-        && conda env create -f /opt/\$(basename ${renvBase}) \\\\
+        && conda env create -f /opt/\$(basename ${renvYml}) \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
         && conda init bash \\\\

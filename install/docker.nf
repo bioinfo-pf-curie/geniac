@@ -268,7 +268,7 @@ process buildDockerRecipeFromCondaFile4Renv {
     set val(key), file("${key}.Dockerfile") into dockerRecipeCh6
 
   script:
-    def renvBase = params.geniac.tools.get(key).get('base')
+    def renvYml = params.geniac.tools.get(key).get('yml')
     def bioc = params.geniac.tools.get(key).get('bioc')
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
@@ -284,7 +284,7 @@ process buildDockerRecipeFromCondaFile4Renv {
     }
 
     """
-    declare env_name=\$(head -1 ${renvBase} | cut -d' ' -f2)
+    declare env_name=\$(head -1 ${renvYml} | cut -d' ' -f2)
 
     cat << EOF > ${key}.Dockerfile
     FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
@@ -309,12 +309,12 @@ process buildDockerRecipeFromCondaFile4Renv {
     ARG CACHE=TRUE
     ARG CACHE_DIR=/opt/renv_cache
 
-    # real path from projectDir: ${renvBase}
-    ADD conda/\$(basename ${renvBase}) /opt/\$(basename ${renvBase})
+    # real path from projectDir: ${renvYml}
+    ADD conda/\$(basename ${renvYml}) /opt/\$(basename ${renvYml})
     ADD dependencies/${key}/renv.lock /opt/renv/renv.lock
 
     RUN ${cplmtYum}${params.yum} clean all \\\\
-    && conda env create -f /opt/\$(basename ${renvBase}) \\\\
+    && conda env create -f /opt/\$(basename ${renvYml}) \\\\
     && mkdir -p /opt/etc \\\\
     && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
     && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
