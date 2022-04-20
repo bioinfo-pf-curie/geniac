@@ -108,9 +108,27 @@ Channel
 condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh }
 condaExistingRenvCh
   .filter {  it[0] =~/^renv.*/ }
-  .set { condaFiles4SingularityRecipesCh4Renv } // Channel for Renv environment
+  .set { condaFiles4Renv } // Channel for Renv environment
+
+condaFiles4Renv.into{ condaFiles4SingularityRecipesCh4Renv; condaFilesOneEnvWithRenv; checkIsEmptyRenv }
 condaPackagesCh.into{ condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
-condaFilesCh.into{ condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
+condaFilesCh.into{ condaFiles4SingularityRecipesCh; condaFilesForCondaDepPremCh; condaFilesUnfilteredCh }
+
+println("channel renv")
+boolean isRenvEmpty = false
+checkIsEmptyRenv.ifEmpty{ isRenvEmpty = true }
+
+if(isRenvEmpty){
+condaFilesForCondaDepPremCh.set{ condaFilesForCondaDepCh }
+}else{
+
+}
+
+condaFilesOneEnvWithRenv
+  .map { [it[0], file(params.geniac.tools.get(it[0]).get('yml'))] }
+  .concat(condaFilesForCondaDepPremCh)
+  .set{ condaFilesForCondaDepCh }
+
 
 Channel
   .fromPath("${projectDir}/recipes/singularity/*.def")
