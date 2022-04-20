@@ -25,6 +25,9 @@ class NextflowScript(GeniacParser):
         r"^ *(?P<startScript>[\"']{3})"
         r"((?P<script>.+)(?<=(?P<endScript>[\"']{3})))? *$"
     )
+    # output/input flag
+    INOUT_RE=re.compile(r"^[ \t]*(?P<inout>input|output|script):[ \t]*")
+
 
     def _read(
         self,
@@ -43,10 +46,17 @@ class NextflowScript(GeniacParser):
         """
         script_flag = False
         process = ""
+        inout = ""
+        output_flag = False
+        input_flag = False
         # TODO: change process keys to ("processName", filePath)
         self.content["process"] = self.content.get("process") or OrderedDict()
         for idx, line in enumerate(super()._read(in_file, **kwargs)):
             if match := self.PROCESS_RE.match(line):
+                inout = ""
+                input_flag = False
+                output_flag = False
+                script_flag = False
                 values = match.groupdict()
                 # If process add it to the process dict
                 process = values.get("processName")
@@ -62,14 +72,37 @@ class NextflowScript(GeniacParser):
             # For the moment we append everything into the same list even with conditional nextflow
             # script
             if match := self.SCRIPT_RE.match(line):
+                inout = ""
+                input_flag = False
+                output_flag = False
                 values = match.groupdict()
                 if process:
                     script_flag = not script_flag
                     if values.get("script"):
                         self.content["process"][process]["script"].append(line.strip())
                 continue
+            if match := self.INOUT_RE.match(line):
+                input_flag = False
+                output_flag = False
+                script_flag = False
+                values = match.groupdict()
+                if values.get("inout") == "output":
+                    output_flag = True
+                if values.get("inout") == "input":
+                    input_flag = True
+                continue
             # Add to script part if script_flag
             if process and script_flag:
-                self.debug("Add line %s to process %s scope.", idx, process)
+                self.debug("Add line %s to process %s scope for script part.", idx, process)
                 self.content["process"][process]["script"].append(line.strip())
+                continue
+            # Add to output part if output_flag
+            if process and output_flag:
+                self.debug("Add line %s to process %s scope for output part.", idx, process)
+                self.content["process"][process]["output"].append(line.strip())
+                continue
+            # Add to input part if input_flag
+            if process and input_flag:
+                self.debug("Add line %s to process %s scope for input part.", idx, process)
+                self.content["process"][process]["input"].append(line.strip())
                 continue

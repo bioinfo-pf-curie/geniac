@@ -508,6 +508,11 @@ class GeniacLint(GeniacCommand):
             else:
                 if bool(re.match("^renv.*", label)):
                     renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
+                    if list(self.processes_from_workflow.keys()).count(label + 'Init') < 1:
+                        self.error("The process %s is missing for the renv label '%s'.", label + 'Init', label)
+                    else:
+                        self.check_renv_init_output_channel(label + 'Init')
+
                     for scope in ['yml', 'env', 'bioc']:
                         if value.get(scope) == None:
                             self.error("In the renv label '%s', the scope '%s' is missing.", label, scope)
@@ -1158,6 +1163,41 @@ class GeniacLint(GeniacCommand):
                                 config_name,
                                 label_name)
 
+    # This function checks that a process which initiate a renv fr MyTool
+    # correctly sets the channel 'val(true) into renvMyToolDoneCh'
+    def check_renv_init_output_channel(self, label):
+        output_content = self.processes_from_workflow.get(label, []).get('output')
+        if output_content:
+            output_list = list(output_content)
+            channel = re.compile(r"val\(true\)[ \t]+into[ \t]+" + label + "DoneCh")
+            inter = list(filter(channel.match, output_list))
+            if inter:
+                self.debug("In the output section of the process '%s', the line 'val(true) into %sDoneCh' is present.", label, label)
+            else:
+                self.error("In the output section of the process '%s', the line 'val(true) into %sDoneCh' is missing.", label, label)
+        else:
+            self.error("The output section is missing in the process '%s'. You need to add it and define the channel '%sDoneCh'.", label, label)
+
+
+    # This function check that a process which relies on a renv tool
+    # depends on the channel set after the process which initiates the renv
+    def check_use_renv_input_channel(self):
+        for process in self.processes_from_workflow.keys():
+            labels = self.processes_from_workflow.get(process, []).get('label')
+            input_content = self.processes_from_workflow.get(process, []).get('input')
+            for label in labels:
+                if bool(re.match("^renv.*", label)):
+                    if input_content:
+                        channel = re.compile(r".*from[ \t]+" + label + "DoneCh")
+                        input_list = list(input_content)
+                        inter = list(filter(channel.match, input_list))
+                        if inter:
+                            self.debug("In the input section of the process '%s' which uses the renv '%s' tool, the line 'val(done) from %sDoneCh' is present.", process, label, label)
+                        else:
+                            self.error("In the input section of the process '%s' which uses the renv '%s' tool, the line 'val(done) from %sDoneCh' is missing.", process, label, label)
+                    else:
+                        self.error("The input section is missing in the process '%s' which uses the renv '%s' tool. You need to add it and define that the procees depends on the input 'val(done) from %sDoneCh'.", process, label, label)
+
 
     def run(self):
         """Execute the main routine
@@ -1193,6 +1233,10 @@ class GeniacLint(GeniacCommand):
 
         # Check labels for renv
         self.check_labels_renv()
+
+        # Check that the process which uses a renv tools
+        # relies on the input channel
+        self.check_use_renv_input_channel()
 
         # End the run with exit code
         if self.error_flag:
