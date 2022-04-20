@@ -922,7 +922,7 @@ process buildMulticondaConfig {
     file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
 
   script:
-    cplmt = condaDef == 'ENV' ? '.label' : ''
+    cplmt = condaDef == 'ENV' ? '.yml' : ''
     """
     cat << EOF > "${key}MulticondaConfig.txt"
       withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}${cplmt}}" }
