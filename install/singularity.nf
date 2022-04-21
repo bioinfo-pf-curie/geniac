@@ -105,7 +105,7 @@ Channel
   }.set{ condaForks }
 
 (condaExistingEnvs, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
-condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh }
+condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh; condaExistingEnvsBisCh }
 condaExistingRenvCh
   .filter {  it[0] =~/^renv.*/ }
   .set { condaFiles4Renv } // Channel for Renv environment
@@ -119,16 +119,13 @@ boolean isRenvEmpty = false
 checkIsEmptyRenv.ifEmpty{ isRenvEmpty = true }
 
 if(isRenvEmpty){
-condaFilesForCondaDepPremCh.set{ condaFilesForCondaDepCh }
+  condaFilesForCondaDepPremCh.set{ condaFilesForCondaDepCh }
 }else{
-
+  condaFilesOneEnvWithRenv
+    .map { [it[0], file(params.geniac.tools.get(it[0]).get('yml'))] }
+    .concat(condaFilesForCondaDepPremCh)
+    .into{ condaFilesForCondaDepCh; condaFilesForOneEnvCh }
 }
-
-condaFilesOneEnvWithRenv
-  .map { [it[0], file(params.geniac.tools.get(it[0]).get('yml'))] }
-  .concat(condaFilesForCondaDepPremCh)
-  .set{ condaFilesForCondaDepCh }
-
 
 Channel
   .fromPath("${projectDir}/recipes/singularity/*.def")
@@ -865,7 +862,7 @@ process buildCondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), val(singularityRecipe) from onlyCondaRecipe4buildCondaCh
+    set val(key), val(singularityRecipe) from onlyCondaRecipe4buildCondaCh.mix(condaExistingEnvsCh)
 
   output:
     file("${key}CondaConfig.txt") into mergeCondaConfigCh
@@ -916,13 +913,13 @@ process buildMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsCh)
+    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsBisCh)
 
   output:
     file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
 
   script:
-    cplmt = condaDef == 'ENV' ? '.yml' : ''
+    cplmt = condaDef == 'ENV' ? '.env' : ''
     """
     cat << EOF > "${key}MulticondaConfig.txt"
       withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}${cplmt}}" }
