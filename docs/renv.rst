@@ -6,7 +6,11 @@
 R with reproducible environments using renv package
 ***************************************************
 
-The `renv <https://rstudio.github.io/renv/>`_ package helps you to create reproducible environments for your R projects. The ``renv.lock`` lockfile records the state of your project’s private library, and can be used to restore the state of that library as required. ``geniac`` can use a ``renv.lock`` lockfile to install all the package dependencies needed by your R environment. However, this is a use case which requires some manual configuration as explained below.
+The `renv <https://rstudio.github.io/renv/>`_ package helps you to create reproducible environments for your R projects. The ``renv.lock`` lockfile records the state of your project’s private library, and can be used to restore the state of that library as required. ``geniac`` can use a ``renv.lock`` lockfile to install all the package dependencies needed by your R environment. However, this is a use case which requires some manual configuration as explained below. ``geniac`` allows you to add as many tools as you wish using ``renv``. In this section, we provide an example using a tool with the label ``renvGlad``.
+
+.. important::
+
+    For any tool using ``renv``, its label must have the prefix ``renv``!
 
 Create a conda recipe
 ======================
@@ -15,62 +19,84 @@ Create the conda recipes in the file ``recipes/conda/r.yml`` which defines which
 
 ::
 
-   name: r_env
-   channels:
-       - conda-forge
-       - bioconda
-       - defaults
-   dependencies:
-       - r-base=3.6.1=h6e652e1_3
+    name: renvGlad
+    channels:
+        - conda-forge
+        - bioconda
+        - defaults
+    dependencies:
+        - r-base=4.1.3=h06d3f91_1
 
 
-Add the label 'r' in geniac.config
+Add the label in geniac.config
 ==================================
 
-In the section ``params.geniac.tools`` of the file ``conf.geniac.config``, add the label ``r`` with the two scopes ``base`` and ``label`` as follows:
+In the section ``params.geniac.tools`` of the file ``conf.geniac.config``, add the label with the three scopes ``yml``, ``env`` and ``bioc``, for example:
 
 ::
 
-            r {
-                base = "${projectDir}/recipes/conda/r.yml"
-                label = "${params.condaCacheDir}/custom_r"
-            }
+          renvGlad {
+            yml = "${projectDir}/recipes/conda/renvGlad.yml"
+            env = "${params.condaCacheDir}/custom_renvGlad"
+            bioc = "3.14"
+          }
 
-``r.base`` provides the path to the conda recipe while ``r.label`` defines the name of the environment in the conca cache dir.
 
-Create a process initRenv
-=========================
+* ``renvGlad.yml`` provides the path to the conda recipe. It should be located in ``"${projectDir}/recipes/conda``.
+* ``renvGlad.env`` defines the name of the environment in the conda cache dir.
+* ``renvGlad.bioc`` sets the Bioconductor version which is possibly required to install the R packages.
+
+Create a process to init the renv
+=================================
+
+This process allows the usage of the R software with the ``multiconda`` and ``conda`` profiles. During this process, the dependencies provided in the ``renv.lock`` will be installed.
 
 In your ``main.nf``, add the following process:
 
 ::
 
-    process initRenv {
-        label 'onlyLinux'
-        label 'smallCpu'
-        label 'memM'
+    process renvGladInit {
+      label 'onlyLinux'
+      label 'minCpu'
+      label 'minMem'
     
-        output:
-        val(true) into doneCh
+      output:
+      val(true) into renvGladInitDoneCh
     
-        script:
-        if (workflow.profile.contains('multiconda')) {
+      script:
+        def renvName = 'renvGlad' // This is the only variable which needs to be modified
+        def renvYml = params.geniac.tools.get(renvName).get('yml')
+        def renvEnv = params.geniac.tools.get(renvName).get('env')
+        def renvBioc = params.geniac.tools.get(renvName).get('bioc')
+        def renvLockfile = projectDir.toString() + '/recipes/dependencies/' + renvName + '/renv.lock'
+        
+    
+        // The code below is generic, normally, no modification is required
+        if (workflow.profile.contains('multiconda') || workflow.profile.contains('conda')) {
             """
-            if conda env list | grep -wq ${params.geniac.tools.r.label} || [ -d "${params.condaCacheDir}" -a -d "${params.geniac.tools.r.label}" ] ; then
+            if conda env list | grep -wq ${renvEnv} || [ -d "${params.condaCacheDir}" -a -d "${renvEnv}" ] ; then
                 echo "prefix already exists, skipping environment creation"
             else
-                CONDA_PKGS_DIRS=. conda env create --prefix ${params.geniac.tools.r.label} --file ${params.geniac.tools.r.base}
+                CONDA_PKGS_DIRS=. conda env create --prefix ${renvEnv} --file ${renvYml}
             fi
-    
-            source ${params.conda.activate}
+      
             set +u
-            conda activate ${params.geniac.tools.r.label}
+            conda_base=\$(dirname \$(which conda))
+            if [ -f \$conda_ conda/../../etc/profile.d/conda.sh ]; then
+              conda_script="\$conda_base/../../etc/profile.d/conda.sh"
+            else
+              conda_script="\$conda_base/../etc/profile.d/conda.sh"
+            fi
+      
+            echo \$conda_script
+            source \$conda_script
+            conda activate ${renvEnv}
             set -u
-    
+      
             export PKG_CONFIG_PATH=\$(dirname \$(which conda))/../lib/pkgconfig
             export PKG_LIBS="-liconv"
-    
-            R -q -e "options(repos = \\"https://cloud.r-project.org\\") ; install.packages(\\"renv\\") ; options(renv.consent = TRUE, renv.config.install.staged=FALSE, renv.settings.use.cache=TRUE) ; install.packages(\\"BiocManager\\"); BiocManager::install(version=\\"3.9\\", ask=FALSE) ; renv::restore(lockfile = \\"${params.dragonDependencies}/r/renv.lock\\")"
+      
+            R -q -e "options(repos = \\"https://cloud.r-project.org\\") ; install.packages(\\"renv\\") ; options(renv.consent = TRUE, renv.config.install.staged=FALSE, renv.settings.use.cache=TRUE) ; install.packages(\\"BiocManager\\"); BiocManager::install(version=\\"${renvBioc}\\", ask=FALSE) ; renv::restore(lockfile = \\"${renvLockfile}\\")"
             """
         } else {
             """
@@ -79,14 +105,16 @@ In your ``main.nf``, add the following process:
         }
     }
     
-    doneCh.set{ renvDoneCh }
+    renvGladInitDoneCh.set{ renvGladDoneCh}
 
 
-This process allows the usage of the R software with the ``multiconda`` profile. During this process, the dependencies provided in the ``renv.lock`` will be installed.
+.. important::
 
-.. warning::
+    The name of the process must start by the label of the tool followed by the ``Init`` suffixe, for example ``renvGladInit``.
 
-   After the ``initRenv`` process, add the line ``doneCh.set{ renvDoneCh }``. The channel ``renvDoneCh`` will be an input for any process which will use the ``r`` label.
+    In the ``output`` section, define a channel with the name of the label followed by the ``InitDoneCh`` suffixe, for example ``val(true) into renvGladInitDoneCh``.
+
+    Aget on process, define a channel to indicate that the ``renv`` has been initiated. The channel must start by the name of the label followd by the ``DoneCh`` suffixe, for example ``renvGladInitDoneCh.set{ renvGladDoneCh}``
 
 
 Copy you ``renv.lock`` file in ``recipes/dependencies/r``
@@ -94,42 +122,31 @@ Copy you ``renv.lock`` file in ``recipes/dependencies/r``
 
 We assume that the reader is familiar with `renv <https://rstudio.github.io/renv/>`_. Copy your ``renv.lock`` file in the folder ``recipes/dependencies/r``. Here is an example of a ``renv.lock`` file:
 
-.. literalinclude:: ../data/recipes/dependencies/r/renv.lock
+.. literalinclude:: ../data/recipes/dependencies/renvGlad/renv.lock
 
 
-Write the docker recipe
-=======================
 
-Write the docker recipe in the file ``recipes/docker/r.Dockerfile`` as follows:
+Add a process which use the renv
+================================
 
-.. literalinclude:: ../data/recipes/docker/r.Dockerfile
-
-Write the singularity recipe
-============================
-
-Write the singularity in the file ``recipes/singularity/r.def`` as follows:
-
-.. literalinclude:: ../data/recipes/singularity/r.def
-
-
-Add a process
-=============
-
-Write you process using the ``r`` label and always add as input ``val(done) from renvDoneCh``
+Write you process using the label with the ``renv`` tool and always define in the ``input`` section of the process the channel that has been previously set, for example ``val(done) from renvGladDoneCh``
 
 ::
 
-   process testR {
-       label 'r'
-       label 'smallCpu'
-       label 'memS'
-   
-       input:
-       val(done) from renvDoneCh
-   
-       script:
-       """
-       R --version
-       """
-   }
-
+    process glad {
+      label 'renvGlad'
+      label 'minCpu'
+      label 'minMem'
+      publishDir "${params.outDir}/GLAD", mode: 'copy'
+    
+      input:
+      val(done) from renvGladDoneCh
+    
+      output: 
+      file "BkpInfo.tsv"
+    
+      script:
+      """
+      Rscript ${projectDir}/bin/apGlad.R
+      """
+    }
