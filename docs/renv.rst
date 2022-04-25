@@ -6,7 +6,7 @@
 R with reproducible environments using renv package
 ***************************************************
 
-The `renv <https://rstudio.github.io/renv/>`_ package helps you to create reproducible environments for your R projects. The ``renv.lock`` lockfile records the state of your project’s private library, and can be used to restore the state of that library as required. ``geniac`` can use a ``renv.lock`` lockfile to install all the package dependencies needed by your R environment. However, this is a use case which requires some manual configuration as explained below. ``geniac`` allows you to add as many tools as you wish using ``renv``. In this section, we provide an example using a tool with the label ``renvGlad``.
+The `renv <https://rstudio.github.io/renv/>`_ package helps you to create reproducible environments for your `R projects <https://www.r-project.org>`_. The ``renv.lock`` lockfile records the state of your project’s private library, and can be used to restore the state of that library as required. ``geniac`` can use a ``renv.lock`` lockfile to install all the package dependencies needed by your R environment. However, this is a use case which requires some manual configuration as explained below. ``geniac`` allows you to add as many tools as you wish using ``renv``. In this section, we provide an example using a tool with the label ``renvGlad``.
 
 .. important::
 
@@ -15,7 +15,7 @@ The `renv <https://rstudio.github.io/renv/>`_ package helps you to create reprod
 Create a conda recipe
 ======================
 
-Create the conda recipes in the file ``recipes/conda/r.yml`` which defines which R version you want to use, for example:
+Create the conda recipes in the folder ``recipes/conda`` which defines which R version you want to use, for example create ``recipes/conda/renvGlad.yml`` as follows:
 
 ::
 
@@ -31,7 +31,7 @@ Create the conda recipes in the file ``recipes/conda/r.yml`` which defines which
 Add the label in geniac.config
 ==================================
 
-In the section ``params.geniac.tools`` of the file ``conf.geniac.config``, add the label with the three scopes ``yml``, ``env`` and ``bioc``, for example:
+In the section ``params.geniac.tools`` of the file ``conf/geniac.config``, add the label with the three scopes ``yml``, ``env`` and ``bioc``, for example:
 
 ::
 
@@ -42,7 +42,7 @@ In the section ``params.geniac.tools`` of the file ``conf.geniac.config``, add t
           }
 
 
-* ``renvGlad.yml`` provides the path to the conda recipe. It should be located in ``"${projectDir}/recipes/conda``.
+* ``renvGlad.yml`` provides the path to the conda recipe. It should be located in ``"${projectDir}/recipes/conda"``.
 * ``renvGlad.env`` defines the name of the environment in the conda cache dir.
 * ``renvGlad.bioc`` sets the Bioconductor version which is possibly required to install the R packages.
 
@@ -110,24 +110,28 @@ In your ``main.nf``, add the following process:
 
 .. important::
 
-    The name of the process must start by the label of the tool followed by the ``Init`` suffixe, for example ``renvGladInit``.
+    The name of the process must start by the label of the tool followed by the ``Init`` suffix, for example ``renvGladInit``.
+
+    This process must use the label ``onlyLinux`` (see :ref:`process-unix`).
 
     In the ``output`` section, define a channel with the name of the label followed by the ``InitDoneCh`` suffixe, for example ``val(true) into renvGladInitDoneCh``.
 
-    Aget on process, define a channel to indicate that the ``renv`` has been initiated. The channel must start by the name of the label followd by the ``DoneCh`` suffixe, for example ``renvGladInitDoneCh.set{ renvGladDoneCh}``
+    After the process, define a channel to indicate that the ``renv`` has been initiated. The channel must start by the name of the label followd by the ``DoneCh`` suffixe, for example ``renvGladInitDoneCh.set{ renvGladDoneCh}``
+
+    In this process, set the content of the variable ``renvName`` to the label of the tool, for axample ``renvGlad``.
 
 
-Copy you ``renv.lock`` file in ``recipes/dependencies/r``
-=========================================================
+Copy you ``renv.lock`` file  is a sublder inside ``recipes/dependencies/``
+==========================================================================
 
-We assume that the reader is familiar with `renv <https://rstudio.github.io/renv/>`_. Copy your ``renv.lock`` file in the folder ``recipes/dependencies/r``. Here is an example of a ``renv.lock`` file:
+We assume that the reader is familiar with `renv <https://rstudio.github.io/renv/>`_. In the folder ``recipes/dependencies/``, create a subfolder with the name of the label of the tool, for example ``recipes/dependencies/renvGald``. Then, copy your ``renv.lock`` file in this subfolder . Here is an example of a ``renv.lock`` file:
 
 .. literalinclude:: ../data/recipes/dependencies/renvGlad/renv.lock
 
 
 
-Add a process which use the renv
-================================
+Add a process which uses the renv
+=================================
 
 Write you process using the label with the ``renv`` tool and always define in the ``input`` section of the process the channel that has been previously set, for example ``val(done) from renvGladDoneCh``
 
