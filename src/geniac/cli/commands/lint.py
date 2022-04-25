@@ -1198,6 +1198,22 @@ class GeniacLint(GeniacCommand):
                     else:
                         self.error("The input section is missing in the process '%s' which uses the renv '%s' tool. You need to add it and define that the procees depends on the input 'val(done) from %sDoneCh'.", process, label, label)
 
+    def check_labels_conda_geniac(
+        self
+    ):
+        """Check that a conda recipe has its label defined in geniac.config"""
+
+        labels = self.labels_from_folders.get('conda', [])
+        labels_in_geniac = self.labels_from_configs.get("geniac", [])
+        labels_in_workflow = self.labels_from_workflow
+        for label in labels:
+            if not bool(re.match("^renv.*", label)):
+                if label in labels_in_workflow:
+                    if label in labels_in_geniac:
+                        self.debug("The conda recipe corresponding to the label '%s' is declared in the geniac.config file.", label)
+                    else:
+                        self.error("The conda recipe corresponding to the label '%s' has not been declared in the geniac.config file. It should be added in the section params.geniac.tools", label)
+
 
     def run(self):
         """Execute the main routine
@@ -1233,6 +1249,9 @@ class GeniacLint(GeniacCommand):
 
         # Check labels for renv
         self.check_labels_renv()
+
+        # Check that a conda recipe has its label defined in geniac.config"""
+        self.check_labels_conda_geniac()
 
         # Check that the process which uses a renv tools
         # relies on the input channel
