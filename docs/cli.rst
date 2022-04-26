@@ -116,6 +116,7 @@ Test the pipeline with the singularity profile
 ::
 
    # Test the pipeline with the singularity profile
+   cd ${WORK_DIR}
    geniac test singularity
 
 Test the pipeline with the singularity and cluster profiles
@@ -124,5 +125,26 @@ Test the pipeline with the singularity and cluster profiles
 ::
 
    # Test the pipeline with the singularity profile
+   cd ${WORK_DIR}
    geniac test singularity --check-cluster
 
+Clean the geniac work directory
+===============================
+
+You can clean the build directory as follows:
+
+::
+
+   # Clean the build directory
+   cd ${WORK_DIR}
+   geniac clean
+
+List available cmake options
+============================
+
+
+::
+
+   # List available cmake options
+   cd ${WORK_DIR}
+   geniac options
