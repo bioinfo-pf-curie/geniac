@@ -87,7 +87,6 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = ["_themes", ]
 html_logo = 'images/geniac-logo.svg'
 html_favicon = 'images/geniac-logo.png'
 

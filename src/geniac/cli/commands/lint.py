@@ -8,6 +8,7 @@ import subprocess
 from collections import OrderedDict
 from inspect import getfullargspec
 from pathlib import Path
+from shutil import which
 
 from geniac.cli.commands.base import GeniacCommand
 from geniac.cli.parsers.base import DEFAULT_ENCODING
@@ -29,6 +30,10 @@ class GeniacLint(GeniacCommand):
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
     )
+    # REGEX to check if a string is a path for renv.lock file
+    RENV_LOCKFILE_PATH_RE = re.compile(
+        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>lock))"
+    )
     # REGEX to check if install cmake directive has been correctly added in the main CMakeLists.txt
     INSTALL_MAIN_CMAKE_RE = re.compile(
         r"install\([\s\w_${}\-/=]*DESTINATION +"
@@ -37,14 +42,14 @@ class GeniacLint(GeniacCommand):
     # REGEX to check if install cmake directive has been correctly added in the
     # module CMakeLists.txt
     INSTALL_MODULE_CMAKE_RE = re.compile(
-        r"install\([\s\w_${}\-/=]*DESTINATION +[\s\w_${}\-/=]*\)"
+        r"install\s*\([\s\w_${}\-/=]*DESTINATION +[\s\w_${}\-/=]*\)"
     )
     # REGEX to check if ExternalProject cmake directive has been correctly added in the main
     # CMakeLists.txt
     PROJECT_ADD_MAIN_CMAKE_RE_TEMP = (
-        r"ExternalProject_Add\(\s*{label}[\s\w_${{}}\-/=]*SOURCE_"
+        r"ExternalProject_Add\(\s.*\s*SOURCE_"
         r"DIR +(\$\{{pipeline_source_dir\}}/modules/fromSource|"
-        r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}"
+        r"\$\{{CMAKE_CURRENT_SOURCE_DIR\}})/{label}\n"
     )
     # REGEX to check if a dependency has been correctly added in a singularity
     # recipe
@@ -54,6 +59,7 @@ class GeniacLint(GeniacCommand):
     # REGEX to check if a dependency has been correctly added in a docker
     # recipe
     DOCKER_DEP_RE_TEMP = r"ADD +{tool}/{dependency} [\/\w.]+{dependency}"
+    
 
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
@@ -412,7 +418,7 @@ class GeniacLint(GeniacCommand):
         self.processes_from_workflow = script.content.get("process", OrderedDict())
 
     def _check_geniac_config(
-        self, config: NextflowConfig, conda_check: bool = True
+        self, config: NextflowConfig, conda_check: bool = False
     ) -> list:
         """Check the content of params scope in a geniac config file
 
@@ -422,20 +428,28 @@ class GeniacLint(GeniacCommand):
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
         """
+        # list of label declared in params.geniac.tools
         labels_geniac_tools = []
+        # list of tools used as variable in other params.geniac.tools
+        labels_variables_tools = []
 
         # Check parameters according to their default values
         config.check_config_scope("params")
 
+        # REGEX to check if a label uses information from another label
+        # recipe
+        LABEL_USED_BY_A_LABEL = r"\s*\$\{params\.geniac\.tools\.(?P<usedLabel>.+)\}\s*"
+
         # Check if conda command exists
-        try:
-            subprocess.run(["conda", "-h"], capture_output=True, check=True)
-        except subprocess.CalledProcessError:
-            self.error(
-                "Conda is not available in your path. Geniac will not check if tool "
-                "recipes are correct."
-            )
-            conda_check = False
+        if conda_check:
+           cmd = which("conda")
+           if cmd == None:
+              self.error(
+                  "Conda is not available in your path. Geniac will not check if tool "
+                  "recipes are correct. Add conda in your PATH: export PATH=/path/to/conda/bin:$PATH"
+              )
+           else:
+              self.info("conda is in the PATH")
 
         # Check each label in params.geniac.tools
         self.info(
@@ -443,63 +457,108 @@ class GeniacLint(GeniacCommand):
             if conda_check
             else "Checking of conda recipes turned off."
         )
-        for label, [recipe] in config.get("params.geniac.tools", OrderedDict()).items():
-            labels_geniac_tools.append(label)
-            # If the tool value is a conda recipe
-            if match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
-                if not conda_check:
-                    continue
-                # The related recipe is a correct conda recipe
-                # Check if the recipes exists in the actual OS with conda search
-                for conda_recipe in match.groupdict().get("recipes").split(" "):
-                    try:
-                        conda_search = subprocess.run(
-                            ["conda", "search", conda_recipe],
-                            capture_output=True,
-                            check=True,
-                        )
-                    except subprocess.CalledProcessError:
-                        self.error(
-                            "Conda search command returned non-zero exit status for the recipe "
-                            "%s[%s]. Either conda is not available or the recipe does not link "
-                            "to an existing package or build. Check if the requested build is "
-                            "still available on conda with the following command:"
-                            "\n\t> conda search %s.",
-                            conda_recipe,
-                            label,
-                            conda_recipe,
-                        )
+        geniac_tools_list = config.get("params.geniac.tools", OrderedDict()).items()
+        for label, value in geniac_tools_list:
+            if len(value) == 1:
+                [recipe] = value
+                (recipe, n_sub) = re.subn(LABEL_USED_BY_A_LABEL , "", recipe)
+                if n_sub > 0:
+                    [from_labels] = value
+                    from_labels = from_labels.split()
+                    from_labels = list(filter(re.compile(LABEL_USED_BY_A_LABEL).match, from_labels))
+                    for new_used_label in from_labels:
+                        new_used_label = re.match(LABEL_USED_BY_A_LABEL, new_used_label)
+                        new_used_label = new_used_label.group('usedLabel')
+                        labels_variables_tools.append(new_used_label)
+                    self.info("The label '%s' defined in the geniac.config file uses information from the labels %s.", label, labels_variables_tools)
+                labels_geniac_tools.append(label)
+                if len(recipe) != 0:
+                # If the tool value is a conda recipe
+                    if match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
+                        if not conda_check:
+                            continue
+                        # The related recipe is a correct conda recipe
+                        # Check if the recipes exists in the actual OS with conda search
+                        for conda_recipe in match.groupdict().get("recipes").split(" "):
+                            try:
+                                conda_search = subprocess.run(
+                                    ["conda", "search", conda_recipe],
+                                    capture_output=True,
+                                    check=True,
+                                )
+                            except subprocess.CalledProcessError:
+                                self.error(
+                                    "Conda search command returned non-zero exit status for the recipe "
+                                    "%s[%s]. Either conda is not available or the recipe does not link "
+                                    "to an existing package or build. Check if the requested build is "
+                                    "still available on conda with the following command:"
+                                    "\n\t> conda search %s.",
+                                    conda_recipe,
+                                    label,
+                                    conda_recipe,
+                                )
+                            else:
+                                self.debug("Conda search output:\n%s", conda_search.stdout)
+                    # Elif the tool value is a path to an environment file (yml or yaml ext),
+                    # check if the path exists
+                    elif match := GeniacLint.CONDA_PATH_RE.search(recipe):
+                        if (
+                            conda_path := Path(
+                                self.src_path / match.groupdict().get("basepath")
+                            )
+                        ) and not conda_path.exists():
+                            self.error(
+                                "Conda file %s related to %s tool does not exist.",
+                                conda_path.relative_to(self.src_path),
+                                label,
+                            )
+                    # else check if it's a valid path
                     else:
-                        self.debug("Conda search output:\n%s", conda_search.stdout)
-            # Elif the tool value is a path to an environment file (yml or yaml ext),
-            # check if the path exists
-            elif match := GeniacLint.CONDA_PATH_RE.search(recipe):
-                if (
-                    conda_path := Path(
-                        self.src_path / match.groupdict().get("basepath")
-                    )
-                ) and not conda_path.exists():
-                    self.error(
-                        "Conda file %s related to %s tool does not exist.",
-                        conda_path.relative_to(self.src_path),
-                        label,
-                    )
-            # else check if it's a valid path
+                        self.error(
+                            "Value %s of %s tool does not follow the pattern "
+                            '"condaChannelName::softName=version=buildString".',
+                            recipe,
+                            label,
+                        )
             else:
-                self.error(
-                    "Value %s of %s tool does not follow the pattern "
-                    '"condaChannelName::softName=version=buildString".',
-                    recipe,
-                    label,
-                )
+                if bool(re.match(r"^renv.*", label)):
+                    renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
+                    if list(self.processes_from_workflow.keys()).count(label + 'Init') < 1:
+                        self.error("The process %s is missing for the renv label '%s'.", label + 'Init', label)
+                    else:
+                        self.check_renv_init_output_channel(label + 'Init')
 
-        for extra_section in (
-            "params.geniac.containers.yum",
-            "params.geniac.containers.git",
-        ):
-            NextflowConfig.check_labels_in_section(
-                config, extra_section, labels_geniac_tools
-            )
+                    for scope in ['yml', 'env', 'bioc']:
+                        if value.get(scope) == None:
+                            self.error("In the renv label '%s', the scope '%s' is missing.", label, scope)
+                        else:
+                            if scope == 'yml':
+                                [renvYml] = value.get('yml')
+
+                                if match := GeniacLint.CONDA_PATH_RE.search(renvYml):
+                                    if (
+                                        conda_path := Path(
+                                            self.src_path / match.groupdict().get("basepath")
+                                        )
+                                    ) and not conda_path.exists():
+                                        self.error(
+                                            "Conda file %s related to the renv %s tool does not exist.",
+                                            conda_path.relative_to(self.src_path),
+                                            label,
+                                        )
+
+                    if match := GeniacLint.RENV_LOCKFILE_PATH_RE.search(renvLockfile):
+                        if (
+                            dep_path := Path(
+                                self.src_path / match.groupdict().get("basepath")
+                            )
+                        ) and not dep_path.exists():
+                            self.error("There is no 'recipes/dependencies/%s/renv.lock' file for the renv '%s' tool. You must add the renv.lock file.", label, label)
+
+
+        labels_not_present = set(labels_variables_tools) - set(labels_geniac_tools)
+        if labels_not_present:
+            self.error("The tools %s used as variables in other tools are not found in the conf/geniac.config.", sorted(list(labels_not_present)))
 
         return labels_geniac_tools
 
@@ -736,9 +795,11 @@ class GeniacLint(GeniacCommand):
                     )
                 else:
                     self.error(
-                        "Module %s not added with ExternalProject_Add directive within %s file.",
+                            "Module %s not added with ExternalProject_Add directive within %s file, or the ExternalProject_Add is not correctly formatted. It should look like this:\nExternalProject_Add(\n\t%s\n\tSOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/%s\n\tCMAKE_ARGS\n\t-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/externalProject/bin)",
                         module_name,
                         main_cmake_lists.relative_to(self.src_path),
+                        module_name,
+                        module_name,
                     )
 
                 # Then look in the CMakeLists.txt if install DESTINATION is correct
@@ -774,7 +835,7 @@ class GeniacLint(GeniacCommand):
 
     @staticmethod
     def _get_labels_from_conda_dir(conda_tree):
-        """Get geniac labels from conda, singularity and docker recipes"""
+        """Get geniac labels from conda recipes"""
         labels_from_recipes = []
 
         for recipe_child in conda_tree.get("current_files", []):
@@ -784,7 +845,7 @@ class GeniacLint(GeniacCommand):
 
     @staticmethod
     def _get_labels_from_singularity_dir(singularity_tree):
-        """Get geniac labels from conda, singularity and docker recipes"""
+        """Get geniac labels from singularity recipes"""
         labels_from_recipes = []
 
         for recipe_child in singularity_tree.get("current_files", []):
@@ -794,7 +855,7 @@ class GeniacLint(GeniacCommand):
 
     @staticmethod
     def _get_labels_from_docker_dir(docker_tree):
-        """Get geniac labels from conda, singularity and docker recipes"""
+        """Get geniac labels from docker recipes"""
         labels_from_recipes = []
 
         for recipe_child in docker_tree.get("current_files", []):
@@ -864,12 +925,14 @@ class GeniacLint(GeniacCommand):
                 # Throw an error if dependency not found in any recipe file
                 # TODO: should throw an error if dependency not found in one of the recipe files
                 if not recipe_flag:
-                    self.warning(
-                        "Dependency file %s not used in any %s recipe files %s.",
-                        dependency_path.name,
-                        recipe_type,
-                        tree.get("path").relative_to(self.src_path),
-                    )
+                    if dependency_path.name != "renv.lock":
+                       self.warning(
+                           "Dependency file %s/%s not used in any %s recipe files %s.",
+                           tool_name,
+                           dependency_path.name,
+                           recipe_type,
+                           tree.get("path").relative_to(self.src_path),
+                       )
 
     def _check_env_dir(self, env_tree: dict):
         """
@@ -1059,6 +1122,119 @@ class GeniacLint(GeniacCommand):
                     process_path,
                 )
 
+    def check_labels_containers(
+        self, container
+    ):
+        """Check labels for containers"""
+        for label_name in ["modules"]:
+            if container_diff := sorted(
+                list(
+                    set(
+                        self.labels_from_folders.get(container, [])
+                    ).intersection(set(self.labels_from_folders.get(label_name, [])))
+                )
+            ):
+                self.error(
+                        "Some %s recipes are also used by the %s labels: %s. This probably means that you have added %s recipes generated by geniac in the source code repository, then delete these recipes from your source code.",
+                    container, label_name, container_diff, container,
+                )
+
+        for label_name in ["geniac"]:
+            if container_diff := sorted(
+                list(
+                    set(
+                        self.labels_from_folders.get(container, [])
+                    ).intersection(set(self.labels_from_configs.get(label_name, [])))
+                )
+            ):
+                self.error(
+                        "Some %s recipes are also used by the %s labels: %s. This probably means that you have added %s recipes generated by geniac in the source code repository, then delete these recipes from your source code.",
+                    container, label_name, container_diff, container,
+                )
+
+    def check_extra_section_geniac_config(self):
+        labels = set(self.labels_from_folders.get("modules", []) + self.labels_from_configs.get("geniac", []))
+        for extra_section in (
+            "params.geniac.containers.yum",
+            "params.geniac.containers.git",
+        ):
+            self.nxf_config_container.check_labels_in_section(
+                extra_section, labels
+            )
+
+    def check_labels_renv(
+        self
+    ):
+        """Check labels for renv"""
+
+        for (folder_name, label_list) in self.labels_from_folders.items():
+            if folder_name != 'conda':
+                for label_name in label_list:
+                    if bool(re.match(r"^renv.*", label_name)):
+                        self.error("In the folder for '%s', you have the label '%s'. Label which starts by 'renv' is only allowed for tools with R and renv. Change the name of your label.",
+                                folder_name,
+                                label_name)
+
+        for (config_name, label_list) in self.labels_from_configs.items():
+            if config_name == 'geniac':
+                for label_name in label_list:
+                    if bool(re.match("^renv.*", label_name)):
+                        self.error("In the config for '%s', you have the label '%s'. Label which starts by 'renv' is only allowed for tools with R and renv. Change the name of your label.",
+                                config_name,
+                                label_name)
+
+    # This function checks that a process which initiate a renv fr MyTool
+    # correctly sets the channel 'val(true) into renvMyToolDoneCh'
+    def check_renv_init_output_channel(self, label):
+        output_content = self.processes_from_workflow.get(label, []).get('output')
+        if output_content:
+            output_list = list(output_content)
+            channel = re.compile(r"val\(true\)[ \t]+into[ \t]+" + label + "DoneCh")
+            inter = list(filter(channel.match, output_list))
+            if inter:
+                self.debug("In the output section of the process '%s', the line 'val(true) into %sDoneCh' is present.", label, label)
+            else:
+                self.error("In the output section of the process '%s', the line 'val(true) into %sDoneCh' is missing.", label, label)
+        else:
+            self.error("The output section is missing in the process '%s'. You need to add it and define the channel '%sDoneCh'.", label, label)
+
+
+    # This function check that a process which relies on a renv tool
+    # depends on the channel set after the process which initiates the renv
+    def check_use_renv_input_channel(self):
+        for process in self.processes_from_workflow.keys():
+            labels = self.processes_from_workflow.get(process, []).get('label')
+            input_content = self.processes_from_workflow.get(process, []).get('input')
+            for label in labels:
+                if bool(re.match("^renv.*", label)):
+                    if input_content:
+                        channel = re.compile(r".*from[ \t]+" + label + "DoneCh")
+                        input_list = list(input_content)
+                        inter = list(filter(channel.match, input_list))
+                        if inter:
+                            self.debug("In the input section of the process '%s' which uses the renv '%s' tool, the line 'val(done) from %sDoneCh' is present.", process, label, label)
+                        else:
+                            self.error("In the input section of the process '%s' which uses the renv '%s' tool, the line 'val(done) from %sDoneCh' is missing.", process, label, label)
+                    else:
+                        self.error("The input section is missing in the process '%s' which uses the renv '%s' tool. You need to add it and define that the procees depends on the input 'val(done) from %sDoneCh'.", process, label, label)
+
+    def check_labels_conda_geniac(
+        self
+    ):
+        """Check that a conda recipe has its label defined in geniac.config"""
+
+        labels = self.labels_from_folders.get('conda', [])
+        labels_in_geniac = self.labels_from_configs.get("geniac", [])
+        labels_in_workflow = self.labels_from_workflow
+        for label in labels:
+            if not bool(re.match("^renv.*", label)):
+                if label in labels_in_workflow:
+                    if label in labels_in_geniac:
+                        self.debug("The conda recipe corresponding to the label '%s' is declared in the geniac.config file.", label)
+                    else:
+                        self.error("The conda recipe corresponding to the label '%s' has not been declared in the geniac.config file. It should be added in the section params.geniac.tools", label)
+
+
     def run(self):
         """Execute the main routine
 
@@ -1081,6 +1257,25 @@ class GeniacLint(GeniacCommand):
         # Check if there is any inconsistency between the labels from configuration
         # files and the main script
         self.check_labels()
+
+        # Check if there is any inconsistency between the labels  in the extra sections
+        # from geniac.config
+        self.check_extra_section_geniac_config()
+
+        # Check that labels from container recipes have not been used elsewhere.
+        # This checks that the containers receipes have not been pushed in the git repository
+        self.check_labels_containers(container="singularity")
+        self.check_labels_containers(container="docker")
+
+        # Check labels for renv
+        self.check_labels_renv()
+
+        # Check that a conda recipe has its label defined in geniac.config"""
+        self.check_labels_conda_geniac()
+
+        # Check that the process which uses a renv tools
+        # relies on the input channel
+        self.check_use_renv_input_channel()
 
         # End the run with exit code
         if self.error_flag:
