@@ -59,6 +59,7 @@ class GeniacLint(GeniacCommand):
     # REGEX to check if a dependency has been correctly added in a docker
     # recipe
     DOCKER_DEP_RE_TEMP = r"ADD +{tool}/{dependency} [\/\w.]+{dependency}"
+    
 
     # Name of config sections used in this class
     TREE_SUFFIX = "tree"
@@ -427,10 +428,17 @@ class GeniacLint(GeniacCommand):
         Returns:
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
         """
+        # list of label declared in params.geniac.tools
         labels_geniac_tools = []
+        # list of tools used as variable in other params.geniac.tools
+        labels_variables_tools = []
 
         # Check parameters according to their default values
         config.check_config_scope("params")
+
+        # REGEX to check if a label uses information from another label
+        # recipe
+        LABEL_USED_BY_A_LABEL = r"\s*\$\{params\.geniac\.tools\.(?P<usedLabel>.+)\}\s*"
 
         # Check if conda command exists
         if conda_check:
@@ -453,9 +461,16 @@ class GeniacLint(GeniacCommand):
         for label, value in geniac_tools_list:
             if len(value) == 1:
                 [recipe] = value
-                (recipe, n_sub) = re.subn(r"\s*\$\{params.geniac.tools.*\}\s*", "", recipe)
+                (recipe, n_sub) = re.subn(LABEL_USED_BY_A_LABEL , "", recipe)
                 if n_sub > 0:
-                    self.info("The label '%s' defined in the geniac.config file uses information from other labels.", label)
+                    [from_labels] = value
+                    from_labels = from_labels.split()
+                    from_labels = list(filter(re.compile(LABEL_USED_BY_A_LABEL).match, from_labels))
+                    for new_used_label in from_labels:
+                        new_used_label = re.match(LABEL_USED_BY_A_LABEL, new_used_label)
+                        new_used_label = new_used_label.group('usedLabel')
+                        labels_variables_tools.append(new_used_label)
+                    self.info("The label '%s' defined in the geniac.config file uses information from the labels %s.", label, labels_variables_tools)
                 labels_geniac_tools.append(label)
                 if len(recipe) != 0:
                 # If the tool value is a conda recipe
@@ -506,7 +521,7 @@ class GeniacLint(GeniacCommand):
                             label,
                         )
             else:
-                if bool(re.match("^renv.*", label)):
+                if bool(re.match(r"^renv.*", label)):
                     renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
                     if list(self.processes_from_workflow.keys()).count(label + 'Init') < 1:
                         self.error("The process %s is missing for the renv label '%s'.", label + 'Init', label)
@@ -539,6 +554,11 @@ class GeniacLint(GeniacCommand):
                             )
                         ) and not dep_path.exists():
                             self.error("There is no 'recipes/dependencies/%s/renv.lock' file for the renv '%s' tool. You must add the renv.lock file.", label, label)
+
+
+        labels_not_present = set(labels_variables_tools) - set(labels_geniac_tools)
+        if labels_not_present:
+            self.error("The tools %s used as variables in other tools are not found in the conf/geniac.config.", list(labels_not_present))
 
         return labels_geniac_tools
 
@@ -1150,7 +1170,7 @@ class GeniacLint(GeniacCommand):
         for (folder_name, label_list) in self.labels_from_folders.items():
             if folder_name != 'conda':
                 for label_name in label_list:
-                    if bool(re.match("^renv.*", label_name)):
+                    if bool(re.match(r"^renv.*", label_name)):
                         self.error("In the folder for '%s', you have the label '%s'. Label which starts by 'renv' is only allowed for tools with R and renv. Change the name of your label.",
                                 folder_name,
                                 label_name)
