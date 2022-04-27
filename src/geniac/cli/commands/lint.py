@@ -558,7 +558,7 @@ class GeniacLint(GeniacCommand):
 
         labels_not_present = set(labels_variables_tools) - set(labels_geniac_tools)
         if labels_not_present:
-            self.error("The tools %s used as variables in other tools are not found in the conf/geniac.config.", list(labels_not_present))
+            self.error("The tools %s used as variables in other tools are not found in the conf/geniac.config.", sorted(list(labels_not_present)))
 
         return labels_geniac_tools
 
