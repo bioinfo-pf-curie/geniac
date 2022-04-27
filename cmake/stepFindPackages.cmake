@@ -29,7 +29,7 @@ find_package(Git 2.0)
 find_package(Nextflow 21.10.6)
 find_package(Singularity 3.8.5)
 find_package(Docker 18.0)
-find_package(Podman 3.4.4)
+find_package(Podman 3.4.0)
 
 if(GIT_FOUND)
     message_color(OK "Git found")
