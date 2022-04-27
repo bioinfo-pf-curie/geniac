@@ -206,6 +206,18 @@ Note that for some tools, other conda dependencies are required and can be added
    }
 
 
+Note also that you can add other conda dependencies from other tools that have been set in the section ``params.geniac.tools``. This ensures the consistency of the version of tools between tools whenever this is required. To do so, just add the variable in the list such as ``${params.geniac.tools.python}``, as shown below:
+
+
+::
+
+   params {
+      geniac{
+         tools {
+            fastqc = "${params.geniac.tools.python} conda-forge::openjdk=8.0.192=h14c3975_1003 bioconda::fastqc=0.11.6=2"
+         }
+      }
+   }
 
 *label*
 +++++++
