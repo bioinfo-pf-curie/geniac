@@ -101,14 +101,28 @@ ap_install_docker_images
 ++++++++++++++++++++++++
 
 | BOOL
-| Generate and install Dockerfiles and images if set to ON.
+| Generate and install Dockerfiles and images for docker if set to ON.
 | Default is OFF.
 
 ap_install_docker_recipes
 +++++++++++++++++++++++++
 
 | BOOL
-| Generate and install Dockerfiles if set to ON.
+| Generate and install Dockerfiles for docker if set to ON.
+| Default is OFF.
+
+ap_install_podman_images
+++++++++++++++++++++++++
+
+| BOOL
+| Generate and install Dockerfiles and images for podman if set to ON.
+| Default is OFF.
+
+ap_install_podman_recipes
++++++++++++++++++++++++++
+
+| BOOL
+| Generate and install Dockerfiles for podman if set to ON.
 | Default is OFF.
 
 ap_install_singularity_images
@@ -249,6 +263,8 @@ Assume you are in the ``build`` directory. The following custom targets allows y
 * ``make build_singularity_images``
 * ``make build_docker_recipes``
 * ``make build_docker_images``
+* ``make build_podman_recipes``
+* ``make build_podman_images``
 
 
 For singularity:

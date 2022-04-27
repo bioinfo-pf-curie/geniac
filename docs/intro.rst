@@ -21,7 +21,7 @@ The utilities and guidelines were motivated by:
 
 * being as less as invasive on the different expert communities,
 * reducing the overall development cycle from the prototyping stage to the deployment in a production environment,
-* providing portable pipelines with containers (|docker|_ and |singularity|_),
+* providing portable pipelines with containers (|docker|_, |podman|_ and |singularity|_),
 * automating (whenever possible) the building of containers from the source code of the pipeline.
 
 Offering the portability of the pipeline with containers can be achieved in two ways:
