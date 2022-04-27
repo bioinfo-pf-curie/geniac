@@ -278,6 +278,7 @@ class GeniacEntryPoint:
                         "all",
                         "images",
                         "docker",
+                        "podman",
                         "singularity",
                         "configs",
                         "recipes",
