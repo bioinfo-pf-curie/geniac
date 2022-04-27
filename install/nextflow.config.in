@@ -31,6 +31,8 @@ params {
   // leave all the default options to false
   buildSingularityImages = false
   buildDockerImages = false
+  buildPodmanImages = false
+  dockerCmd = 'docker'
 
   // option for the cluster executor
   clusterExecutor = 'pbs'
@@ -57,7 +59,7 @@ params {
   dockerRegistry = '@docker_registry@'
 
   // package manager for the Linux Distro
-  params.yum = 'dnf'
+  yum = 'dnf'
 
   // mount directories for the containers
   mountDir = '@mount_dir@'

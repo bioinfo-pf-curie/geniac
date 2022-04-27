@@ -839,6 +839,31 @@ process mergeDockerConfig {
 }
 
 /**
+ * Generate podman.config
+ **/
+
+process buildPodmanConfig {
+  tag "buildPodmanConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    file dockerConfig from finalDockerConfigCh
+
+  output:
+    file("podman.config") into finalPodmanConfigCh
+
+  script:
+    """
+    sed -e "s/docker {/podman {/g" ${dockerConfig} > podman.config
+    sed -i -e "s/dockerRunOptions/podmanRunOptions/g" podman.config
+    """
+}
+
+
+/**
  * Generate conda.config
  **/
 
