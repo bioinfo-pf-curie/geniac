@@ -1,0 +1,36 @@
+Bootstrap: docker
+From: 4geniac/almalinux:8.5_conda-py39_4.11.0
+
+%setup
+    mkdir -p ${SINGULARITY_ROOTFS}/opt/renv ${SINGULARITY_ROOTFS}/opt/renv_cache
+
+%environment
+    export R_LIBS_USER="-"
+    export R_PROFILE_USER="-"
+    export R_ENVIRON_USER="-"
+    export PYTHONNOUSERSITE=1
+    export PATH=$PATH
+    export LC_ALL=en_US.utf-8
+    export LANG=en_US.utf-8
+    source /opt/etc/bashrc
+
+%files
+    r/renv.lock /opt/renv/renv.lock
+
+%post
+    R_MIRROR=https://cloud.r-project.org
+    R_ENV_DIR=/opt/renv
+    CACHE=TRUE
+    CACHE_DIR=/opt/renv_cache
+    conda create -y -n r_env \
+    && conda install -y -c conda-forge -n r_env r-base=3.6.1=h6e652e1_3 \
+    && mkdir -p /opt/etc \
+    && echo -e "#! /bin/bash\n\n# script to activate the conda environment r_env" > ~/.bashrc \
+    && conda init bash \
+    && echo "conda activate r_env" >> ~/.bashrc \
+    && cp ~/.bashrc /opt/etc/bashrc \
+    && conda clean -a
+    source /opt/etc/bashrc \
+    && R -q -e "options(repos = \"${R_MIRROR}\") ; install.packages(\"renv\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\"BiocManager\"); BiocManager::install(version=\"3.9\", ask=FALSE) ; renv::restore(lockfile = \"${R_ENV_DIR}/renv.lock\")"
+
+

@@ -11,10 +11,13 @@ from logging.config import dictConfig
 from sys import argv
 
 from geniac import __version__
+from geniac.cli.commands.clean import GeniacClean
+from geniac.cli.commands.configs import GeniacConfigs
 from geniac.cli.commands.init import GeniacInit
 from geniac.cli.commands.install import GeniacInstall
 from geniac.cli.commands.lint import GeniacLint
 from geniac.cli.commands.options import GeniacOptions
+from geniac.cli.commands.recipes import GeniacRecipes
 from geniac.cli.commands.test import GeniacTest
 from geniac.cli.utils.base import MethodRecord, load_logging_config
 
@@ -88,6 +91,9 @@ class GeniacEntryPoint:
         "lint": logging.WARNING,
         "install": logging.INFO,
         "options": logging.INFO,
+        "clean": logging.INFO,
+        "configs": logging.INFO,
+        "recipes": logging.INFO,
     }
     DEFAULT_OPTS = (
         MethodRecord(
@@ -179,6 +185,24 @@ class GeniacEntryPoint:
         ),
     )
     OPTIONS_ARGS = tuple(
+        list(INIT_ARGS)
+        + [
+            # Put here specific args for options cmd
+        ]
+    )
+    CLEAN_ARGS = tuple(
+        list(INIT_ARGS)
+        + [
+            # Put here specific args for options cmd
+        ]
+    )
+    CONFIGS_ARGS = tuple(
+        list(INIT_ARGS)
+        + [
+            # Put here specific args for options cmd
+        ]
+    )
+    RECIPES_ARGS = tuple(
         list(INIT_ARGS)
         + [
             # Put here specific args for options cmd
@@ -279,6 +303,18 @@ class GeniacEntryPoint:
         self.args = args
         self.parsed_args = None
 
+    def clean_cmd(self):
+        """geniac clean subcommand"""
+        return GeniacClean(**self.parsed_args, parser=self.parser)
+
+    def configs_cmd(self):
+        """geniac configs subcommand"""
+        return GeniacConfigs(**self.parsed_args, parser=self.parser)
+
+    def recipes_cmd(self):
+        """Geniac recipes subcommand"""
+        return GeniacRecipes(**self.parsed_args, parser=self.parser)
+
     def lint_cmd(self):
         """Geniac Lint subcommand"""
         return GeniacLint(**self.parsed_args, parser=self.parser)
@@ -296,7 +332,7 @@ class GeniacEntryPoint:
         return GeniacOptions(**self.parsed_args, parser=self.parser)
 
     def test_cmd(self):
-        """Geniac options subcommand"""
+        """Geniac tests subcommand"""
         return GeniacTest(**self.parsed_args, parser=self.parser)
 
     def parse_args(self):
@@ -338,6 +374,39 @@ class GeniacEntryPoint:
             formatter_class=ArgumentDefaultsHelpFormatter,
         )
         parser_options.set_defaults(func=self.options_cmd, which="options")
+
+        # Geniac clean
+        parser_clean = subparsers.add_parser(
+            "clean",
+            help=_(
+                "Clean build directoty"
+            ),
+            parents=[parent_parser],
+            formatter_class=ArgumentDefaultsHelpFormatter,
+        )
+        parser_clean.set_defaults(func=self.clean_cmd, which="clean")
+
+        # Geniac configs
+        parser_configs = subparsers.add_parser(
+            "configs",
+            help=_(
+                "Generate config files a Nextflow project compatible with geniac"
+            ),
+            parents=[parent_parser],
+            formatter_class=ArgumentDefaultsHelpFormatter,
+        )
+        parser_configs.set_defaults(func=self.configs_cmd, which="configs")
+
+        # Geniac recipes
+        parser_recipes = subparsers.add_parser(
+            "recipes",
+            help=_(
+                "Generate container recipes on a Nextflow project compatible with geniac"
+            ),
+            parents=[parent_parser],
+            formatter_class=ArgumentDefaultsHelpFormatter,
+        )
+        parser_recipes.set_defaults(func=self.recipes_cmd, which="recipes")
 
         # Geniac test
         parser_test = subparsers.add_parser(

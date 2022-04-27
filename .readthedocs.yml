@@ -8,6 +8,9 @@ version: 2
 sphinx:
   configuration: docs/conf.py
 
+conda:
+  environment: docs/environment.yml
+
 # Build documentation with MkDocs
 #mkdocs:
 #  configuration: mkdocs.yml

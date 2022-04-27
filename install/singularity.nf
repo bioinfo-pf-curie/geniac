@@ -104,10 +104,15 @@ Channel
       return it
   }.set{ condaForks }
 
-(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+(condaExistingEnvs, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh; condaExistingEnvsBisCh }
+condaExistingRenvCh
+  .filter {  it[0] =~/^renv.*/ }
+  .set { condaFiles4Renv } // Channel for Renv environment
+
+condaFiles4Renv.into{ condaFiles4SingularityRecipesCh4Renv; condaFilesOneEnvWithRenv; checkIsEmptyRenv }
 condaPackagesCh.into{ condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
 condaFilesCh.into{ condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
-
 
 Channel
   .fromPath("${projectDir}/recipes/singularity/*.def")
@@ -141,7 +146,7 @@ Channel
 Channel
   .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
   .map{ [it.name, it] }
-  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4 }
+  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4; sourceCodeCh5 }
 
 
 
@@ -246,11 +251,9 @@ process buildSingularityRecipeFromCondaFile {
 
   input:
     set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4SingularityRecipesCh
-
       // to prevent conda recipes for specific fromSourceCode cases
       .join(sourceCodeCh1, remainder: true)
       .filter{ it[1] && !it[2] }
-
       .map{ [it[0], it[1]] }
       .groupTuple()
       .map{ addYumAndGitAndCmdConfs(it) }
@@ -308,6 +311,88 @@ process buildSingularityRecipeFromCondaFile {
         && cp ~/.bashrc /opt/etc/bashrc \\\\
         && conda clean -a ${cplmtCmdPost}
 
+    EOF
+    """
+}
+
+process buildSingularityRecipeFromCondaFile4Renv {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4SingularityRecipesCh4Renv
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh5, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+
+  output:
+    set val(key), file("${key}.def") into singularityRecipeCh6
+
+  script:
+    def renvYml = params.geniac.tools.get(key).get('yml')
+    def bioc = params.geniac.tools.get(key).get('bioc')
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+    declare env_name=\$(head -1 ${renvYml} | cut -d' ' -f2)
+
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    %setup
+        mkdir -p \\\${SINGULARITY_ROOTFS}/opt/renv \\\${SINGULARITY_ROOTFS}/opt/renv_cache
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
+
+    # real path from projectDir: ${renvYml}
+    %files
+        \$(basename ${renvYml}) /opt/\$(basename ${renvYml})
+        ${key}/renv.lock /opt/renv/renv.lock
+
+    %post
+        R_MIRROR=https://cloud.r-project.org
+        R_ENV_DIR=/opt/renv
+        CACHE=TRUE
+        CACHE_DIR=/opt/renv_cache
+        ${cplmtYum}${params.yum} clean all \\\\
+        && conda env create -f /opt/\$(basename ${renvYml}) \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -a ${cplmtCmdPost}
+        source /opt/etc/bashrc \\\\
+        && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
+   
     EOF
     """
 }
@@ -475,12 +560,14 @@ condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
 }
 
 
-singularityRecipeCh1
-  .mix(singularityRecipeCh2)
-  .mix(singularityRecipeCh5)
-  .mix(singularityRecipeCh3)
-  .mix(singularityRecipeCh4)
-  .unique{ it[0] }
+singularityRecipeCh6
+  .concat(singularityRecipeCh5)
+  .concat(singularityRecipeCh4)
+  .concat(singularityRecipeCh3)
+  .concat(singularityRecipeCh2)
+  .concat(singularityRecipeCh1) // DONT'T MOVE: this channel must be the last one to be concatenated
+  .groupTuple()
+  .map{ key, tab -> [key, tab[0]] }
   .into {
     singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
     singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
@@ -762,15 +849,21 @@ process buildCondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), val(singularityRecipe) from onlyCondaRecipe4buildCondaCh
+    set val(key), val(condaDef) from onlyCondaRecipe4buildCondaCh.mix(condaExistingEnvsCh)
 
   output:
     file("${key}CondaConfig.txt") into mergeCondaConfigCh
 
   script:
+    if(condaDef == 'ENV'){
+      condaValue = "\\\${params.geniac.tools?.${key}.env}"
+    }else {
+      condaValue = "\\\${projectDir}/environment.yml" 
+    }
+
     """
     cat << EOF > "${key}CondaConfig.txt"
-      withLabel:${key}{ conda = "\\\${projectDir}/environment.yml" }
+      withLabel:${key}{ conda = "${condaValue}" }
     EOF
     """
 }
@@ -813,13 +906,13 @@ process buildMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsCh)
+    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsBisCh)
 
   output:
     file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
 
   script:
-    cplmt = condaDef == 'ENV' ? '.label' : ''
+    cplmt = condaDef == 'ENV' ? '.env' : ''
     """
     cat << EOF > "${key}MulticondaConfig.txt"
       withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}${cplmt}}" }

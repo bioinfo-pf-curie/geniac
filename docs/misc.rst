@@ -9,4 +9,5 @@ Miscellaneous
    linux
    profiles
    from-source-examples
+   renv
 
