@@ -140,8 +140,16 @@ add_custom_target(
 # allows the build of the docker recipes with "make build_docker_recipes"
 add_custom_target(
     build_docker_recipes
-    COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
+    COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles for docker"
     COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} -Dap_install_docker_recipes=ON
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
+
+  # allows the build of the podman recipes with "make build_podman_recipes"
+add_custom_target(
+    build_podman_recipes
+    COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles for podman"
+    COMMAND ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} -Dap_install_podman_recipes=ON
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
 
@@ -166,12 +174,27 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
     COMMAND
         ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd docker
     COMMENT
         "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd docker"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/dockerImages.done"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
+
+# generate podman recipes and images
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/workDir/podmanImages.done
+    COMMAND ${CMAKE_COMMAND} -E echo "Build podman recipes and images"
+    COMMAND
+        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd podman
+    COMMENT
+        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}  --dockerCmd podman"
+    COMMAND ${CMAKE_COMMAND} -E touch
+            "${CMAKE_BINARY_DIR}/workDir/podmanImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
@@ -196,6 +219,13 @@ add_custom_target(
     build_docker_images
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/dockerImages.done)
+
+# allows the build of the podman recipes and images with "make
+# build_docker_images"
+add_custom_target(
+    build_podman_images
+    COMMAND ${CMAKE_COMMAND} -E echo "Build podman recipes and images"
+    DEPENDS ${CMAKE_BINARY_DIR}/workDir/podmanImages.done)
 
 # check if singularity recipes option has been set
 if(ap_install_singularity_recipes)
@@ -222,6 +252,18 @@ if(ap_install_docker_recipes)
         DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/docker")
 endif()
 
+# check docker recipes option has been set
+if(ap_install_podman_recipes)
+    message_color(INFO "Dockerfiles will be installed")
+
+    add_custom_target(install_podman_recipes ALL
+                      DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
+
+    install(
+        DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_dockerfiles}/"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/podman")
+endif()
+
 # check if singularity recipes and images has been set
 if(ap_install_singularity_images)
     message_color(INFO "Singularity recipes and images will be installed")
@@ -244,7 +286,7 @@ endif()
 
 # check if docker recipes and images has been set
 if(ap_install_docker_images)
-    message_color(INFO "Docker recipes and images will be installed")
+    message_color(INFO "Docker recipes and images will be installed for docker")
 
     add_custom_target(install_docker_images ALL
                       DEPENDS ${CMAKE_BINARY_DIR}/workDir/dockerImages.done)
@@ -252,6 +294,19 @@ if(ap_install_docker_images)
     install(
         DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_dockerfiles}/"
         DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/docker")
+
+endif()
+
+# check if podman recipes and images has been set
+if(ap_install_podman_images)
+    message_color(INFO "Docker recipes and images will be installed for podman")
+
+    add_custom_target(install_podman_images ALL
+                      DEPENDS ${CMAKE_BINARY_DIR}/workDir/podmanImages.done)
+
+    install(
+        DIRECTORY "${CMAKE_BINARY_DIR}/workDir/${publish_dir_dockerfiles}/"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/${pipeline_dir}/recipes/podman")
 
 endif()
 

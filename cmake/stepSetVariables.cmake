@@ -59,7 +59,15 @@ set(ap_install_docker_recipes
 
 set(ap_install_docker_images
     "OFF"
-    CACHE BOOL "Generate and install Dockerfiles and images")
+    CACHE BOOL "Generate and install Dockerfiles and docker images")
+
+set(ap_install_podman_recipes
+    "OFF"
+    CACHE BOOL "Generate and install Dockerfiles")
+
+set(ap_install_podman_images
+    "OFF"
+    CACHE BOOL "Generate and install Dockerfiles and podman images")
 
 set(ap_keep_envyml_from_source
     "OFF"
