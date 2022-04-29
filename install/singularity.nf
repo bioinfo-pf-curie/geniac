@@ -820,12 +820,17 @@ process mergeDockerConfig {
   output:
     file("docker.config") into finalDockerConfigCh
 
+
   script:
+    String volumeOptions = ""
+    volumeOptions += "-v \\\\\\\$PWD:/tmp "
+    volumeOptions += "-v \\\\\\\$PWD:/var/tmp "
+    volumeOptions += "-v \\\${params.genomeAnnotationPath?:''}:\\\${params.genomeAnnotationPath?:''} "
     """
     cat << EOF > "docker.config"
     docker {
       enabled = true
-      runOptions = "\\\${params.geniac.containers?.dockerRunOptions}"
+      runOptions = "\\\${params.geniac.containers?.dockerRunOptions} ${volumeOptions}"
     }
 
     process {
