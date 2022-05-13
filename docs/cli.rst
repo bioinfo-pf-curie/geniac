@@ -65,7 +65,6 @@ Install the pipeline with the singularity images
    # Install the pipeline with the singularity images
    cd ${WORK_DIR}
    geniac install . ${INSTALL_DIR} -m singularity
-   sudo chown -R  $(id -gn):$(id -gn) build
 
 For more options run ``geniac install -h``.
 
@@ -74,7 +73,7 @@ Install the pipeline using existing singularity images
 
 ::
 
-   # Install the pipeline with the singularity images
+   # Install the pipeline using existing singularity images
    cd ${WORK_DIR}
    geniac install . ${INSTALL_DIR} --ap_singularity_image_path=/path/to/singularity/images
 
