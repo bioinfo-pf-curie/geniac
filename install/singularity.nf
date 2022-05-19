@@ -593,7 +593,7 @@ process buildImages {
 
   script:
     """
-    singularity build ${key.toLowerCase()}.sif ${singularityRecipe}
+    singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe}
     """
 }
 
