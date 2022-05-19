@@ -280,6 +280,7 @@ class GeniacEntryPoint:
                         "docker",
                         "podman",
                         "singularity",
+                        "singularityfakeroot",
                         "configs",
                         "recipes",
                     ],
