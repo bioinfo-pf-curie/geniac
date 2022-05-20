@@ -69,8 +69,8 @@ ap_annotation_path
 ++++++++++++++++++
 
 | STRING
-| Path to the annotations. A symlink ``annotations`` with the given target will be created in the install directory.
-| This is useful if the annotations are already available.
+| Path to the annotations. A symlink ``annotations`` with the given target will be created in the install directory. This is useful if the annotations are already available.
+| Default is empty.
 
 ap_check_config_file_from_source
 ++++++++++++++++++++++++++++++++
@@ -175,8 +175,19 @@ ap_singularity_image_path
 +++++++++++++++++++++++++
 
 | STRING
-| Path to the singularity images. A symlink ``containers/singularity`` with the given target will be created in the install directory.
-| This is useful if the singularity containers are already available.
+| Path to the singularity images. A symlink ``containers/singularity`` with the given target will be created in the install directory. This is useful if the singularity containers are already available.
+| Default is empty.
+
+.. warning::
+
+   Options ``ap_install_singularity_images`` and ``ap_singularity_image_path`` are exclusive.
+
+ap_singularity_build_options
+++++++++++++++++++++++++++++
+
+| STRING
+| Allow to pass specific options when building singularity images. (e.g. --fakeroot).
+| Default is empty.
 
 .. warning::
 
@@ -407,6 +418,8 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
 
    If you use both the :ref:`run-profile-conda`
    and :ref:`run-profile-cluster` profile, check that your master job that launches nextflow has been submitted with enough memory, otherwise the creation of the conda environment may fail.
+
+.. _install-run-singularity:
 
 Install and run with singularity
 --------------------------------
