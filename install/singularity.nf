@@ -593,7 +593,7 @@ process buildImages {
 
   script:
     """
-    singularity build ${key.toLowerCase()}.sif ${singularityRecipe}
+    singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe}
     """
 }
 
@@ -820,12 +820,17 @@ process mergeDockerConfig {
   output:
     file("docker.config") into finalDockerConfigCh
 
+
   script:
+    String volumeOptions = ""
+    volumeOptions += "-v \\\\\\\$PWD:/tmp "
+    volumeOptions += "-v \\\\\\\$PWD:/var/tmp "
+    volumeOptions += "-v \\\${params.genomeAnnotationPath?:''}:\\\${params.genomeAnnotationPath?:''} "
     """
     cat << EOF > "docker.config"
     docker {
       enabled = true
-      runOptions = "\\\${params.geniac.containers?.dockerRunOptions}"
+      runOptions = "\\\${params.geniac.containers?.dockerRunOptions} ${volumeOptions}"
     }
 
     process {
@@ -837,6 +842,31 @@ process mergeDockerConfig {
     echo "}"  >> docker.config
     """
 }
+
+/**
+ * Generate podman.config
+ **/
+
+process buildPodmanConfig {
+  tag "buildPodmanConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    file dockerConfig from finalDockerConfigCh
+
+  output:
+    file("podman.config") into finalPodmanConfigCh
+
+  script:
+    """
+    sed -e "s/docker {/podman {/g" ${dockerConfig} > podman.config
+    sed -i -e "s/dockerRunOptions/podmanRunOptions/g" podman.config
+    """
+}
+
 
 /**
  * Generate conda.config

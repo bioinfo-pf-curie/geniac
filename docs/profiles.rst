@@ -48,6 +48,13 @@ All the tools but ``onlyLinux`` are listed in the ``path.config`` file.
 
 .. literalinclude:: ../data/conf/path.config
 
+podman
+======
+
+All the tools are listed in the ``podman.config`` file.
+
+.. literalinclude:: ../data/conf/podman.config
+
 singularity
 ===========
 
