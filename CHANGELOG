@@ -1,3 +1,6 @@
+version-2.3.0
+05/20/2022
+
 NEW FEATURES
    - New cmake option:
       * ap_singularity_build_options: allow to pass specific options when building singularity images.
