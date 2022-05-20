@@ -77,6 +77,9 @@
 .. |nfcore| replace:: nf-core
 .. _nfcore: https://nf-co.re/
 
+.. |podman| replace:: Podman
+.. _podman: https://podman.io/
+
 .. |rockylinux| replace:: Rocky Linux
 .. _rockylinux: https://rockylinux.org
 

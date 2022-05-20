@@ -110,15 +110,25 @@ class GeniacInstall(GeniacInit):
 
     def _check_sudo(self) -> bool:
         """Guess if the CMake/Make commands should be run in sudo mode"""
+
+        is_sudo = False
+
         cmake_sudo_options = (
             self.default_config.get(self.config_section, "cmakeSudoOptions")
             .strip()
             .split("\n")
         )
+        cmake_fakeroot_options = (
+            self.default_config.get(self.config_section, "cmakeFakeRootOptions")
+            .strip()
+            .split("\n")
+        )
         for cmake_option in self.cmake_options:
             if cmake_option in cmake_sudo_options:
-                return True
-        return False
+                is_sudo = True
+            if cmake_option in cmake_fakeroot_options:
+                return False
+        return is_sudo
 
     @staticmethod
     def _get_cmake_cache_vars(content: str) -> list:

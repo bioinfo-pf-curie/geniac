@@ -498,7 +498,7 @@ The `renv <https://rstudio.github.io/renv/>`_ package helps you to create reprod
 You will need to:
 
 * create the conda recipes in the folder ``recipes/conda`` which defines which R version you want to use.
-* add the label with the three scopes ``yml``, ``env`` and ``bioc``, in the section ``params.geniac.tools`` of the file ``conf.geniac.config``.
+* add the label with the three scopes ``yml``, ``env`` and ``bioc``, in the section ``params.geniac.tools`` of the file ``conf/geniac.config``.
 * copy the ``renv.lock`` file in a subfolder with the name of the label inside the folder ``recipes/dependencies/``.
 
 *label*

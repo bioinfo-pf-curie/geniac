@@ -526,7 +526,7 @@ process buildImages {
       contextDir = "."
     }
     """
-    docker build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
+    ${params.dockerCmd} build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
     """
 }
 

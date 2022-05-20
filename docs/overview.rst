@@ -33,6 +33,7 @@ To use the containers, at least one of the following software is required:
 
 * |singularity|_ >= 3.2
 * |docker|_ >= 18.0
+* |podman|_ >= 3.4.4
 
 .. _overview-source-tree:
 

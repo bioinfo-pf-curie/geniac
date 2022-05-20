@@ -161,7 +161,10 @@ As geniac automatically generates the recipes of the containers, they are not av
 How can I generate all the files automatically created by geniac without installing the pipeline?
 =================================================================================================
 
-See :ref:`install-target-config` and :ref:`install-target-containers`.
+There are several ways:
+
+* either using make commans: see :ref:`install-target-config` and :ref:`install-target-containers`,
+* or using Geniac CLI: see :ref:`cli-configs` and :ref:`cli-recipes`.
 
 Is geniac compatible with nextflow DSL2?
 ========================================
@@ -283,6 +286,21 @@ Make this bash script executable with ``chmod +x ${INSTALL_DIR}/pipeline/bin/hel
 Then, the file ``${INSTALL_DIR}/pipeline/results/helloWorld/helloWorld.txt`` will contain `Buenos dias!` instead of `Hello World!`. This means that singularity uses the bash script in ``${INSTALL_DIR}/pipeline/bin/helloWorld`` instead of the ``helloWorld`` executable which has been installed inside the image which raises reproducibility issue we can avoid by installing the tools in the folder `pipeline/bin/fromSource` which is not in the ``PATH``.
 
 .. _faq-singularity-invalid-binding:
+
+What privileges do I need to build the singularity images?
+==========================================================
+
+There are several ways. 
+
+* Using Geniac CLI (see :ref:`cli-singularity-build`):
+
+  * if you have the `sudo` privileges, use the `singularity` mode,
+  * if your are allowed to use the fakeroot option, use the `singularityfakeroot` mode.
+
+* Using standard `cmake` options:
+
+  * if you have the `sudo` privileges, pass the option ``-Dap_install_singularity_images=ON`` to `cmake`, and then run ``sudo make`` (see :ref:`install-run-singularity`),
+  * if your are allowed to use the fakeroot option, pass both options ``-Dap_install_singularity_images=ON`` and ``-Dap_singularity_build_options=--fakeroot`` to `cmake`, and then run ``make``.
 
 Why does the singularity profile complain of folder which does not exist or invalid binding?
 ============================================================================================

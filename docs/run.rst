@@ -233,7 +233,7 @@ General options
 ---------------
 
 
-\\-\\-condaCacheDir
+\-\-condaCacheDir
 +++++++++++++++++++
 
 Whenever you use the :ref:`run-profile-conda` or :ref:`run-profile-multiconda` profiles, the |conda|_ environments are created in the ``${HOME}/conda-cache-nextflow`` folder by default. This folder can be changed using the ``--condaCacheDir`` option. For example:
@@ -245,7 +245,7 @@ Whenever you use the :ref:`run-profile-conda` or :ref:`run-profile-multiconda` p
 
 .. _run-specificbinds-option:
 
-\\-\\-containers.specificBinds
+\-\-containers.specificBinds
 ++++++++++++++++++++++++++++++
 
 When you use the :ref:`run-profile-singularity` profile, it sets ``autoMounts = false`` in nextflow. This means that only the folders that have been passed to the :ref:`install-ap_mount_dir` option during the installation process will be available inside the container. If your pipeline needs to access other folders, you can specify them when your launch the pipeline. For example:
@@ -254,7 +254,7 @@ When you use the :ref:`run-profile-singularity` profile, it sets ``autoMounts = 
 
    nextflow -c conf/test.config run main.nf -profile singularity --containers.specificBinds '/path/to/my/folder'
 
-\\-\\-genomeAnnotationPath
+\-\-genomeAnnotationPath
 ++++++++++++++++++++++++++
 
 The genome annotations are expected to be found in the folder ``annotations`` by default, and organized as specified in the ``conf/genomes.config`` file. The ``--genomeAnnotationPath`` option allows the path of the ``annotations`` folder to be changed at runtine. For example:
@@ -263,7 +263,7 @@ The genome annotations are expected to be found in the folder ``annotations`` by
 
    nextflow -c conf/test.config run main.nf -profile multiconda --genomeAnnotationPath "${HOME}/myGenomeAnnotationPath"
 
-\\-\\-globalPath
+\-\-globalPath
 ++++++++++++++++
 
 When you use :ref:`run-profile-path` or :ref:`run-profile-multipath` profiles, the ``path`` and ``multipath`` folders are located in the installation directory by default (see :ref:`install-structure-dir-tree`). The ``--globalPath`` option allows the path of the ``path`` and ``multipath`` folders to be changed at runtine. For example:
@@ -274,24 +274,24 @@ When you use :ref:`run-profile-path` or :ref:`run-profile-multipath` profiles, t
    nextflow -c conf/test.config run main.nf -profile multipath --globalPath "${HOME}/myGlobalPath"
 
 
-\\-\\-maxMemory
+\-\-maxMemory
 +++++++++++++++
 
 Use to set a top-limit for the default memory requirement for each process. Should be a string in the format integer-unit. eg. `--maxMemory '8.GB'`
 
-\\-\\-maxTime
+\-\-maxTime
 +++++++++++++
 
 Use to set a top-limit for the default time requirement for each process. Should be a string in the format integer-unit. eg. `--maxTime '2.h'`
 
-\\-\\-maxCpus
+\-\-maxCpus
 +++++++++++++
 
 Use to set a top-limit for the default CPU requirement for each process. Should be a string in the format integer-unit. eg. `--maxCpus 1`
 
 .. _run-option-outdir:
 
-\\-\\-outDir
+\-\-outDir
 ++++++++++++
 
 The output directory where the results will be saved. For example:
@@ -300,13 +300,13 @@ The output directory where the results will be saved. For example:
 
    nextflow -c conf/test.config run main.nf -profile multipath --outDir "${HOME}/myResults"
 
-\\-\\-queue
+\-\-queue
 +++++++++++
 
 If you want your job to be submitted on a specific ``queue`` when you use the :ref:`run-profile-cluster`, use the option ``--queue`` with the name of the queue in the command line. For example:
 
 
-\\-\\-singularityImagePath
+\-\-singularityImagePath
 ++++++++++++++++++++++++++
 
 When you use the :ref:`run-profile-singularity` profile, the  |singularity|_ containers are located in the installation directory in the folder ``containers/singularity`` by default (see :ref:`install-structure-dir-tree`). The ``--singularityImagePath`` option allows the path of the ``containers/singularity`` folder to be changed at runtine. For example:
@@ -320,7 +320,7 @@ Analysis options
 
 Two generic options are available in the |geniactemplate|_. Refer to the *README* of the pipeline for details about `ad-hoc` options to analyze the data.
 
-\\-\\-samplePlan
+\-\-samplePlan
 ++++++++++++++++
 
 Use this to specify a `sample plan` file instead of a regular expression to find fastq files. For example: ``--samplePlan 'path/to/data/samplePlan.csv``.
@@ -332,7 +332,7 @@ The sample plan is a csv file with the following information (and no header) :
    Sample ID | Sample Name | /path/to/R1/fastq/file | /path/to/R2/fastq/file (for paired-end only)
 
 
-\\-\\-design
+\-\-design
 ++++++++++++
 
 Specify a `design` file for advanced analysis. For example: ``--design 'path/to/data/design.csv'``.

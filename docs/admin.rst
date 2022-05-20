@@ -97,3 +97,17 @@ In order to tack from which repository and version the containers were built, so
        gitCommit 80f6511b453a365be39e3bede6d79f0ce7253d16
    
 
+Documentation
+=============
+
+Build the documentation locally:
+
+::
+
+    conda create -n readthedocs python=3.7.9
+    conda activate readthedocs
+    pip install --upgrade --no-cache-dir pip 'setuptools<58.3.0'
+    pip install --upgrade --no-cache-dir mock==1.0.1 pillow==5.4.1 'alabaster>=0.7,<0.8,!=0.7.5' commonmark==0.8.1 recommonmark==0.5.0 sphinx sphinx-rtd-theme 'readthedocs-sphinx-ext<2.2'
+    cd docs
+    python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+    

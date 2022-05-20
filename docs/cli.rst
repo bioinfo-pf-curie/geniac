@@ -57,6 +57,8 @@ You can also provide a path to the source code of your pipeline:
 
 For more options run ``geniac -h`` and ``geniac lint -h``.
 
+.. _cli-singularity-build:
+
 Install the pipeline with the singularity images
 ================================================
 
@@ -65,23 +67,33 @@ Install the pipeline with the singularity images
    # Install the pipeline with the singularity images
    cd ${WORK_DIR}
    geniac install . ${INSTALL_DIR} -m singularity
-   sudo chown -R  $(id -gn):$(id -gn) build
+
+This installation requires `sudo` privileges. Another alternative is to use the fakeroot option provided that the system administrator allowed you to use this option.
+
+::
+
+   # Install the pipeline with the singularity images
+   cd ${WORK_DIR}
+   geniac install . ${INSTALL_DIR} -m singularityfakeroot
 
 For more options run ``geniac install -h``.
+
 
 Install the pipeline using existing singularity images
 ======================================================
 
 ::
 
-   # Install the pipeline with the singularity images
+   # Install the pipeline using existing singularity images
    cd ${WORK_DIR}
    geniac install . ${INSTALL_DIR} --ap_singularity_image_path=/path/to/singularity/images
 
 For more options run ``geniac install -h``.
 
-Generate the config files
-=========================
+.. _cli-configs:
+
+Generate the configuration files
+================================
 
 ::
 
@@ -90,6 +102,8 @@ Generate the config files
    geniac configs
 
 The config files will be available in the folder ``${WORK_DIR}/configs``
+
+.. _cli-recipes:
 
 Generate the container recipes
 ==============================

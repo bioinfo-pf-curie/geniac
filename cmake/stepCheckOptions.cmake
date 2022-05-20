@@ -48,7 +48,7 @@ if(ap_install_docker_images)
     if(NOT NEXTFLOW_FOUND OR NOT DOCKER_FOUND)
         message_color(
             FATAL_ERROR
-            "Both docker and nextflow are required with options ap_install_singularity_images
+            "Both docker and nextflow are required with options ap_install_docker_images
 					or ap_install_singularity_recipes set to ON ")
 
     else()
@@ -57,6 +57,26 @@ if(ap_install_docker_images)
             message_color(
                 WARNING
                 "ap_install_docker_images is ON: root privilege will be required during make step"
+            )
+        endif()
+    endif()
+
+endif()
+
+if(ap_install_podman_images)
+
+  if(NOT NEXTFLOW_FOUND OR NOT PODMAN_FOUND)
+        message_color(
+            FATAL_ERROR
+            "Both podman and nextflow are required with options ap_install_podman_images
+					or ap_install_singularity_recipes set to ON ")
+
+    else()
+
+        if(ap_install_podman_images)
+            message_color(
+                WARNING
+                "ap_install_podman_images is ON: root privilege will be required during make step"
             )
         endif()
     endif()
