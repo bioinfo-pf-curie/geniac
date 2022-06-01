@@ -73,7 +73,7 @@ The source code of your repository should look like this:
    ├── assets                       # assets needed for runtime
    ├── bin                          # scripts or binaries for the pipeline
    ├── conf                         # configuration files for the pipeline
-   │   ├── geniac.config            # contains the geniac scope mandatory for nextflow
+   │   ├── geniac.config            # contains the scopes mandatory for geniac
    ├── docs                         # documentation of the pipeline
    ├── env                          # process specific environment variables
    ├── geniac                       # geniac utilities
