@@ -28,6 +28,10 @@ class GeniacLint(GeniacCommand):
     CONDA_RECIPES_RE = re.compile(
         r"(?P<recipes>(([\w-]+::[\w-]+==?[\d.]+==?[\w]+) ?)+)"
     )
+    # REGEX check if a string from a yml recipe is valid
+    CONDA_YML_RECIPES_RE = re.compile(
+        r"(?P<recipes>(([\w-]+==?[\d.]+==?[\w]+) ?)+)"
+    )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
@@ -484,7 +488,6 @@ class GeniacLint(GeniacCommand):
                            if conda_path.exists():
                                with open(conda_path, 'r') as yml_f:
                                   yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
-                                  print(yml_content)
                                   if not 'name' in yml_content:
                                       self.error(
                                           "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
@@ -495,11 +498,11 @@ class GeniacLint(GeniacCommand):
                                   if 'dependencies' in yml_content:
                                      for dep_in_yml in yml_content['dependencies']:
                                          if type(dep_in_yml) is str:
-                                            match = GeniacLint.CONDA_RECIPES_RE.match(dep_in_yml)
+                                            match = GeniacLint.CONDA_YML_RECIPES_RE.match(dep_in_yml)
                                             if not match:
                                                self.error(
                                                    "In the file '%s', the value '%s' of '%s' tool does not follow the pattern "
-                                                   '"condaChannelName::softName=version=buildString".',
+                                                   '"softName=version=buildString".',
                                                    conda_path.relative_to(self.src_path),
                                                    dep_in_yml,
                                                    label
