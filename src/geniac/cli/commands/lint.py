@@ -9,6 +9,8 @@ from collections import OrderedDict
 from inspect import getfullargspec
 from pathlib import Path
 from shutil import which
+import yaml
+from yaml.loader import SafeLoader
 
 from geniac.cli.commands.base import GeniacCommand
 from geniac.cli.parsers.base import DEFAULT_ENCODING
@@ -478,16 +480,36 @@ class GeniacLint(GeniacCommand):
                     # If the tool value is a path to an environment file (yml or yaml ext),
                     # check if the path exists
                     if match := GeniacLint.CONDA_PATH_RE.search(recipe):
-                        if (
-                            conda_path := Path(
-                                self.src_path / match.groupdict().get("basepath")
-                            )
-                        ) and not conda_path.exists():
-                            self.error(
-                                "Conda file %s related to %s tool does not exist.",
-                                conda_path.relative_to(self.src_path),
-                                label,
-                            )
+                        if conda_path := Path(self.src_path / match.groupdict().get("basepath")):
+                           if conda_path.exists():
+                               with open(conda_path, 'r') as yml_f:
+                                  yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                  print(yml_content)
+                                  if not 'name' in yml_content:
+                                      self.error(
+                                          "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
+                                          conda_path.relative_to(self.src_path),
+                                          label,
+                                          conda_path.relative_to(self.src_path)
+                                      )
+                                  if 'dependencies' in yml_content:
+                                     for dep_in_yml in yml_content['dependencies']:
+                                         if type(dep_in_yml) is str:
+                                            match = GeniacLint.CONDA_RECIPES_RE.match(dep_in_yml)
+                                            if not match:
+                                               self.error(
+                                                   "In the file '%s', the value '%s' of '%s' tool does not follow the pattern "
+                                                   '"condaChannelName::softName=version=buildString".',
+                                                   conda_path.relative_to(self.src_path),
+                                                   dep_in_yml,
+                                                   label
+                                               )
+                           else:
+                               self.error(
+                                   "Conda file %s related to %s tool does not exist.",
+                                   conda_path.relative_to(self.src_path),
+                                   label,
+                               )
                     # Elif the tool value is a conda recipe
                     #elif match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
                     else:
