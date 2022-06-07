@@ -1,3 +1,9 @@
+
+NEW FEATURES
+   - Geniac CLI:
+      * check that conda recipe with a yml file contains an env name
+      * check that all dependencies with conda follow the pattern 'condaChannelName::softName=version=buildString'
+
 version-2.3.0
 05/20/2022
 
