@@ -459,6 +459,8 @@ class GeniacLint(GeniacCommand):
         )
         geniac_tools_list = config.get("params.geniac.tools", OrderedDict()).items()
         for label, value in geniac_tools_list:
+            # If the len(value) equals 1, then this is a standard label,
+            # otherwise, it le labels contains scopes suche as the label for renv.
             if len(value) == 1:
                 [recipe] = value
                 (recipe, n_sub) = re.subn(LABEL_USED_BY_A_LABEL , "", recipe)
@@ -473,13 +475,33 @@ class GeniacLint(GeniacCommand):
                     self.info("The label '%s' defined in the geniac.config file uses information from the labels %s.", label, labels_variables_tools)
                 labels_geniac_tools.append(label)
                 if len(recipe) != 0:
-                # If the tool value is a conda recipe
-                    if match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
-                        if not conda_check:
-                            continue
-                        # The related recipe is a correct conda recipe
-                        # Check if the recipes exists in the actual OS with conda search
-                        for conda_recipe in match.groupdict().get("recipes").split(" "):
+                    # If the tool value is a path to an environment file (yml or yaml ext),
+                    # check if the path exists
+                    if match := GeniacLint.CONDA_PATH_RE.search(recipe):
+                        if (
+                            conda_path := Path(
+                                self.src_path / match.groupdict().get("basepath")
+                            )
+                        ) and not conda_path.exists():
+                            self.error(
+                                "Conda file %s related to %s tool does not exist.",
+                                conda_path.relative_to(self.src_path),
+                                label,
+                            )
+                    # Elif the tool value is a conda recipe
+                    #elif match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
+                    else:
+                        for conda_recipe in recipe.split(" "):
+                            match = GeniacLint.CONDA_RECIPES_RE.match(conda_recipe)
+                            if not match:
+                               self.error(
+                                   "Value %s of %s tool does not follow the pattern "
+                                   '"condaChannelName::softName=version=buildString".',
+                                   conda_recipe,
+                                   label,
+                               )
+                        if conda_check:
+                            # Check if the recipes exists in the actual OS with conda search
                             try:
                                 conda_search = subprocess.run(
                                     ["conda", "search", conda_recipe],
@@ -499,27 +521,6 @@ class GeniacLint(GeniacCommand):
                                 )
                             else:
                                 self.debug("Conda search output:\n%s", conda_search.stdout)
-                    # Elif the tool value is a path to an environment file (yml or yaml ext),
-                    # check if the path exists
-                    elif match := GeniacLint.CONDA_PATH_RE.search(recipe):
-                        if (
-                            conda_path := Path(
-                                self.src_path / match.groupdict().get("basepath")
-                            )
-                        ) and not conda_path.exists():
-                            self.error(
-                                "Conda file %s related to %s tool does not exist.",
-                                conda_path.relative_to(self.src_path),
-                                label,
-                            )
-                    # else check if it's a valid path
-                    else:
-                        self.error(
-                            "Value %s of %s tool does not follow the pattern "
-                            '"condaChannelName::softName=version=buildString".',
-                            recipe,
-                            label,
-                        )
             else:
                 if bool(re.match(r"^renv.*", label)):
                     renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
