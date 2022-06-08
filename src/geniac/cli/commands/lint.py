@@ -32,6 +32,10 @@ class GeniacLint(GeniacCommand):
     CONDA_YML_RECIPES_RE = re.compile(
         r"(?P<recipes>(([\w-]+==?[\d.]+==?[\w]+) ?)+)"
     )
+    # REGEX check if a string from a yml recipe with pip is valid
+    CONDA_YML_PIP_RECIPES_RE = re.compile(
+        r"(?P<recipes>([\w-]+==?[\d.]))"
+    )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
         r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
@@ -485,34 +489,46 @@ class GeniacLint(GeniacCommand):
                     # check if the path exists
                     if match := GeniacLint.CONDA_PATH_RE.search(recipe):
                         if conda_path := Path(self.src_path / match.groupdict().get("basepath")):
-                           if conda_path.exists():
-                               with open(conda_path, 'r') as yml_f:
-                                  yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
-                                  if not 'name' in yml_content:
-                                      self.error(
-                                          "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
-                                          conda_path.relative_to(self.src_path),
-                                          label,
-                                          conda_path.relative_to(self.src_path)
-                                      )
-                                  if 'dependencies' in yml_content:
-                                     for dep_in_yml in yml_content['dependencies']:
-                                         if type(dep_in_yml) is str:
-                                            match = GeniacLint.CONDA_YML_RECIPES_RE.match(dep_in_yml)
-                                            if not match:
-                                               self.error(
-                                                   "In the file '%s', the value '%s' of '%s' tool does not follow the pattern "
-                                                   '"softName=version=buildString".',
-                                                   conda_path.relative_to(self.src_path),
-                                                   dep_in_yml,
-                                                   label
-                                               )
-                           else:
-                               self.error(
-                                   "Conda file %s related to %s tool does not exist.",
-                                   conda_path.relative_to(self.src_path),
-                                   label,
-                               )
+                            if conda_path.exists():
+                                with open(conda_path, 'r') as yml_f:
+                                    yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                    if not 'name' in yml_content:
+                                        self.error(
+                                            "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
+                                            conda_path.relative_to(self.src_path),
+                                            label,
+                                            conda_path.relative_to(self.src_path)
+                                        )
+                                    if 'dependencies' in yml_content:
+                                        for dep_in_yml in yml_content['dependencies']:
+                                            if type(dep_in_yml) is str and dep_in_yml != 'pip':
+                                                match = GeniacLint.CONDA_YML_RECIPES_RE.match(dep_in_yml)
+                                                if not match:
+                                                   self.error(
+                                                       "In the file '%s', the value '%s' of '%s' tool does not follow the pattern "
+                                                       '"softName=version=buildString".',
+                                                       conda_path.relative_to(self.src_path),
+                                                       dep_in_yml,
+                                                       label
+                                                   )
+                                            else:
+                                                if type(dep_in_yml) is dict and 'pip' in dep_in_yml:
+                                                    for pip_tool in dep_in_yml['pip']:
+                                                        match = GeniacLint.CONDA_YML_PIP_RECIPES_RE.match(pip_tool)
+                                                        if not match:
+                                                           self.error(
+                                                               "In section 'pip' of the file '%s', the value '%s' of '%s' tool does not follow the pattern "
+                                                               '"softName==version".',
+                                                               conda_path.relative_to(self.src_path),
+                                                               pip_tool,
+                                                               label
+                                                           )
+                            else:
+                                self.error(
+                                    "Conda file %s related to %s tool does not exist.",
+                                    conda_path.relative_to(self.src_path),
+                                    label,
+                                )
                     # Elif the tool value is a conda recipe
                     #elif match := GeniacLint.CONDA_RECIPES_RE.match(recipe):
                     else:
