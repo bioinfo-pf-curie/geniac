@@ -468,6 +468,7 @@ class GeniacLint(GeniacCommand):
             else "Checking of conda recipes turned off."
         )
         geniac_tools_list = config.get("params.geniac.tools", OrderedDict()).items()
+        conda_env_name = []
         for label, value in geniac_tools_list:
             # If the len(value) equals 1, then this is a standard label,
             # otherwise, it le labels contains scopes suche as the label for renv.
@@ -499,6 +500,8 @@ class GeniacLint(GeniacCommand):
                                             label,
                                             conda_path.relative_to(self.src_path)
                                         )
+                                    else:
+                                        conda_env_name.append(yml_content['name'])
                                     if 'dependencies' in yml_content:
                                         for dep_in_yml in yml_content['dependencies']:
                                             if type(dep_in_yml) is str and dep_in_yml != 'pip':
@@ -597,6 +600,10 @@ class GeniacLint(GeniacCommand):
                         ) and not dep_path.exists():
                             self.error("There is no 'recipes/dependencies/%s/renv.lock' file for the renv '%s' tool. You must add the renv.lock file.", label, label)
 
+        # Check that all yml file for conda recipe have a different "name" value
+        duplicated_conda_env_name = find_duplicates(conda_env_name)
+        if duplicated_conda_env_name:
+            self.error("You have different conda recipes in the yml files located in the folder 'recipes/conda' which use the name conda environment name: %s. Use a different conda environment name for each recipe.", duplicated_conda_env_name)
 
         labels_not_present = set(labels_variables_tools) - set(labels_geniac_tools)
         if labels_not_present:
@@ -1322,3 +1329,11 @@ class GeniacLint(GeniacCommand):
         # End the run with exit code
         if self.error_flag:
             raise SystemExit(1)
+
+
+def find_duplicates(listOfElem):
+    """Extract duplicates in a list"""
+    if len(listOfElem) != len(set(listOfElem)):
+        return list(set([x for x in listOfElem if listOfElem.count(x) > 1]))
+    else:
+        return False
