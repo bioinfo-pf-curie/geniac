@@ -9,6 +9,9 @@ NEW FEATURES
       * check that all dependencies with conda follow the pattern 'condaChannelName::softName=version=buildString'
       * check that pip dependencies with conda follow the pattern 'softName==version'
 
+DOCUMENTATION
+   - Guidelines to write conda recipe with a yml file
+
 version-2.3.0
 05/20/2022
 
