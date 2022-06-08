@@ -1,9 +1,13 @@
+version-2.4.0
+06/08/2022
 
 NEW FEATURES
    - conda 4.12.0 and almalinux:8.6 set as default for the containers
    - Geniac CLI:
       * check that conda recipe with a yml file contains an env name
+      * check that conda recipe with a yml file have a unique env name
       * check that all dependencies with conda follow the pattern 'condaChannelName::softName=version=buildString'
+      * check that pip dependencies with conda follow the pattern 'softName==version'
 
 version-2.3.0
 05/20/2022
