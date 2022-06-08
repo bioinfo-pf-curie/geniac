@@ -299,9 +299,17 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
         - defaults
     dependencies:
         - python=3.7.8=h6f2ec95_1_cpython
+        - pip
         - pip:
             - numpy==1.19.2
 
+.. warning::
+
+   The ``yml`` file with the conda recipe must follow the following guidelines:
+
+   * Choose a unique name for your conda envirnoment.
+   * Each conda package has the naming pattern ``softName = "condaChannelName::softName=version=buildString"``.
+   * If you need ``pip`` to install some packages, add ``pip`` in your dependencies and use the pattern ``softName==version`` for each package to be installed with ``pip``.
 
 Edit the file ``conf/geniac.config`` and add for example ``trickySoftware = "${projectDir}/recipes/conda/trickySoftware.yml`` in the section ``params.geniac.tools`` as follows:
 
