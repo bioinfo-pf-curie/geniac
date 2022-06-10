@@ -26,11 +26,11 @@ class GeniacLint(GeniacCommand):
 
     # REGEX check if a string is a valid conda recipe
     CONDA_RECIPES_RE = re.compile(
-        r"(?P<recipes>(([\w-]+::[\w-]+==?[\d.]+==?[\w]+) ?)+)"
+        r"(?P<recipes>(([\w-]+::[.\w-]+==?[\d.]+.*==?[\w]+) ?)+)"
     )
     # REGEX check if a string from a yml recipe is valid
     CONDA_YML_RECIPES_RE = re.compile(
-        r"(?P<recipes>(([\w-]+==?[\d.]+==?[\w]+) ?)+)"
+        r"(?P<recipes>(([.\w-]+==?[\d.]+.*==?[\w]+|[\w-]+::[.\w-]+==?[\d.]+.*==?[\w]+) ?)+)"
     )
     # REGEX check if a string from a yml recipe with pip is valid
     CONDA_YML_PIP_RECIPES_RE = re.compile(
@@ -509,7 +509,7 @@ class GeniacLint(GeniacCommand):
                                                 if not match:
                                                    self.error(
                                                        "In the file '%s', the value '%s' of '%s' tool does not follow the pattern "
-                                                       '"softName=version=buildString".',
+                                                       '"condaChannelName::softName=version=buildString" or "softName=version=buildString".',
                                                        conda_path.relative_to(self.src_path),
                                                        dep_in_yml,
                                                        label
