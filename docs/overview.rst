@@ -31,7 +31,7 @@ The following software are required:
 
 To use the containers, at least one of the following software is required:
 
-* |singularity|_ >= 3.2
+* |singularity|_ >= 3.8.5 or |apptainer|_ >= 1.0.0
 * |docker|_ >= 18.0
 * |podman|_ >= 3.4.4
 
