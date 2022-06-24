@@ -267,6 +267,11 @@ class NextflowConfig(GeniacParser):
             values.get(value_key),
             param_idx,
         )
+
+        # Issue #278: Geniac lint: error due to comments in the manifest section of nextflow.config
+        if value == None:
+            value = ""
+
         value = (
             value.strip('"')
             if '"' in value
