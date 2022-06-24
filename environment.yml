@@ -1,4 +1,4 @@
-name: geniac_app
+name: geniac
 channels:
   - bioconda
   - conda-forge
