@@ -22,6 +22,7 @@ of the license and that you accept its terms.
 
 */
 
+nextflow.enable.dsl=1
 
 /**
  * CUSTOM FUNCTIONS
