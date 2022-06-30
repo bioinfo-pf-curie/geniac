@@ -3,6 +3,7 @@
 
 """config.py: Nextflow configuration file parser"""
 
+from pathlib import Path
 import re
 import typing
 from collections import ChainMap, OrderedDict
@@ -29,6 +30,9 @@ class NextflowConfig(GeniacParser):
         r"(?P<beforeClose>})?(?P<other>.+)(?<!\$)) *{ *(?P<afterClose>})?$"
     )
     ESCOPE_RE = re.compile(r"^ *}\s*$")
+    
+    SINGLE_LINE_WITH_LABEL_SCOPE_RE = re.compile(r"^\s*(?P<singleLine>withLabel\s*:\s*\w+)\s*{(?P<singleLineInBracket>.*)}\s*$")
+
 
     def _check_config_scope_format(self, nxf_config_scope: str, scope: dict):
         """Check all the properties in a Nextflow config scope if there is a pattern related to the
@@ -338,6 +342,16 @@ class NextflowConfig(GeniacParser):
         for line_idx, line in enumerate(
             super()._read(in_file, encoding=encoding, flush_content=True, **kwargs)
         ):
+            # Single line scope (i.e. open and close brackets on the same line in process.config)
+            if match := self.SINGLE_LINE_WITH_LABEL_SCOPE_RE.match(line):
+                if Path(in_path).relative_to(self.src_path).as_posix() == "conf/process.config":
+                    self.error("In '%s' file, the 'withLabel' process selector if formatted on a single line:\n\n%s\nFor efficient parsing, modify the code using multi-line format:\n\n%s\n%s\n%s\n",
+                            Path(in_path).relative_to(self.src_path),
+                            line,
+                            " " + match.groupdict().get("singleLine") + " {",
+                            " " + match.groupdict().get("singleLineInBracket"),
+                            " }"
+                            )
             # Pop scope index list if we find a curly bracket
             # Turn off def flag if we reach the last scope in a def
             if self.ESCOPE_RE.match(line):
