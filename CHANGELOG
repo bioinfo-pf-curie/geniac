@@ -1,6 +1,8 @@
 NEW FEATURES
    - Add support to apptainer
    - Upgrade tool versions for the geniac conda env
+   - Geniac CLI:
+      * geniac lint adds an error message if conda recipe is not correctly formatted
 
 BUGFIX
    - Geniac CLI:
