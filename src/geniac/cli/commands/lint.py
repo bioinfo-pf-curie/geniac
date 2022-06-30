@@ -495,7 +495,7 @@ class GeniacLint(GeniacCommand):
                                     try:
                                         yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
                                     except yaml.YAMLError as exception:
-                                        self.error("The file '%s' is not correctly formatted. Check that the YAML is correct.", conda_path.relative_to(self.src_path))
+                                        self.error("The file '%s' is not correctly formatted. Check that the YAML syntax is correct.", conda_path.relative_to(self.src_path))
                                         raise exception
                                     if not 'name' in yml_content:
                                         self.error(
