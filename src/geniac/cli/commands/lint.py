@@ -492,7 +492,11 @@ class GeniacLint(GeniacCommand):
                         if conda_path := Path(self.src_path / match.groupdict().get("basepath")):
                             if conda_path.exists():
                                 with open(conda_path, 'r') as yml_f:
-                                    yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                    try:
+                                        yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                    except yaml.YAMLError as exception:
+                                        self.error("The file '%s' is not correctly formatted. Check that the YAML is correct.", conda_path.relative_to(self.src_path))
+                                        raise exception
                                     if not 'name' in yml_content:
                                         self.error(
                                             "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
