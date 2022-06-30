@@ -3,7 +3,9 @@ NEW FEATURES
    - Upgrade tool versions for the geniac conda env
 
 BUGFIX
-   - Fix geniac lint error when comment in the middle of a line
+   - Geniac CLI:
+      * Fix geniac lint error when comment in the middle of a line
+      * geniac lint will throw an error if the withLabel process selector is single-line formatted in the process.config file
 
 version-2.4.1
 06/10/2022
