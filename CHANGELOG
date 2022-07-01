@@ -3,6 +3,7 @@ NEW FEATURES
    - Upgrade tool versions for the geniac conda env
    - Geniac CLI:
       * geniac lint adds an error message if conda recipe is not correctly formatted
+      * geniac lint will ignore config file that are not explicitly declared in geniac.ini
 
 BUGFIX
    - Geniac CLI:
