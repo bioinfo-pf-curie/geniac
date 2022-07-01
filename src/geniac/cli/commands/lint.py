@@ -34,7 +34,7 @@ class GeniacLint(GeniacCommand):
     )
     # REGEX check if a string from a yml recipe with pip is valid
     CONDA_YML_PIP_RECIPES_RE = re.compile(
-        r"(?P<recipes>([\w-]+==?[\d.]))"
+        r"(?P<recipes>([.\w-]+==?[\d.]))"
     )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
