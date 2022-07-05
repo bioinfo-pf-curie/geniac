@@ -697,7 +697,6 @@ class GeniacLint(GeniacCommand):
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
             labels_process (list): list of process labels in params.process with withName
         """
-
         # Link config path to their method
         project_config_scopes = OrderedDict(
             (
@@ -777,7 +776,7 @@ class GeniacLint(GeniacCommand):
                 continue
 
             # Read the Nextflow configuration file
-            nxf_config = NextflowConfig(src_path=self.src_path)
+            nxf_config = NextflowConfig(src_path=self.src_path, config_file=self.config_file)
             nxf_config.read(
                 project_config_path,
                 warnings=config_key
@@ -1294,6 +1293,7 @@ class GeniacLint(GeniacCommand):
         Returns:
 
         """
+
 
         # Check directory and setup directory flags
         self.check_tree_folder()
