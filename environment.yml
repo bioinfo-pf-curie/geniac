@@ -6,6 +6,7 @@ channels:
 dependencies:
   - certifi=2022.6.15=py310hff52083_0
   - git=2.35.3=pl5321h04cb727_0
+  - git-lfs=3.2.0=ha770c72_0
   - make=4.3=hd18ef5c_1
   - nextflow=22.04.0=h4a94de4_0
   - pip=22.1.2=pyhd8ed1ab_0
