@@ -13,7 +13,7 @@ Install the geniac command line interface
 
 ::
 
-   # Create the geniac conda environment
+   # Create the geniac conda environment (use conda >= 4.13.0)
    export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
    wget ${GENIAC_CONDA}
    conda env create -f environment.yml
