@@ -4,6 +4,8 @@ NEW FEATURES
    - Geniac CLI:
       * geniac lint adds an error message if conda recipe is not correctly formatted
       * geniac lint will ignore config file that are not explicitly declared in geniac.ini
+      * when installing with sudo privilege, check that singularity and nextflow versions are the same as the one detected in the user environment during cmake configuration
+      * avoid 'sudo' command with 'geniac install' if launched by the root user
 
 BUGFIX
    - Geniac CLI:
