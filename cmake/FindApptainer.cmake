@@ -40,8 +40,10 @@
 
 # Look for 'apptainer'
 #
-set(apptainer_names apptainer)
 
+# below is written singularity on purpose
+set(apptainer_names singularity)
+set(APPTAINER_COMPATIBLE_VERSION FALSE)
 
 # First search the PATH and specific locations.
 find_program(APPTAINER_EXECUTABLE
@@ -64,10 +66,19 @@ if(APPTAINER_EXECUTABLE)
     string(REPLACE "apptainer version " "" APPTAINER_VERSION_STRING "${apptainer_version}")
   endif()
   unset(apptainer_version)
+
+  find_package_check_version("${APPTAINER_VERSION_STRING}" APPTAINER_COMPATIBLE_VERSION)
+  if(APPTAINER_COMPATIBLE_VERSION)
+    message(STATUS "Found compatible Apptainer version: '${APPTAINER_VERSION_STRING}'")
+  else()
+    message(STATUS "Found  unsuitable Apptainer version: '${APPTAINER_VERSION_STRING}'")
+  endif()
+
 endif()
 
 include( FindPackageHandleStandardArgs )
 
+
 find_package_handle_standard_args(Apptainer
-                                  REQUIRED_VARS APPTAINER_EXECUTABLE
+                                  REQUIRED_VARS APPTAINER_EXECUTABLE APPTAINER_COMPATIBLE_VERSION
                                   VERSION_VAR APPTAINER_VERSION_STRING)
