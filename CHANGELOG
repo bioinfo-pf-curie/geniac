@@ -1,6 +1,7 @@
 NEW FEATURES
    - Add support to apptainer
    - Upgrade tool versions for the geniac conda env
+   - Check during the cmake configuration that mininal version for each software is met
    - Geniac CLI:
       * geniac lint adds an error message if conda recipe is not correctly formatted
       * geniac lint will ignore config file that are not explicitly declared in geniac.ini
