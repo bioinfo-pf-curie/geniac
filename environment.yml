@@ -8,10 +8,10 @@ dependencies:
   - git=2.35.3=pl5321h04cb727_0
   - git-lfs=3.2.0=ha770c72_0
   - make=4.3=hd18ef5c_1
-  - nextflow=22.04.0=h4a94de4_0
+  - nextflow=22.04.5=h4a94de4_0
   - pip=22.1.2=pyhd8ed1ab_0
   - python=3.10.5=ha86cf86_0_cpython
-  - geniac::apptainer=1.0.2=h3fd9d12_1
+  - geniac::apptainer=1.0.3=h3fd9d12_1
   - pip:
     - colorlog==6.5.0
     - dotty-dict==1.3.0
