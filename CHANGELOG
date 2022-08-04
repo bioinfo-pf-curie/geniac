@@ -1,3 +1,6 @@
+version-2.5.0
+08/04/2022
+
 NEW FEATURES
    - Add support to apptainer
    - Upgrade tool versions for the geniac conda env
