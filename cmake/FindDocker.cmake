@@ -41,7 +41,7 @@
 # Look for 'docker'
 #
 set(docker_names docker)
-
+set(DOCKER_COMPATIBLE_VERSION FALSE)
 
 # First search the PATH and specific locations.
 find_program(DOCKER_EXECUTABLE
@@ -67,10 +67,19 @@ if(DOCKER_EXECUTABLE)
     string(REPLACE "Docker version " "" DOCKER_VERSION_STRING "${docker_version}")
   endif()
   unset(docker_version)
+
+  find_package_check_version("${DOCKER_VERSION_STRING}" DOCKER_COMPATIBLE_VERSION)
+  if(DOCKER_COMPATIBLE_VERSION)
+    message(STATUS "Found compatible Docker version: '${DOCKER_VERSION_STRING}'")
+  else()
+    message(STATUS "Found  unsuitable Docker version: '${DOCKER_VERSION_STRING}'")
+  endif()
+
 endif()
 
 include( FindPackageHandleStandardArgs )
 
+
 find_package_handle_standard_args(Docker
-                                  REQUIRED_VARS DOCKER_EXECUTABLE
+                                  REQUIRED_VARS DOCKER_EXECUTABLE DOCKER_COMPATIBLE_VERSION
                                   VERSION_VAR DOCKER_VERSION_STRING)

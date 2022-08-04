@@ -41,7 +41,7 @@
 # Look for 'singularity'
 #
 set(singularity_names singularity)
-
+set(SINGULARITY_COMPATIBLE_VERSION FALSE)
 
 # First search the PATH and specific locations.
 find_program(SINGULARITY_EXECUTABLE
@@ -63,11 +63,22 @@ if(SINGULARITY_EXECUTABLE)
   if (singularity_version MATCHES "^singularity version [0-9]")
     string(REPLACE "singularity version " "" SINGULARITY_VERSION_STRING "${singularity_version}")
   endif()
+  if (singularity_version MATCHES "^singularity-ce version [0-9]")
+    string(REPLACE "singularity-ce version " "" SINGULARITY_VERSION_STRING "${singularity_version}")
+  endif()
   unset(singularity_version)
+
+  find_package_check_version("${SINGULARITY_VERSION_STRING}" SINGULARITY_COMPATIBLE_VERSION)
+  if(SINGULARITY_COMPATIBLE_VERSION)
+    message(STATUS "Found compatible Singularity version: '${SINGULARITY_VERSION_STRING}'")
+  else()
+    message(STATUS "Found  unsuitable Singularity version: '${SINGULARITY_VERSION_STRING}'")
+  endif()
+
 endif()
 
 include( FindPackageHandleStandardArgs )
 
 find_package_handle_standard_args(Singularity
-                                  REQUIRED_VARS SINGULARITY_EXECUTABLE
+                                  REQUIRED_VARS SINGULARITY_EXECUTABLE SINGULARITY_COMPATIBLE_VERSION
                                   VERSION_VAR SINGULARITY_VERSION_STRING)

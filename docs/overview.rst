@@ -28,10 +28,11 @@ The following software are required:
 * |gitlfs|_
 * |cmake|_ >= 3.0
 * |make|_ >= 4.1
+* |conda|_ >= 4.12.0
 
 To use the containers, at least one of the following software is required:
 
-* |singularity|_ >= 3.2
+* |singularity|_ >= 3.8.5 or |apptainer|_ >= 1.0.0
 * |docker|_ >= 18.0
 * |podman|_ >= 3.4.4
 
@@ -44,7 +45,7 @@ As a quick start, you can try the |geniacdemo|_ pipeline as follows:
 
 ::
 
-   # Create the geniac conda environment
+   # Create the geniac conda environment (use conda >= 4.12.0)
    export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
    wget ${GENIAC_CONDA}
    conda env create -f environment.yml

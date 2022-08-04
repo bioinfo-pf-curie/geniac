@@ -6,6 +6,8 @@
 import logging
 import re
 import os
+import subprocess
+import sys
 from gettext import gettext as _
 from importlib.resources import files
 from pathlib import Path
@@ -52,6 +54,10 @@ class GeniacInstall(GeniacInit):
             post_clean=not no_post_clean,
             **kwargs,
         )
+
+        # install mode
+        self.mode = kwargs['mode']
+
         # Should we clean build dir if it has been initialized
         self.pre_clean = not no_pre_clean
         self.install_path = (
@@ -112,6 +118,9 @@ class GeniacInstall(GeniacInit):
         """Guess if the CMake/Make commands should be run in sudo mode"""
 
         is_sudo = False
+
+        if os.environ.get('USER') == "root":
+            return False
 
         cmake_sudo_options = (
             self.default_config.get(self.config_section, "cmakeSudoOptions")
@@ -216,6 +225,27 @@ class GeniacInstall(GeniacInit):
 
     def install(self):
         """Launch Make installation command in the folder"""
+
+
+        if self.mode == "singularity" and self.is_sudo:
+            def detect_softname_version(softname = None, version_cmd = None):
+                softname_cmd = softname + " " + version_cmd
+                proc = subprocess.run(softname_cmd.split(), stdout=subprocess.PIPE, encoding="ascii")
+                user_version = proc.stdout.strip()
+                print(f"Checking that the {softname} version used with sudo privilege is the same as the one defined in the user environment detected during the cmake configuration step.")
+                softname_cmd = "sudo -S -k " + softname_cmd
+                proc = subprocess.run(softname_cmd.split(), stdout=subprocess.PIPE, encoding="ascii")
+                root_version = proc.stdout.strip()
+                if user_version != root_version:
+                    self.error("Installation with sudo privilege. The %s version used by root does not match the one defined in the user environment:\n\tuser version is: %s\n\troot version is: %s\n", softname, user_version, root_version)
+                    sys.exit(f"Make sure that '{user_version}' is the first '{softname}' executable to be found in the secure_path option declared in the file /etc/sudoers.")
+                else:
+                    self.info("Installation with sudo privilege. The '%s' used by root matches the one defined in the user environment. ", root_version)
+            detect_softname_version("singularity", "--version")
+            detect_softname_version("nextflow", "-version")
+
+
+
         if self.is_sudo:
             self.warning(
                 "Detected options require sudo privileges. Will try to launch in sudo mode"
