@@ -10,7 +10,7 @@ dependencies:
   - make=4.3=hd18ef5c_1
   - nextflow=22.04.5=h4a94de4_0
   - pip=22.1.2=pyhd8ed1ab_0
-  - python=3.10.5=ha86cf86_0_cpython
+  - python=3.10.8=haa1d7c7_0
   - geniac::apptainer=1.0.3=h3fd9d12_1
   - pip:
     - colorlog==6.5.0
