@@ -2,23 +2,16 @@ stages:
   - check           # check that requirements are met before starting the deployement
   - deploy
 
+image: "${CI_REGISTRY}/bioinfo-containers/deploy-geniac:devel"
+
 cache:
   paths:
     - vendor/python
 
+
 before_script:
-  # Setup git
-  - apt-get install git
-  - curl -sSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o /tmp/miniconda.sh  && bash /tmp/miniconda.sh -bfp /usr/local && rm -rf /tmp/miniconda.sh
-  - git config --global user.email $GITLAB_USER_EMAIL
-  - git config --global user.name $GITLAB_USER_NAME
-  # Install dependencies for the testing environment
-  - PYTHON_VERSION=$(grep -e "\- python=" environment.yml | awk '{print $2}')
-  - conda install ${PYTHON_VERSION}
-  - pip install -U pip setuptools setuptools-scm wheel
-  - pip install -U tox-conda
-  - pip install -U twine
-  - pip install -U sphinx-rtd-theme==1.0.0
+  - set -euo pipefail
+  - source /opt/etc/bashrc # needed to activate the geniac conda env
 
 .test_script: &test_script
   stage: check
@@ -27,12 +20,10 @@ before_script:
 
 docs:
   stage: check
-  image: "python:3.10"
   script:
     - tox -e docs
 
 pypi:
-  image: "python:3.10"
   stage: deploy
   script:
     - env
