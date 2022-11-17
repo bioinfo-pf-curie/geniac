@@ -1,5 +1,7 @@
 NEW FEATURES
    -almalinux:8.7 set as default for the containers
+   - singularity profile:
+      * checkBindinds function takes into account the binding of possible symlink inside a path
 
 version-2.5.0
 08/04/2022
