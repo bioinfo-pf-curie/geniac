@@ -310,6 +310,16 @@ class GeniacBase(ABC, LogMixin):
 
     def _check_working_dir(self, working_dir: str, info: bool = True) -> bool:
         """Check if given working dir is valid"""
+
+        if str(Path(working_dir)) == str(os.getcwd()):
+            self.error(
+                    "You have launched 'geniac init' command inside the working directory your want to create: %s. You must be located in another directory when using the command 'geniac init'.",
+                    working_dir
+                    )
+            
+            sys_exit(1)
+            return False
+
         if working_dir and (
             not str(working_dir).startswith("ssh")
             or not str(working_dir).startswith("http")
