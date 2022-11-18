@@ -236,12 +236,18 @@ class GeniacBase(ABC, LogMixin):
             post_clean (bool): should we clean every temporary folder at the end of the execution ?
             init_work_path (bool): should we init a working directory with source files inside ?
         """
+
+
         super().__init__()
         self.config_section = (
             re.sub(r"(?<!^)(?=[A-Z])", ".", self.__class__.__name__).lower()
             if not (_config_section := kwargs.get("config_section"))
             else _config_section
         )
+
+
+        # geniac command line
+        self.geniac_cmd = kwargs.get("which")
 
         # Project path is optional but if it is not a valid url or a valid path, it will correspond
         # to the default config project.metadata.url
@@ -311,14 +317,15 @@ class GeniacBase(ABC, LogMixin):
     def _check_working_dir(self, working_dir: str, info: bool = True) -> bool:
         """Check if given working dir is valid"""
 
-        if str(Path(working_dir)) == str(os.getcwd()):
-            self.error(
-                    "You have launched 'geniac init' command inside the working directory your want to create: %s. You must be located in another directory when using the command 'geniac init'.",
-                    working_dir
-                    )
-            
-            sys_exit(1)
-            return False
+        if self.geniac_cmd == "init":
+            if str(Path(working_dir)) == str(os.getcwd()):
+                self.error(
+                        "You have launched 'geniac init' command inside the working directory your want to create: %s. You must be located in another directory when using the command 'geniac init'.",
+                        working_dir
+                        )
+                
+                sys_exit(1)
+                return False
 
         if working_dir and (
             not str(working_dir).startswith("ssh")
