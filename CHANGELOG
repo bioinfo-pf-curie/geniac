@@ -1,11 +1,14 @@
+version-2.6.0
+11/19/2022
+
 NEW FEATURES
    -almalinux:8.7 set as default for the containers
    - singularity profile:
-      * checkBindinds function takes into account the binding of possible symlink inside a path. It also binds the directory defined in 'params.outDir' if it is defined.
+      * checkBindinds function takes into account the binding of possible symlink inside a path. It also binds the directory defined in 'params.outDir' if it is defined in the nextflow.config file.
 
 BUGFIX
    - Geniac CLI:
-      * 'geniac init' will throw an error if already in the working directory to be created
+      * 'geniac init' will throw an error if it is launched from the working directory to be created
 
 version-2.5.0
 08/04/2022
