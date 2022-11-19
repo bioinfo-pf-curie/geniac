@@ -34,7 +34,7 @@ class GeniacLint(GeniacCommand):
     )
     # REGEX check if a string from a yml recipe with pip is valid
     CONDA_YML_PIP_RECIPES_RE = re.compile(
-        r"(?P<recipes>([\w-]+==?[\d.]))"
+        r"(?P<recipes>([.\w-]+==?[\d.]))"
     )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
@@ -492,7 +492,11 @@ class GeniacLint(GeniacCommand):
                         if conda_path := Path(self.src_path / match.groupdict().get("basepath")):
                             if conda_path.exists():
                                 with open(conda_path, 'r') as yml_f:
-                                    yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                    try:
+                                        yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                    except yaml.YAMLError as exception:
+                                        self.error("The file '%s' is not correctly formatted. Check that the YAML syntax is correct.", conda_path.relative_to(self.src_path))
+                                        raise exception
                                     if not 'name' in yml_content:
                                         self.error(
                                             "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
@@ -693,7 +697,6 @@ class GeniacLint(GeniacCommand):
             labels_geniac_tools (list): list of geniac tool labels in params.geniac.tools
             labels_process (list): list of process labels in params.process with withName
         """
-
         # Link config path to their method
         project_config_scopes = OrderedDict(
             (
@@ -773,7 +776,7 @@ class GeniacLint(GeniacCommand):
                 continue
 
             # Read the Nextflow configuration file
-            nxf_config = NextflowConfig(src_path=self.src_path)
+            nxf_config = NextflowConfig(src_path=self.src_path, config_file=self.config_file)
             nxf_config.read(
                 project_config_path,
                 warnings=config_key
@@ -1290,6 +1293,7 @@ class GeniacLint(GeniacCommand):
         Returns:
 
         """
+
 
         # Check directory and setup directory flags
         self.check_tree_folder()

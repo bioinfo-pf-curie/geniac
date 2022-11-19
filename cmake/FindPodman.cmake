@@ -41,7 +41,7 @@
 # Look for 'podman'
 #
 set(podman_names podman)
-
+set(PODMAN_COMPATIBLE_VERSION FALSE)
 
 # First search the PATH and specific locations.
 find_program(PODMAN_EXECUTABLE
@@ -67,10 +67,19 @@ if(PODMAN_EXECUTABLE)
     string(REPLACE "podman version " "" PODMAN_VERSION_STRING "${podman_version}")
   endif()
   unset(podman_version)
+
+  find_package_check_version("${PODMAN_VERSION_STRING}" PODMAN_COMPATIBLE_VERSION)
+  if(PODMAN_COMPATIBLE_VERSION)
+    message(STATUS "Found compatible Podman version: '${PODMAN_VERSION_STRING}'")
+  else()
+    message(STATUS "Found  unsuitable Podman version: '${PODMAN_VERSION_STRING}'")
+  endif()
+
 endif()
 
 include( FindPackageHandleStandardArgs )
 
+
 find_package_handle_standard_args(Podman
-                                  REQUIRED_VARS PODMAN_EXECUTABLE
+                                  REQUIRED_VARS PODMAN_EXECUTABLE PODMAN_COMPATIBLE_VERSION
                                   VERSION_VAR PODMAN_VERSION_STRING)

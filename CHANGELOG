@@ -1,3 +1,25 @@
+version-2.5.0
+08/04/2022
+
+NEW FEATURES
+   - Add support to apptainer
+   - Upgrade tool versions for the geniac conda env
+   - Check during the cmake configuration that mininal version for each software is met
+   - Geniac CLI:
+      * geniac lint adds an error message if conda recipe is not correctly formatted
+      * geniac lint will ignore config file that are not explicitly declared in geniac.ini
+      * when installing with sudo privilege, check that singularity and nextflow versions are the same as the one detected in the user environment during cmake configuration
+      * avoid 'sudo' command with 'geniac install' if launched by the root user
+
+BUGFIX
+   - Geniac CLI:
+      * Fix geniac lint error when comment in the middle of a line
+      * geniac lint will throw an error if the withLabel process selector is single-line formatted in the process.config file
+      * allow '.' in softName in the pip section of a conda recipe
+
+DOCUMENTATION
+   - Minimal conda version (4.12.0) required
+
 version-2.4.1
 06/10/2022
 

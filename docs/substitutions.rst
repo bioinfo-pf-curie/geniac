@@ -17,6 +17,9 @@
 .. |almalinux| replace:: AlmaLinux
 .. _almalinux: https://almalinux.org
 
+.. |apptainer| replace:: Apptainer
+.. _apptainer: https://apptainer.org/
+
 .. |biogitflow| replace:: biogitflow
 .. _biogitflow: https://biogitflow.readthedocs.io
 

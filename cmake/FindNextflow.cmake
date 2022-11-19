@@ -41,7 +41,7 @@
 # Look for 'nextflow'
 #
 set(nextflow_names nextflow)
-
+set(NEXTFLOW_COMPATIBLE_VERSION FALSE)
 
 # First search the PATH and specific locations.
 find_program(NEXTFLOW_EXECUTABLE
@@ -68,10 +68,19 @@ if(NEXTFLOW_EXECUTABLE)
     string(REPLACE "version" "" NEXTFLOW_VERSION_STRING "${nextflow_version}")
   endif()
   unset(nextflow_version)
+
+  find_package_check_version("${NEXTFLOW_VERSION_STRING}" NEXTFLOW_COMPATIBLE_VERSION)
+  if(NEXTFLOW_COMPATIBLE_VERSION)
+    message(STATUS "Found compatible Nextflow version: '${NEXTFLOW_VERSION_STRING}'")
+  else()
+    message(STATUS "Found  unsuitable Nextflow version: '${NEXTFLOW_VERSION_STRING}'")
+  endif()
+
 endif()
 
 include( FindPackageHandleStandardArgs )
 
+
 find_package_handle_standard_args(Nextflow
-                                  REQUIRED_VARS NEXTFLOW_EXECUTABLE
+                                  REQUIRED_VARS NEXTFLOW_EXECUTABLE NEXTFLOW_COMPATIBLE_VERSION
                                   VERSION_VAR NEXTFLOW_VERSION_STRING)

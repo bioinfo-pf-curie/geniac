@@ -729,17 +729,43 @@ You can define generic labels for both CPU and memory (as you wish) in the file 
 
 ::
 
-  withLabel: minCpu { cpus = 1 }
-  withLabel: lowCpu { cpus = 2 }
-  withLabel: medCpu { cpus = 4 }
-  withLabel: highCpu { cpus = 8 }
-  withLabel: extraCpu { cpus = 16 }
+  withLabel: minCpu {
+    cpus = 1
+  }
+  withLabel: lowCpu {
+    cpus = 2
+  }
+  withLabel: medCpu {
+    cpus = 4
+  }
+  withLabel: highCpu {
+    cpus = 8
+  }
+  withLabel: extraCpu {
+    cpus = 16
+  }
 
-  withLabel: minMem { memory = 1.GB }
-  withLabel: lowMem { memory = 2.GB }
-  withLabel: medMem { memory = 8.GB }
-  withLabel: highMem { memory = 16.GB }
-  withLabel: extraMem { memory = 32.GB }
+  withLabel: minMem {
+    memory = 1.GB
+  }
+  withLabel: lowMem {
+    memory = 2.GB
+  }
+  withLabel: medMem {
+    memory = 8.GB
+  }
+  withLabel: highMem {
+    memory = 16.GB
+  }
+  withLabel: extraMem {
+    memory = 32.GB
+  }
+
+
+.. warning::
+
+   Note that you must use a multi-line format as shown above, otherwise the linter :ref:`cli-page` will throw an error.
+
 
 Then, in any process, you can just set any label you need. For example:
 
