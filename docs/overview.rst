@@ -26,7 +26,7 @@ The following software are required:
 * |nextflow|_ >= 20.01.0
 * |git|_  >= 2.0
 * |gitlfs|_
-* |cmake|_ >= 3.0
+* |cmake|_ >= 3.19
 * |make|_ >= 4.1
 * |conda|_ >= 4.12.0
 

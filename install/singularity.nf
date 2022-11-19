@@ -575,7 +575,7 @@ singularityRecipeCh6
   }
 
 process buildImages {
-  // maxForks 1
+  maxForks 1
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
 
@@ -686,36 +686,89 @@ process mergeSingularityConfig {
         }
     }
 
+    void checkSamplePlan() {
+        if (!params.samplePlan) {
+            return;
+        }
+
+        Set set = [];
+        (new File(params.samplePlan)).eachLine{
+            defSamplePlanRow = it.split(",");
+            r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
+            r2Dir = defSamplePlanRow[3].substring(0, defSamplePlanRow[3].lastIndexOf("/"));
+            set.add(r1Dir);
+            set.add(r2Dir);
+        };
+
+        set.each{
+            singularity.runOptions += " -B \\\$it";
+        }
+    }
+
+    void checkSymlink(pathToCheck, add, map) {
+        if (SPECIAL_PATHS.contains(pathToCheck)) {
+            return;
+        }
+
+        if (add) {
+            singularity.runOptions += " -B \\\$pathToCheck";
+            map.put(pathToCheck, pathToCheck);
+        }
+
+        List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
+        for (i = 1 ; i <= pathSteps.size() ; i++) {
+            String currPathToCheck = pathSteps.subList(0, i).join("/");
+            File f = new File(currPathToCheck);
+            Path p = f.toPath();
+            if(Files.isSymbolicLink(p)) {
+                String symlinkPath = p.toRealPath();
+                String nextPathToCheck = symlinkPath + "/" + pathSteps.subList(i, pathSteps.size()).join("/");
+                checkSymlink(nextPathToCheck, true, map);
+            }
+        }
+    }
+
     void checkBindings() throws Exception {
-        singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''},${params.mountDir?:''}";
+        singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''},\\\${params.outDir?:''},${params.mountDir?:''}";
+        checkSamplePlan();
         String input = singularity.runOptions;
 
+        // replace double quotes by start/stop pattern
         Matcher m = p1.matcher(input);
         if (m.find()) {
             input = m.replaceAll(START_PATTERN + "\\\\\\\$1" + STOP_PATTERN);
         }
 
+        // replace spaces in start/stop pattern by ##
         m = p2.matcher(input);
         while (m.find()) {
             input = m.replaceAll("\\\\\\\$1##\\\\\\\$3");
             m = p2.matcher(input);
         }
 
+        // split on remaining spaces
         String[] tab = input.split(" ");
         Map<String, String> pathMap = new HashMap<>();
         boolean curr = false;
         for (String inputElem : tab) {
+            // binding option key
             if (inputElem.equals("-B") || inputElem.equals("--bind")) {
                 curr = true;
-            } else if (!inputElem.startsWith("-") && curr) {
+            }
+            // binding option value
+            else if (!inputElem.startsWith("-") && curr) {
+                // each path to bind
                 for (String path : inputElem.split(",")) {
                     if (path.isEmpty()) {
                         continue;
                     }
 
+                    // restore original value (revert p1/p2 pattern effects)
                     path = path.replaceAll("##", " ");
                     path = path.replaceAll(START_PATTERN, "\"");
                     path = path.replaceAll(STOP_PATTERN, "\"");
+
+                    // source/target paths
                     String[] pathTab = path.split(":");
 
                     String target = null;
@@ -731,16 +784,11 @@ process mergeSingularityConfig {
                     pathMap.put(target, source);
 
                     // is symlink
-                    File f = new File(source);
-                    Path p = f.toPath();
-                    if(Files.isSymbolicLink(p)) {
-                        String symlinkPath = p.toRealPath();
-                        checkPath(symlinkPath, symlinkPath, pathMap);
-                        pathMap.put(symlinkPath, symlinkPath);
-                        singularity.runOptions += " -B \\\$symlinkPath";
-                    }
+                    checkSymlink(source, false, pathMap);
                 }
-            } else {
+            }
+            // not binding option value/key
+            else {
                 curr = false;
             }
         }
