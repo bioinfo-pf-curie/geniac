@@ -85,10 +85,10 @@ set(ap_docker_registry
 )
 
 set(ap_linux_distro
-    "almalinux:8.6"
+    "almalinux:8.7"
     CACHE
         STRING
-        "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. This variable defines which Linux distro (i.e. which repository) and which version (i.e. which tag) to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is almalinux:8.6."
+        "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. This variable defines which Linux distro (i.e. which repository) and which version (i.e. which tag) to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is almalinux:8.7."
 )
 
 set(ap_conda_release
