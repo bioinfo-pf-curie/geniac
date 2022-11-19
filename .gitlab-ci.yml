@@ -27,6 +27,9 @@ pypi:
   stage: deploy
   script:
     - env
+    - pip install -U tox-conda
+    - pip install -U twine
+    - pip install -U sphinx-rtd-theme==1.0.0
     - python -m pip install --upgrade build
     - python -m build
     - ls dist/*
