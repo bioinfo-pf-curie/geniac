@@ -694,10 +694,19 @@ process mergeSingularityConfig {
         Set set = [];
         (new File(params.samplePlan)).eachLine{
             defSamplePlanRow = it.split(",");
-            r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
-            r2Dir = defSamplePlanRow[3].substring(0, defSamplePlanRow[3].lastIndexOf("/"));
-            set.add(r1Dir);
-            set.add(r2Dir);
+            nbCol = defSamplePlanRow.size();
+            if(nbCol == 4) {
+                r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
+                r2Dir = defSamplePlanRow[3].substring(0, defSamplePlanRow[3].lastIndexOf("/"));
+                set.add(r1Dir);
+                set.add(r2Dir);
+            } else if(nbCol == 2) {
+                r1Dir = defSamplePlanRow[1].substring(0, defSamplePlanRow[1].lastIndexOf("/"));
+                set.add(r1Dir);
+            }
+            else {
+                return;
+            }
         };
 
         set.each{
