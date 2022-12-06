@@ -700,6 +700,9 @@ process mergeSingularityConfig {
                 r2Dir = defSamplePlanRow[3].substring(0, defSamplePlanRow[3].lastIndexOf("/"));
                 set.add(r1Dir);
                 set.add(r2Dir);
+            } else if(nbCol == 3) {
+                r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
+                set.add(r1Dir);
             } else if(nbCol == 2) {
                 r1Dir = defSamplePlanRow[1].substring(0, defSamplePlanRow[1].lastIndexOf("/"));
                 set.add(r1Dir);
