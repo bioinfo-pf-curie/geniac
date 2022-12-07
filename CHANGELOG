@@ -1,6 +1,9 @@
+version-2.6.1
+12/07/2022
+
 BUGFIX
    - singularity profile:
-      * checkSamplePlan: conditions added to consider files with either 2 or 4 columns
+      * checkSamplePlan: conditions added to consider files with either 2, 3 or 4 columns
 
 version-2.6.0
 11/19/2022
