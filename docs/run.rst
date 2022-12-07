@@ -320,6 +320,8 @@ Analysis options
 
 Two generic options are available in the |geniactemplate|_. Refer to the *README* of the pipeline for details about `ad-hoc` options to analyze the data.
 
+.. _run-options-sampleplan:
+
 \-\-samplePlan
 ++++++++++++++++
 
@@ -331,6 +333,7 @@ The sample plan is a csv file with the following information (and no header) :
 
    Sample ID | Sample Name | /path/to/R1/fastq/file | /path/to/R2/fastq/file (for paired-end only)
 
+Note that when a `sample plan` is used to analyse the data, the path to the files are automatically added to the bindings needed by the singularity profile (see :ref:`run-profile-singularity` and :ref:`faq-singularity-invalid-binding`).
 
 \-\-design
 ++++++++++++

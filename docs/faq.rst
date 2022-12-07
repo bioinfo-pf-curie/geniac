@@ -285,7 +285,6 @@ Make this bash script executable with ``chmod +x ${INSTALL_DIR}/pipeline/bin/hel
 
 Then, the file ``${INSTALL_DIR}/pipeline/results/helloWorld/helloWorld.txt`` will contain `Buenos dias!` instead of `Hello World!`. This means that singularity uses the bash script in ``${INSTALL_DIR}/pipeline/bin/helloWorld`` instead of the ``helloWorld`` executable which has been installed inside the image which raises reproducibility issue we can avoid by installing the tools in the folder `pipeline/bin/fromSource` which is not in the ``PATH``.
 
-.. _faq-singularity-invalid-binding:
 
 What privileges do I need to build the singularity images?
 ==========================================================
@@ -302,6 +301,8 @@ There are several ways.
   * if you have the `sudo` privileges, pass the option ``-Dap_install_singularity_images=ON`` to `cmake`, and then run ``sudo make`` (see :ref:`install-run-singularity`),
   * if your are allowed to use the fakeroot option, pass both options ``-Dap_install_singularity_images=ON`` and ``-Dap_singularity_build_options=--fakeroot`` to `cmake`, and then run ``make``.
 
+.. _faq-singularity-invalid-binding:
+
 Why does the singularity profile complain of folder which does not exist or invalid binding?
 ============================================================================================
 
@@ -309,7 +310,20 @@ To ensure reproducibility, the singularity profile does the following:
 
 * it launches singularity with the ``--containall`` option
 * it sets ``autoMounts = false`` in nextflow
-* it mounts only few directoryies are mounted by default (e.g. work, /tmp /var/tmp, ${projectDir})
+* it mounts only few directoryies are mounted by default:
+
+   * ``work`` (i.e. the workDir)
+   * ``/tmp`` (binding in the workDir)
+   * ``/var/tmp`` (binding in the workDir)
+   * ``${projectDir}``
+   * ``${params.genomeAnnotationPath}``
+   * ``${params.outDir}``
+   * if a samplePlan is used by the pipeline to analyse the data (see :ref:`run-options-sampleplan` option), bindings are automatically added:
+
+       * for a samplePlan with 4 columns: the third and fourth columns are used for the bindings
+       * for a samplePlan with 3 columns: the third column is used for the bindings
+       * for a samplePlan with 1 column: the second column is used for the bindings
+       * bindings are not considered for of samplePlan format
 
 This means that if the pipeline needs any file located in a folder which is not mounted by singularity, it will not be available unless you explicitly tells singularity to mount the folder you need. This can be done using :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted.
 
