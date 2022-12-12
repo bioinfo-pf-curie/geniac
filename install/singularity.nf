@@ -728,7 +728,7 @@ process mergeSingularityConfig {
         }
 
         List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
-        for (i = 1 ; i <= pathSteps.size() ; i++) {
+        for (i = 1 ; i < pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
             File f = new File(currPathToCheck);
             Path p = f.toPath();
