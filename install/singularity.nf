@@ -692,6 +692,8 @@ process mergeSingularityConfig {
             return;
         }
 
+        singularity.runOptions += " -B ${params.samplePlan}";
+
         Set set = [];
         (new File(params.samplePlan)).eachLine{
             defSamplePlanRow = it.split(",");
