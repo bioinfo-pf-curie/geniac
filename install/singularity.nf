@@ -642,6 +642,7 @@ process mergeSingularityConfig {
     import java.io.File;
     import java.nio.file.Files;
     import java.nio.file.Path;
+    import java.nio.file.Paths;
     import java.util.Arrays;
     import java.util.HashMap;
     import java.util.List;
@@ -722,13 +723,14 @@ process mergeSingularityConfig {
             return;
         }
 
+        String input = Paths.get(pathToCheck).normalize().toString();
         if (add) {
-            singularity.runOptions += " -B \\\$pathToCheck";
-            map.put(pathToCheck, pathToCheck);
+            singularity.runOptions += " -B \\\$input";
+            map.put(input, input);
         }
 
-        List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
-        for (i = 1 ; i < pathSteps.size() ; i++) {
+        List<String> pathSteps = Arrays.asList(input.split("/"));
+        for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
             File f = new File(currPathToCheck);
             Path p = f.toPath();
