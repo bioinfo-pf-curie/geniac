@@ -692,7 +692,7 @@ process mergeSingularityConfig {
             return;
         }
 
-        singularity.runOptions += " -B ${params.samplePlan}";
+        singularity.runOptions += " -B \\\${params.samplePlan}";
 
         Set set = [];
         (new File(params.samplePlan)).eachLine{
@@ -732,15 +732,24 @@ process mergeSingularityConfig {
         }
 
         List<String> pathSteps = Arrays.asList(input.split("/"));
+        List<String> recursivePathsToCheck = new ArrayList<>();
         for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
             File f = new File(currPathToCheck);
             Path p = f.toPath();
-            if(Files.isSymbolicLink(p)) {
+            if (Files.isSymbolicLink(p)) {
                 String symlinkPath = p.toRealPath();
                 String nextPathToCheck = symlinkPath + "/" + pathSteps.subList(i, pathSteps.size()).join("/");
-                checkSymlink(nextPathToCheck, true, map);
+                recursivePathsToCheck.add(nextPathToCheck);
             }
+        }
+
+        checkSymlinks(recursivePathsToCheck, map);
+    }
+
+    void checkSymlinks(pathsToProcess, map) {
+        for (String pathToProcess: pathsToProcess) {
+            checkSymlink(pathToProcess, true, map);
         }
     }
 
