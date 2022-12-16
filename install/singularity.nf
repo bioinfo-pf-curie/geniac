@@ -642,6 +642,7 @@ process mergeSingularityConfig {
     import java.io.File;
     import java.nio.file.Files;
     import java.nio.file.Path;
+    import java.nio.file.Paths;
     import java.util.Arrays;
     import java.util.HashMap;
     import java.util.List;
@@ -691,6 +692,8 @@ process mergeSingularityConfig {
             return;
         }
 
+        singularity.runOptions += " -B \\\${params.samplePlan}";
+
         Set set = [];
         (new File(params.samplePlan)).eachLine{
             defSamplePlanRow = it.split(",");
@@ -722,21 +725,31 @@ process mergeSingularityConfig {
             return;
         }
 
+        String input = Paths.get(pathToCheck).normalize().toString();
         if (add) {
-            singularity.runOptions += " -B \\\$pathToCheck";
-            map.put(pathToCheck, pathToCheck);
+            singularity.runOptions += " -B \\\$input";
+            map.put(input, input);
         }
 
-        List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
+        List<String> pathSteps = Arrays.asList(input.split("/"));
+        List<String> recursivePathsToCheck = new ArrayList<>();
         for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
             File f = new File(currPathToCheck);
             Path p = f.toPath();
-            if(Files.isSymbolicLink(p)) {
+            if (Files.isSymbolicLink(p)) {
                 String symlinkPath = p.toRealPath();
                 String nextPathToCheck = symlinkPath + "/" + pathSteps.subList(i, pathSteps.size()).join("/");
-                checkSymlink(nextPathToCheck, true, map);
+                recursivePathsToCheck.add(nextPathToCheck);
             }
+        }
+
+        checkSymlinks(recursivePathsToCheck, map);
+    }
+
+    void checkSymlinks(pathsToProcess, map) {
+        for (String pathToProcess: pathsToProcess) {
+            checkSymlink(pathToProcess, true, map);
         }
     }
 
