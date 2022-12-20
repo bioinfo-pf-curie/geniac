@@ -665,11 +665,10 @@ process mergeSingularityConfig {
         }
 
         if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
-            throw new Exception(
-                    "ERROR reported from conf/singularity.config. \'" + path + "\' is an invalid binding, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
+            path = "\\\${launchDir}/\\\${path}"
         }
 
-        return path;
+        return Paths.get(path).normalize().toAbsolutePath().toString();
     }
 
     void checkPath(String source, String target, Map pathMap) {
@@ -725,13 +724,12 @@ process mergeSingularityConfig {
             return;
         }
 
-        String input = Paths.get(pathToCheck).normalize().toString();
         if (add) {
-            singularity.runOptions += " -B \\\$input";
-            map.put(input, input);
+            singularity.runOptions += " -B \\\$pathToCheck";
+            map.put(pathToCheck, pathToCheck);
         }
 
-        List<String> pathSteps = Arrays.asList(input.split("/"));
+        List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
         List<String> recursivePathsToCheck = new ArrayList<>();
         for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
