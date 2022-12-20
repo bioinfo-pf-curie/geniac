@@ -668,7 +668,7 @@ process mergeSingularityConfig {
             path = "\\\${launchDir}/\\\${path}"
         }
 
-        return Paths.get(path).normalize().toAbsolutePath().toString();
+        return Paths.get(path).normalize().toString();
     }
 
     void checkPath(String source, String target, Map pathMap) {
