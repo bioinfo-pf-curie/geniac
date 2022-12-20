@@ -773,6 +773,7 @@ process mergeSingularityConfig {
         String[] tab = input.split(" ");
         Map<String, String> pathMap = new HashMap<>();
         boolean curr = false;
+        String newRunOptions = '';
         for (String inputElem : tab) {
             // binding option key
             if (inputElem.equals("-B") || inputElem.equals("--bind")) {
@@ -812,13 +813,18 @@ process mergeSingularityConfig {
             }
             // not binding option value/key
             else {
+                newRunOptions += " ${inputElem}";
                 curr = false;
             }
         }
 
+        newRunOptions += " -B ,";
         for (Entry<String, String> entry : pathMap.entrySet()) {
             System.out.println("path " + entry.getValue() + " mounted in " + entry.getKey() + ".");
+            newRunOptions += "${entry.getValue()}${entry.getValue() == entry.getKey()?'':":${entry.getKey()}"},"
         }
+
+        singularity.runOptions = newRunOptions;
     }
 
 
