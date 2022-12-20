@@ -665,7 +665,7 @@ process mergeSingularityConfig {
         }
 
         if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
-            path = "\\\${launchDir}/\\\${path}"
+            path = launchDir + "/" + path
         }
 
         return Paths.get(path).normalize().toString();
@@ -691,7 +691,7 @@ process mergeSingularityConfig {
             return;
         }
 
-        singularity.runOptions += " -B \\\${params.samplePlan}";
+        singularity.runOptions += " -B " + params.samplePlan;
 
         Set set = [];
         (new File(params.samplePlan)).eachLine{
@@ -715,7 +715,7 @@ process mergeSingularityConfig {
         };
 
         set.each{
-            singularity.runOptions += " -B \\\$it";
+            singularity.runOptions += " -B " + it;
         }
     }
 
@@ -725,7 +725,7 @@ process mergeSingularityConfig {
         }
 
         if (add) {
-            singularity.runOptions += " -B \\\$pathToCheck";
+            singularity.runOptions += " -B " + pathToCheck;
             map.put(pathToCheck, pathToCheck);
         }
 
@@ -813,7 +813,7 @@ process mergeSingularityConfig {
             }
             // not binding option value/key
             else {
-                newRunOptions += " \\\${inputElem}";
+                newRunOptions += " " + inputElem;
                 curr = false;
             }
         }
@@ -821,7 +821,7 @@ process mergeSingularityConfig {
         newRunOptions += " -B ,";
         for (Entry<String, String> entry : pathMap.entrySet()) {
             System.out.println("path " + entry.getValue() + " mounted in " + entry.getKey() + ".");
-            newRunOptions += "${entry.getValue()}${entry.getValue() == entry.getKey()?'':":${entry.getKey()}"},"
+            newRunOptions += entry.getValue() + (entry.getValue() == entry.getKey() ? '' : ":" + entry.getKey()) + ",";
         }
 
         singularity.runOptions = newRunOptions;
@@ -834,11 +834,11 @@ process mergeSingularityConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
+          System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
+        System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
         System.exit(-1)
       }
     }
@@ -846,7 +846,7 @@ process mergeSingularityConfig {
     singularity {
       enabled = true
       autoMounts = false
-      runOptions = "--containall \\\${(params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')}"
+      runOptions = "--containall " + (params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')
     }
 
     process {
@@ -1106,11 +1106,11 @@ process mergeMultiPathConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          System.out.println("   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        System.out.println("   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
         System.exit(-1)
       }
     }
@@ -1203,11 +1203,11 @@ process globalPathConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          System.out.println("   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        System.out.println("   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
         System.exit(-1)
       }
     }
