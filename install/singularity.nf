@@ -813,7 +813,7 @@ process mergeSingularityConfig {
             }
             // not binding option value/key
             else {
-                newRunOptions += " ${inputElem}";
+                newRunOptions += " $inputElem";
                 curr = false;
             }
         }
