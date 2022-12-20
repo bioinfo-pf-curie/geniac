@@ -441,7 +441,7 @@ class GeniacBase(ABC, LogMixin):
         if os.path.isdir(self.working_dirs["src"].as_posix()+'/geniac'):
             shutil.rmtree(self.working_dirs["src"].as_posix()+'/geniac')
             shutil.copytree(os.path.dirname(__file__) + '/../../repo', self.working_dirs["src"].as_posix()+'/geniac')
-            self.info(f"The geniac folder bas been replaced using the geniac folder from the python package.")
+            self.info(f"The geniac folder has been replaced using the geniac folder from the python package.")
         else:
             shutil.copytree(os.path.dirname(__file__) + '/../../repo', self.working_dirs["src"].as_posix()+'/geniac')
             self.info(f"The geniac directory does not exist. It has been created using the geniac folder from the python package.")
