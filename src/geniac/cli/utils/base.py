@@ -252,7 +252,7 @@ class GeniacBase(ABC, LogMixin):
         # Project path is optional but if it is not a valid url or a valid path, it will correspond
         # to the default config project.metadata.url
         self._src_path = None
-        (self.project_type, self.src_is_working_dir) = self._get_src_type(src_path)
+        (self.project_type, self.src_is_working_dir) = self._get_src_type(src_path, working_dir)
         self.src_path = src_path
 
         # Init and load config files
@@ -317,16 +317,6 @@ class GeniacBase(ABC, LogMixin):
     def _check_working_dir(self, working_dir: str, info: bool = True) -> bool:
         """Check if given working dir is valid"""
 
-        if self.geniac_cmd == "init":
-            if str(Path(working_dir)) == str(os.getcwd()):
-                self.error(
-                        "You have launched 'geniac init' command inside the working directory your want to create: %s. You must be located in another directory when using the command 'geniac init'.",
-                        working_dir
-                        )
-                
-                sys_exit(1)
-                return False
-
         if working_dir and (
             not str(working_dir).startswith("ssh")
             or not str(working_dir).startswith("http")
@@ -353,21 +343,45 @@ class GeniacBase(ABC, LogMixin):
             )
         return False
 
-    def _get_src_type(self, src_path: [str, None]) -> (str, bool):
+    def _get_src_type(self, src_path: [str, None], working_dir: str) -> (str, bool):
         """Check if given input is a valid url or a valid project path"""
         self.debug("Checking if source path %s is a path or an url", src_path)
         is_working_dir = self._check_working_dir(src_path, info=False)
-        return (
-            ("url", False)
-            if src_path and validators.url(str(src_path))
-            or (src_path and str(src_path).startswith("ssh"))
-            or (src_path and str(src_path).startswith("http"))
-            else ("wd", is_working_dir)
-            if is_working_dir
-            else ("path", False)
-            if src_path and Path(src_path).exists()
-            else ("default", False)
-        )
+
+        if src_path and validators.url(str(src_path)) or (src_path and str(src_path).startswith("ssh")) or (src_path and str(src_path).startswith("http")):
+            src_type = ("url", False)
+        else:
+            if is_working_dir:
+                src_type = ("wd", is_working_dir)
+            else:
+                if src_path and Path(src_path).exists():
+                    src_type = ("path", False)
+                else:
+                    src_type = ("default", False)
+
+        if self.geniac_cmd == "init":
+            if src_type[0] == "path" and not src_type[1]:
+                if working_dir == str(os.getcwd()):
+                    self.error(
+                            "You have launched 'geniac init' command inside the working directory your want to create: '%s'. You must be located in another directory when using the command 'geniac init'.",
+                            working_dir
+                            )
+                    sys_exit(1)
+                if os.path.isdir(working_dir):
+                    self.error(
+                            "The working directory you want to create '%s' already exist. Use another directory instead.",
+                            working_dir
+                            )
+                    sys_exit(1)
+
+
+            if src_type[0] == "wd" and src_type[1]:
+                if not os.path.isdir(src_path):
+                    self.critical("The folder '%s' to the Nextflow repository does not exist.", src_path)
+                    sys_exit(1)
+
+        return src_type
+
 
     def init_working_tree(self):
         """Initialize working directory with basic tree structure"""
