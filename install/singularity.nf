@@ -665,7 +665,7 @@ process mergeSingularityConfig {
         }
 
         if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
-            path = launchDir + "/" + path
+            path = "" + launchDir + "/" + path
         }
 
         return Paths.get(path).normalize().toString();
