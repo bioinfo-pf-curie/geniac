@@ -369,7 +369,7 @@ class GeniacBase(ABC, LogMixin):
                     sys_exit(1)
                 if os.path.isdir(working_dir):
                     self.error(
-                            "The working directory you want to create '%s' already exist. Use another directory instead.",
+                            "The working directory you want to create '%s' already exists. Use another directory instead.",
                             working_dir
                             )
                     sys_exit(1)
