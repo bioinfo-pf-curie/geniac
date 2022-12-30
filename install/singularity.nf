@@ -644,7 +644,7 @@ process mergeSingularityConfig {
     import java.nio.file.Path;
     import java.nio.file.Paths;
     import java.util.Arrays;
-    import java.util.HashMap;
+    import java.util.TreeMap;
     import java.util.List;
     import java.util.Map;
     import java.util.Map.Entry;
@@ -771,7 +771,7 @@ process mergeSingularityConfig {
 
         // split on remaining spaces
         String[] tab = input.split(" ");
-        Map<String, String> pathMap = new HashMap<>();
+        Map<String, String> pathMap = new TreeMap<>();
         boolean curr = false;
         String newRunOptions = '';
         for (String inputElem : tab) {
