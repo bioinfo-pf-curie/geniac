@@ -5,6 +5,7 @@ NEW FEATURES
    - Geniac CLI:
       * Possibility to use "geniac lint" on a repo even if the folder "geniac" is not present
       * geniac init: Improve error messages 
+      * geniac options: Display missing options
 
 BUGFIX
    - Geniac CLI:
