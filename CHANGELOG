@@ -1,13 +1,17 @@
 NEW FEATURES
-   - Geniac CLI
-      *  Possibility to use "geniac lint" on a repo even if the folder "geniac" is not present
+   - Geniac CLI:
+      * Possibility to use "geniac lint" on a repo even if the folder "geniac" is not present
       * geniac init: Improve error messages 
+
+BUGFIX
+   - Geniac CLI:
+      * Avoid to launch Cmake init on several geniac CLI commands
 
 version-2.6.2
 12/16/2022
 
 NEW FEATURES
-   - Geniac CLI
+   - Geniac CLI:
       *  Conda env with apptainer 1.1.4
 
 BUGFIX
