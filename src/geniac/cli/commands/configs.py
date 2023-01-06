@@ -28,7 +28,7 @@ class GeniacConfigs(GeniacInit):
     ):
         """Init flags specific to GConfigs command"""
         super().__init__(
-            *args, src_path=src_path, post_clean=True, init_build=True, **kwargs
+            *args, src_path=src_path, post_clean=True, init_build=False, **kwargs
         )
 
     def cmake_configs(self):

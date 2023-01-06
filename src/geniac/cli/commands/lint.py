@@ -4,6 +4,7 @@
 """check.py: Linter command for geniac"""
 
 import re
+import os
 import subprocess
 from collections import OrderedDict
 from inspect import getfullargspec
@@ -388,7 +389,7 @@ class GeniacLint(GeniacCommand):
         """
         script = NextflowScript(src_path=self.src_path)
 
-        geniac_dir = self.project_tree.get("geniac").get("path")
+        geniac_dir = self.src_path / "geniac"
 
         # Link config path to their method
         script_paths = OrderedDict(

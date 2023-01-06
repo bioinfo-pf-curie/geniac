@@ -1,8 +1,27 @@
-version-2.6.2
-16/07/2022
+version-2.6.3
+01/06/2023
 
 NEW FEATURES
-   - Geniac CLI
+   - singularity profile:
+      * Allow the binding of relative (to launchDir) paths
+      * Order the bindings according to the natural ordering
+   - Geniac CLI:
+      * Possibility to use 'geniac lint' on a repo even if the folder "geniac" is not present
+      * 'geniac init':  improve error message display 
+
+DOCUMENTATION
+   - Git clone using geniac submodule from remote release branch
+
+BUGFIX
+   - Geniac CLI:
+      * Avoid to launch Cmake init on several geniac CLI commands
+      * 'geniac options': display missing options
+
+version-2.6.2
+12/16/2022
+
+NEW FEATURES
+   - Geniac CLI:
       *  Conda env with apptainer 1.1.4
 
 BUGFIX
@@ -20,7 +39,7 @@ version-2.6.0
 11/19/2022
 
 NEW FEATURES
-   -almalinux:8.7 set as default for the containers
+   - almalinux:8.7 set as default for the containers
    - singularity profile:
       * checkBindinds function takes into account the binding of possible symlink inside a path. It also binds the directory defined in 'params.outDir' if it is defined in the nextflow.config file.
 
