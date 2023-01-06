@@ -66,7 +66,9 @@ In order to generate the pre-load a script ``geniac/install/cmake-init-default.c
 
    # clone the repository
    # the option --recursive is needed if you use geniac as a submodule
-   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   # the option --remote-submodules will pull the last geniac version
+   # using the release branch from https://github.com/bioinfo-pf-curie/geniac 
+   git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
    
    cd {BUILD_DIR}
    bash ${SRC_DIR}/geniac/cmake/initCmakePreload.sh ${SRC_DIR} > cmake-init-default.cmake

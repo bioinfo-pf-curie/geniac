@@ -30,7 +30,9 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
 
    # clone the repository
    # the option --recursive is needed if you use geniac as a submodule
-   git clone --recursive ${GIT_URL} ${SRC_DIR}
+   # the option --remote-submodules will pull the last geniac version
+   # using the release branch from https://github.com/bioinfo-pf-curie/geniac 
+   git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
 
    cd ${BUILD_DIR}
 
@@ -401,8 +403,11 @@ Then, edit your file ``.bashrc`` and add ``$HOME/miniconda3/bin`` (or the instal
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
    
-   git clone --recursive ${GIT_URL} ${SRC_DIR}
-   ### the option --recursive is needed if you use geniac as a submodule
+   # clone the repository
+   # the option --recursive is needed if you use geniac as a submodule
+   # the option --remote-submodules will pull the last geniac version
+   # using the release branch from https://github.com/bioinfo-pf-curie/geniac 
+   git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
 
    cd ${BUILD_DIR}
    cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
@@ -434,8 +439,11 @@ Install and run with singularity
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
    
-   git clone --recursive ${GIT_URL} ${SRC_DIR}
-   ### the option --recursive is needed if you use geniac as a submodule
+   # clone the repository
+   # the option --recursive is needed if you use geniac as a submodule
+   # the option --remote-submodules will pull the last geniac version
+   # using the release branch from https://github.com/bioinfo-pf-curie/geniac 
+   git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
 
    cd ${BUILD_DIR}
    cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_images=ON
@@ -481,8 +489,11 @@ First, let's assume you want the Singularity definition files. Then, pass the op
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
    
-   git clone --recursive ${GIT_URL} ${SRC_DIR}
-   ### the option --recursive is needed if you use geniac as a submodule
+   # clone the repository
+   # the option --recursive is needed if you use geniac as a submodule
+   # the option --remote-submodules will pull the last geniac version
+   # using the release branch from https://github.com/bioinfo-pf-curie/geniac 
+   git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
 
    cd ${BUILD_DIR}
    cmake ${SRC_DIR}/geniac  -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_install_singularity_recipes=ON
