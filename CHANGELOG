@@ -7,6 +7,9 @@ NEW FEATURES
       * geniac init: Improve error messages 
       * geniac options: Display missing options
 
+DOCUMENTATION
+   - Git clone using geniac submodule from remote release branch
+
 BUGFIX
    - Geniac CLI:
       * Avoid to launch Cmake init on several geniac CLI commands
