@@ -152,7 +152,7 @@ class GeniacEntryPoint:
             args=["src_path"],
             kwargs={
                 "help": _(
-                    "Path or URL to the Nextflow repository where geniac has been setup. "
+                    "Path or URL to the Nextflow repository on which you want to use geniac. "
                     "The path can be a geniac working directory initialized with "
                     "`geniac init`."
                 ),

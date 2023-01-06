@@ -644,7 +644,7 @@ process mergeSingularityConfig {
     import java.nio.file.Path;
     import java.nio.file.Paths;
     import java.util.Arrays;
-    import java.util.HashMap;
+    import java.util.TreeMap;
     import java.util.List;
     import java.util.Map;
     import java.util.Map.Entry;
@@ -665,11 +665,10 @@ process mergeSingularityConfig {
         }
 
         if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
-            throw new Exception(
-                    "ERROR reported from conf/singularity.config. \'" + path + "\' is an invalid binding, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
+            path = "" + launchDir + "/" + path
         }
 
-        return path;
+        return Paths.get(path).normalize().toString();
     }
 
     void checkPath(String source, String target, Map pathMap) {
@@ -692,7 +691,7 @@ process mergeSingularityConfig {
             return;
         }
 
-        singularity.runOptions += " -B \\\${params.samplePlan}";
+        singularity.runOptions += " -B " + params.samplePlan;
 
         Set set = [];
         (new File(params.samplePlan)).eachLine{
@@ -716,7 +715,7 @@ process mergeSingularityConfig {
         };
 
         set.each{
-            singularity.runOptions += " -B \\\$it";
+            singularity.runOptions += " -B " + it;
         }
     }
 
@@ -725,13 +724,12 @@ process mergeSingularityConfig {
             return;
         }
 
-        String input = Paths.get(pathToCheck).normalize().toString();
         if (add) {
-            singularity.runOptions += " -B \\\$input";
-            map.put(input, input);
+            singularity.runOptions += " -B " + pathToCheck;
+            map.put(pathToCheck, pathToCheck);
         }
 
-        List<String> pathSteps = Arrays.asList(input.split("/"));
+        List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
         List<String> recursivePathsToCheck = new ArrayList<>();
         for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
@@ -773,8 +771,9 @@ process mergeSingularityConfig {
 
         // split on remaining spaces
         String[] tab = input.split(" ");
-        Map<String, String> pathMap = new HashMap<>();
+        Map<String, String> pathMap = new TreeMap<>();
         boolean curr = false;
+        String newRunOptions = '';
         for (String inputElem : tab) {
             // binding option key
             if (inputElem.equals("-B") || inputElem.equals("--bind")) {
@@ -814,13 +813,18 @@ process mergeSingularityConfig {
             }
             // not binding option value/key
             else {
+                newRunOptions += " " + inputElem;
                 curr = false;
             }
         }
 
+        newRunOptions += " -B ,";
         for (Entry<String, String> entry : pathMap.entrySet()) {
             System.out.println("path " + entry.getValue() + " mounted in " + entry.getKey() + ".");
+            newRunOptions += entry.getValue() + (entry.getValue() == entry.getKey() ? '' : ":" + entry.getKey()) + ",";
         }
+
+        singularity.runOptions = newRunOptions;
     }
 
 
@@ -830,11 +834,11 @@ process mergeSingularityConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
+          System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage."
+        System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
         System.exit(-1)
       }
     }
@@ -842,7 +846,7 @@ process mergeSingularityConfig {
     singularity {
       enabled = true
       autoMounts = false
-      runOptions = "--containall \\\${(params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')}"
+      runOptions = "--containall " + (params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')
     }
 
     process {
@@ -1102,11 +1106,11 @@ process mergeMultiPathConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          System.out.println("   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        System.out.println("   ### ERROR ###   The option '-profile multipath' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
         System.exit(-1)
       }
     }
@@ -1199,11 +1203,11 @@ process globalPathConfig {
         def contents = []
         directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
         if (!path?.trim() || contents == null || contents.size() == 0){
-          println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+          System.out.println("   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
           System.exit(-1)
         }
       }else{
-        println "   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage."
+        System.out.println("   ### ERROR ###   The option '-profile path' requires the configuration of each tool path. See \\`--globalPath\\` for advanced usage.");
         System.exit(-1)
       }
     }

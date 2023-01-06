@@ -49,7 +49,7 @@ class GeniacInstall(GeniacInit):
         super().__init__(
             *args,
             project_path=project_path,
-            init_build=True,
+            init_build=False,
             pre_clean=True,
             post_clean=not no_post_clean,
             **kwargs,
