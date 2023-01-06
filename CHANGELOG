@@ -1,11 +1,13 @@
+version-2.6.3
+01/06/2023
+
 NEW FEATURES
    - singularity profile:
       * Allow the binding of relative (to launchDir) paths
       * Order the bindings according to the natural ordering
    - Geniac CLI:
-      * Possibility to use "geniac lint" on a repo even if the folder "geniac" is not present
-      * geniac init: Improve error messages 
-      * geniac options: Display missing options
+      * Possibility to use 'geniac lint' on a repo even if the folder "geniac" is not present
+      * 'geniac init':  improve error message display 
 
 DOCUMENTATION
    - Git clone using geniac submodule from remote release branch
@@ -13,6 +15,7 @@ DOCUMENTATION
 BUGFIX
    - Geniac CLI:
       * Avoid to launch Cmake init on several geniac CLI commands
+      * 'geniac options': display missing options
 
 version-2.6.2
 12/16/2022
