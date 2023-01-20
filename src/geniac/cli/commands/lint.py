@@ -1234,12 +1234,6 @@ class GeniacLint(GeniacCommand):
                         "scripts %s.",
                         notFound,
                     )
-                else:
-                    self.warning(
-                            "The following labels have not been explicitly used in any nextflow process: '%s'. However, it seems that they have been used by a label defined with a variable.",
-                            cross_labels
-                            )
-
             else:
                 self.warning(
                     "You have recipes, modules or geniac.tools label(s) that are not used in workflow "
