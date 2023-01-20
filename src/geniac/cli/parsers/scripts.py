@@ -20,6 +20,8 @@ class NextflowScript(GeniacParser):
     PROCESS_RE = re.compile(r"^ *process +(?P<processName>\w+) *{")
     # process label
     LABEL_RE = re.compile(r"^ *label +['\"](?P<labelName>\w+)['\"] *")
+    # process label defined by a variable
+    LABEL_VARIABLE_RE = re.compile(r"^ *label +[(](?P<labelParamsValue>.*) \?\: ['\"'](?P<labelName>.*)['\"'][)] *")
     # script flag
     SCRIPT_RE = re.compile(
         r"^ *(?P<startScript>[\"']{3})"
@@ -66,8 +68,16 @@ class NextflowScript(GeniacParser):
             if match := self.LABEL_RE.match(line):
                 values = match.groupdict()
                 label = values.get("labelName")
-                self.debug("FOUND label %s in process %s.", label, process)
+                self.debug("FOUND label '%s' in process '%s'.", label, process)
                 self.content["process"][process]["label"].append(label)
+                continue
+            if match := self.LABEL_VARIABLE_RE.match(line):
+                values = match.groupdict()
+                label = values.get("labelName")
+                paramsValue = values.get("labelParamsValue")
+                self.info("FOUND label '%s' in process '%s' defined using the variable '%s'.", label, process, paramsValue)
+                self.content["process"][process]["labelVariable"].append(label)
+                self.content["process"][process]["labelVariableParams"].append(paramsValue)
                 continue
             # For the moment we append everything into the same list even with conditional nextflow
             # script
