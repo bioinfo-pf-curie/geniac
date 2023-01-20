@@ -1,4 +1,5 @@
 NEW FEATURES
+   - Possibility to define label with variable: label (params.someValue ?: 'toolPrefix')
    - Geniac CLI:
       * 'geniac lint': improve error message when name of a conda recipe is not coherent with the label
 
