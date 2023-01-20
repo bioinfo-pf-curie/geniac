@@ -39,7 +39,7 @@ class GeniacLint(GeniacCommand):
     )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
-        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
+        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>.+\.(?P<ext>yml|yaml))"
     )
     # REGEX to check if a string is a path for renv.lock file
     RENV_LOCKFILE_PATH_RE = re.compile(
@@ -531,6 +531,13 @@ class GeniacLint(GeniacCommand):
                                                                pip_tool,
                                                                label
                                                            )
+                                # Test that the name of the conda recipe (yml or yaml file) is consistent with the label
+                                if label != os.path.splitext(os.path.basename(conda_path))[0]:
+                                        self.error(
+                                                "In the file 'conf/geniac.config', the label '%s' uses the custom conda recipe '%s'. Rename the recipe into '%s' to match your label.",
+                                                label,
+                                                recipe,
+                                                os.path.dirname(recipe) + "/" + label + ".yml")
                             else:
                                 self.error(
                                     "Conda file %s related to %s tool does not exist.",
