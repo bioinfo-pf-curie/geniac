@@ -778,7 +778,7 @@ process mergeSingularityConfig {
         if (!first && !isSymlink(path, false)) {
             String good = normalize(nat ? path.toString() : path.getParent().toString());
             map.put(good, good);
-        } else if (Files.isDirectory(path)) {
+        } else if (first && Files.isDirectory(path)) {
             // looking for symlinks in first level directory binding
             Files.list(path).forEach(it -> {
                 if (Files.isSymbolicLink(it)) {
