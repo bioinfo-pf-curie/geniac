@@ -686,6 +686,22 @@ process mergeSingularityConfig {
         }
     }
 
+    boolean isSymlink(Path path, boolean absolute) {
+        return Files.isSymbolicLink(path) && (absolute && !Files.readSymbolicLink(path).startsWith("..") || !absolute && Files.readSymbolicLink(path).startsWith(".."));
+    }
+
+    void processSamplePlanLine(input, set) {
+        Path p = (new File(input)).toPath();
+    
+        if (Files.isDirectory(p) || isSymlink(p, true)) {
+            // directory or absolute symlink
+            set.add(p.toString());
+        } else {
+            // regular file or relative symlink
+            set.add(p.getParent().toString());
+        }
+    }
+    
     void checkSamplePlan() {
         if (!params.samplePlan) {
             return;
@@ -693,61 +709,102 @@ process mergeSingularityConfig {
 
         singularity.runOptions += " -B " + params.samplePlan;
 
-        Set set = [];
+        Set results = [];
+        List list = [];
         (new File(params.samplePlan)).eachLine{
             defSamplePlanRow = it.split(",");
             nbCol = defSamplePlanRow.size();
             if(nbCol == 4) {
-                r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
-                r2Dir = defSamplePlanRow[3].substring(0, defSamplePlanRow[3].lastIndexOf("/"));
-                set.add(r1Dir);
-                set.add(r2Dir);
+                list.add(defSamplePlanRow[2]);
+                list.add(defSamplePlanRow[3]);
             } else if(nbCol == 3) {
-                r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
-                set.add(r1Dir);
+                list.add(defSamplePlanRow[2]);
             } else if(nbCol == 2) {
-                r1Dir = defSamplePlanRow[1].substring(0, defSamplePlanRow[1].lastIndexOf("/"));
-                set.add(r1Dir);
-            }
-            else {
+                list.add(defSamplePlanRow[1]);
+            } else {
                 return;
             }
         };
 
-        set.each{
+        list.each{
+            processSamplePlanLine(it, results);
+        }
+
+        results.each{
             singularity.runOptions += " -B " + it;
         }
     }
 
-    void checkSymlink(pathToCheck, add, map) {
+    String normalize(String str) {
+        while (str != null && str.contains("..")) {
+            String begin = null;
+            String end = null;
+            List<String> tab = Arrays.asList(str.split("/"));
+            for (int i = 0; i < tab.size(); i++) {
+                if (!"..".equals(tab.get(i))) {
+                    continue;
+                }
+    
+                begin = String.join("/", tab.subList(0, i));
+                end = String.join("/", tab.subList(i + 1, tab.size()));
+                break;
+            }
+    
+            if (begin != null || end != null) {
+                Path p = new File(begin).toPath();
+                if (Files.isSymbolicLink(p)) {
+                    String normalized = normalize(p.getParent().toString() + "/" + Files.readSymbolicLink(p).toString());
+                    str = new File(normalized).toPath().getParent().toString() + "/" + end;
+                } else {
+                    str = p.getParent().toString() + "/" + end;
+                }
+            }
+        }
+    
+        return str;
+    }
+
+    // String normalizeUnit(String string) {
+    //     return normalize(string);
+    // }
+
+    void checkSymlink(pathToCheck, first, map, nat) {
         if (SPECIAL_PATHS.contains(pathToCheck)) {
             return;
         }
-
-        if (add) {
-            singularity.runOptions += " -B " + pathToCheck;
-            map.put(pathToCheck, pathToCheck);
+    
+        Map<String, boolean> recursivePathsToCheck = new HashMap<>();
+        Path path = (new File(pathToCheck)).toPath();
+        if (!first && !isSymlink(path, false)) {
+            String good = normalize(nat ? path.toString() : path.getParent().toString());
+            map.put(good, good);
+        } else if (Files.isDirectory(path)) {
+            // looking for symlinks in first level directory binding
+            Files.list(path).forEach(it -> {
+                if (Files.isSymbolicLink(it)) {
+                    recursivePathsToCheck.put(it.toString(), false);
+                }
+            });
         }
-
+    
         List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
-        List<String> recursivePathsToCheck = new ArrayList<>();
         for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
             File f = new File(currPathToCheck);
             Path p = f.toPath();
             if (Files.isSymbolicLink(p)) {
-                String symlinkPath = p.toRealPath();
-                String nextPathToCheck = symlinkPath + "/" + pathSteps.subList(i, pathSteps.size()).join("/");
-                recursivePathsToCheck.add(nextPathToCheck);
+                String symlinkPath = (new File(p.getParent().toString() + "/" + Files.readSymbolicLink(p).toString())).toPath();
+                String nextPathToCheck = symlinkPath + (i == pathSteps.size() ? "" :  "/") + pathSteps.subList(i, pathSteps.size()).join("/");
+                recursivePathsToCheck.put(nextPathToCheck, nat);
             }
         }
-
+    
         checkSymlinks(recursivePathsToCheck, map);
     }
-
+    
     void checkSymlinks(pathsToProcess, map) {
-        for (String pathToProcess: pathsToProcess) {
-            checkSymlink(pathToProcess, true, map);
+        for (Entry<String, boolean> entry: pathsToProcess.entrySet()) {
+            checkSymlink(entry.getKey(), false, map, entry.getValue());
         }
     }
 
@@ -792,6 +849,8 @@ process mergeSingularityConfig {
                     path = path.replaceAll(START_PATTERN, "\"");
                     path = path.replaceAll(STOP_PATTERN, "\"");
 
+                    System.out.println("process binding " + path);
+
                     // source/target paths
                     String[] pathTab = path.split(":");
 
@@ -805,10 +864,15 @@ process mergeSingularityConfig {
                     }
 
                     checkPath(source, target, pathMap);
-                    pathMap.put(target, source);
+                    if (!isSymlink(new File(source).toPath(), false)) {
+                        pathMap.put(target, source);
+                    } else if (source != target) {
+                        // relative symlink with source != target is not managed
+                        throw new Exception("You are trying to bind " + source + " (as source, which is a relative symlink) to " + target + " (as target). Relative symlink bindings can drive to unpredictable issues. Try to update your bindings or, at least, bind it to the same name inside the container (target == source).");
+                    }
 
                     // is symlink
-                    checkSymlink(source, false, pathMap);
+                    checkSymlink(source, true, pathMap, true);
                 }
             }
             // not binding option value/key
