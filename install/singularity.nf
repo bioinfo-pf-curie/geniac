@@ -687,12 +687,12 @@ process mergeSingularityConfig {
     }
 
     boolean isSymlink(Path path, boolean absolute) {
-        return Files.isSymbolicLink(path) && (absolute && !Files.readSymbolicLink(path).startsWith("..") || !absolute && Files.readSymbolicLink(path).startsWith(".."));
+        return Files.isSymbolicLink(path) && (absolute && Files.readSymbolicLink(path).startsWith("/") || !absolute && !Files.readSymbolicLink(path).startsWith("/"));
     }
 
     void processSamplePlanLine(input, set) {
         Path p = (new File(input)).toPath();
-    
+
         if (Files.isDirectory(p) || isSymlink(p, true)) {
             // directory or absolute symlink
             set.add(p.toString());
@@ -701,7 +701,7 @@ process mergeSingularityConfig {
             set.add(p.getParent().toString());
         }
     }
-    
+
     void checkSamplePlan() {
         if (!params.samplePlan) {
             return;
@@ -772,7 +772,7 @@ process mergeSingularityConfig {
         if (SPECIAL_PATHS.contains(pathToCheck)) {
             return;
         }
-    
+
         Map<String, boolean> recursivePathsToCheck = new HashMap<>();
         Path path = (new File(pathToCheck)).toPath();
         if (!first && !isSymlink(path, false)) {
@@ -786,22 +786,22 @@ process mergeSingularityConfig {
                 }
             });
         }
-    
+
         List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
         for (i = 1 ; i <= pathSteps.size() ; i++) {
             String currPathToCheck = pathSteps.subList(0, i).join("/");
             File f = new File(currPathToCheck);
             Path p = f.toPath();
             if (Files.isSymbolicLink(p)) {
-                String symlinkPath = (new File(p.getParent().toString() + "/" + Files.readSymbolicLink(p).toString())).toPath();
+                String symlinkPath = (isSymlink(p, true) ? '': p.getParent().toString() + "/") + Files.readSymbolicLink(p).toString();
                 String nextPathToCheck = symlinkPath + (i == pathSteps.size() ? "" :  "/") + pathSteps.subList(i, pathSteps.size()).join("/");
                 recursivePathsToCheck.put(nextPathToCheck, nat);
             }
         }
-    
+
         checkSymlinks(recursivePathsToCheck, map);
     }
-    
+
     void checkSymlinks(pathsToProcess, map) {
         for (Entry<String, boolean> entry: pathsToProcess.entrySet()) {
             checkSymlink(entry.getKey(), false, map, entry.getValue());
