@@ -243,10 +243,6 @@ Whenever you use the :ref:`run-profile-conda` or :ref:`run-profile-multiconda` p
    nextflow -c conf/test.config run main.nf -profile multiconda --condaCacheDir "${HOME}/myCondaCacheDir"
 
 
-::
-
-   nextflow -c conf/test.config run main.nf -profile singularity --containers.specificBinds '/path/to/my/folder'
-
 \-\-genomeAnnotationPath
 ++++++++++++++++++++++++++
 
