@@ -351,44 +351,6 @@ There are several ways.
 
 .. _faq-singularity-invalid-binding:
 
-Why does the singularity profile complain of folder which does not exist or invalid binding?
-============================================================================================
-
-To ensure reproducibility, the singularity profile does the following:
-
-* it launches singularity with the ``--containall`` option
-* it sets ``autoMounts = false`` in nextflow
-* it mounts only few directoryies are mounted by default:
-
-   * ``work`` (i.e. the workDir)
-   * ``/tmp`` (binding in the workDir)
-   * ``/var/tmp`` (binding in the workDir)
-   * ``${projectDir}``
-   * ``${params.genomeAnnotationPath}``
-   * ``${params.outDir}``
-   * if a samplePlan is used by the pipeline to analyse the data (see :ref:`run-options-sampleplan` option), bindings are automatically added:
-
-       * for a samplePlan with 4 columns: the third and fourth columns are used for the bindings
-       * for a samplePlan with 3 columns: the third column is used for the bindings
-       * for a samplePlan with 1 column: the second column is used for the bindings
-       * bindings are not considered for of samplePlan format
-
-This means that if the pipeline needs any file located in a folder which is not mounted by singularity, it will not be available unless you explicitly tells singularity to mount the folder you need. This can be done using :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted.
-
-
-Moreover, we avoid the interaction between the singularity images and the HOME directory which can drive to unpredictible reproducibility issues. Indeed, if the HOME directory would be available, some libraries installed in the user’s $HOME could be loaded by some programming languages (such as python). If the pipeline throws a message error  containing ``invalid binding``, move your data from your HOME directory into a subfolder.
-
-
-Why does the pipeline complain of data not available when using the singularity profile?
-========================================================================================
-
-As explained in the section :ref:`faq-singularity-invalid-binding`, the :ref:`run-profile-singularity` profile restricts the binding inside the container since it sets ``autoMounts = false`` in nextflow.
-
-If you data is located in a folder which is not in the binding list available in the :ref:`run-profile-singularity` profile, the pipeline will fail. To solve this issue, you have two solutions:
-
-* either you deploy the pipeline setting the correct value in the :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted
-* or you launch the pipeline setting the correct value in the :ref:`run-specificbinds-option`
-
 
 What is the difference between singularity and apptainer?
 =========================================================
