@@ -59,7 +59,6 @@ add_custom_command(
             -Dlinux_distro=${ap_linux_distro}
             -Dconda_release=${ap_conda_release}
             -Dsingularity_build_options=${ap_singularity_build_options}
-            -Dmount_dir=${ap_mount_dir}
             -P ${CMAKE_SOURCE_DIR}/cmake/createWorkDir.cmake
     COMMAND ${CMAKE_COMMAND} -E echo "workDir/ has been created"
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir.done"
