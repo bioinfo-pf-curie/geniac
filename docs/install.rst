@@ -162,9 +162,7 @@ ap_linux_distro
 ap_mount_dir
 ++++++++++++
 
-| STRING
-| When using the docker/singularity profiles, the list of directories passed with this option will be made available inside the containers. The directories must be provided as a comma separated list (e.g. '/folder1,/folder2').
-| Default is empty.
+| Option is deprecated.
 
 ap_nf_executor
 ++++++++++++++

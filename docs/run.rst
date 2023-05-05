@@ -243,17 +243,6 @@ Whenever you use the :ref:`run-profile-conda` or :ref:`run-profile-multiconda` p
    nextflow -c conf/test.config run main.nf -profile multiconda --condaCacheDir "${HOME}/myCondaCacheDir"
 
 
-.. _run-specificbinds-option:
-
-\-\-containers.specificBinds
-++++++++++++++++++++++++++++++
-
-When you use the :ref:`run-profile-singularity` profile, it sets ``autoMounts = false`` in nextflow. This means that only the folders that have been passed to the :ref:`install-ap_mount_dir` option during the installation process will be available inside the container. If your pipeline needs to access other folders, you can specify them when your launch the pipeline. For example:
-
-::
-
-   nextflow -c conf/test.config run main.nf -profile singularity --containers.specificBinds '/path/to/my/folder'
-
 \-\-genomeAnnotationPath
 ++++++++++++++++++++++++++
 

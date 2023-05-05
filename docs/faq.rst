@@ -250,6 +250,51 @@ The |geniacdemodsl2|_ can be run as follows:
    
    nextflow -c conf/test.config run main.nf -profile multiconda
 
+How can a process have a label which is defined by a variable?
+==============================================================
+
+With nextflow, it is possible to define a label using a variable instead of a fixed string. In this case, the label value must be given in parenthesis. `geniac` also support such label. However, the label must be defined according to the following format: ``label (params.someValue ?: 'toolPrefix')``. In any case, the content of the ``params.someValue`` must start by the ``toolPrefix`` value. The `geniac` linter will check that there is a tool with a name starting with such a prefix, if it is not the case, it will throw an error. 
+
+A typical use case is the possibility to launch a pipeline with a version of a tool given as an option on the nextflow command line. Let's consider that you have declare three versions the ``mySoft`` tool in the ``geniac.config`` file as follows:
+
+::
+
+   params {
+      geniac{
+         tools {
+            mySoft = "conda-forge::mySoft=v0=r351h96ca727_1003`
+            mySoft_v1 = "conda-forge::mySoft=v1=r351h96ca727_1003`
+            mySoft_v2 = "conda-forge::mySoft=v1=r351h96ca727_1003`
+         }
+      }
+   }
+
+
+Then, in the netxflow process, define the label as follows:
+
+::
+
+   process mySoft {
+     label (params.mySoftVersion ?: 'mySoft')
+     label 'minMem'
+     label 'minCpu'
+
+
+     script:
+     """
+     mySoft --version
+     """
+   }
+
+
+When you launch nextflow, pass the option ``--mySoftversion`` to set which version of ``mySoft`` you want to use. 
+
+::
+   
+   nextflow run main.nf --mySoftversion v2 -profile test,singularity
+
+You may also write your nextflow code to use the default version (i.e. ``v0`` with the ``mySoft`` label) if no version is specified.
+
 What are the @git_*@ variables?
 ===============================
 
@@ -305,44 +350,6 @@ There are several ways.
   * if your are allowed to use the fakeroot option, pass both options ``-Dap_install_singularity_images=ON`` and ``-Dap_singularity_build_options=--fakeroot`` to `cmake`, and then run ``make``.
 
 .. _faq-singularity-invalid-binding:
-
-Why does the singularity profile complain of folder which does not exist or invalid binding?
-============================================================================================
-
-To ensure reproducibility, the singularity profile does the following:
-
-* it launches singularity with the ``--containall`` option
-* it sets ``autoMounts = false`` in nextflow
-* it mounts only few directoryies are mounted by default:
-
-   * ``work`` (i.e. the workDir)
-   * ``/tmp`` (binding in the workDir)
-   * ``/var/tmp`` (binding in the workDir)
-   * ``${projectDir}``
-   * ``${params.genomeAnnotationPath}``
-   * ``${params.outDir}``
-   * if a samplePlan is used by the pipeline to analyse the data (see :ref:`run-options-sampleplan` option), bindings are automatically added:
-
-       * for a samplePlan with 4 columns: the third and fourth columns are used for the bindings
-       * for a samplePlan with 3 columns: the third column is used for the bindings
-       * for a samplePlan with 1 column: the second column is used for the bindings
-       * bindings are not considered for of samplePlan format
-
-This means that if the pipeline needs any file located in a folder which is not mounted by singularity, it will not be available unless you explicitly tells singularity to mount the folder you need. This can be done using :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted.
-
-
-Moreover, we avoid the interaction between the singularity images and the HOME directory which can drive to unpredictible reproducibility issues. Indeed, if the HOME directory would be available, some libraries installed in the user’s $HOME could be loaded by some programming languages (such as python). If the pipeline throws a message error  containing ``invalid binding``, move your data from your HOME directory into a subfolder.
-
-
-Why does the pipeline complain of data not available when using the singularity profile?
-========================================================================================
-
-As explained in the section :ref:`faq-singularity-invalid-binding`, the :ref:`run-profile-singularity` profile restricts the binding inside the container since it sets ``autoMounts = false`` in nextflow.
-
-If you data is located in a folder which is not in the binding list available in the :ref:`run-profile-singularity` profile, the pipeline will fail. To solve this issue, you have two solutions:
-
-* either you deploy the pipeline setting the correct value in the :ref:`install-ap_mount_dir` option during the configure step to set the folder which need to be mounted
-* or you launch the pipeline setting the correct value in the :ref:`run-specificbinds-option`
 
 
 What is the difference between singularity and apptainer?

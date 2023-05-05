@@ -102,7 +102,7 @@ set(ap_mount_dir
     ""
     CACHE
         STRING
-        "When using the docker/singularity profiles, the list of directories passed with this option will be made available inside the containers. The directories must be provided as a comma separated list (e.g. '/folder1,/folder2'). Default is empty."
+        "Option is deprecated."
 )
 
 set(ap_singularity_build_options

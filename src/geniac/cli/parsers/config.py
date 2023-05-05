@@ -82,9 +82,6 @@ class NextflowConfig(GeniacParser):
             default_values = self.get_config_section_items(
                 f"scope.{nxf_config_scope}.values.default"
             ).get(config_prop, [])
-            prohibited_patterns = self.get_config_section_items(
-                f"scope.{nxf_config_scope}.values.prohibited"
-            ).get(config_prop)
             cfg_vals = scope.get(config_prop, [None])
 
             for cfg_val in cfg_vals:
@@ -94,32 +91,6 @@ class NextflowConfig(GeniacParser):
                     and default_values
                     and cfg_val not in [_.strip("'\"") for _ in default_values]
                 ):
-                    # Check for prohibited pattern only if the value doesn't match default values
-                    for reg in (
-                        [re.compile(pattern) for pattern in prohibited_patterns]
-                        if prohibited_patterns
-                        else []
-                    ):
-                        if match := reg.search(cfg_val):
-                            matches = match.groupdict()
-                            cfg_val_without_pro = cfg_val.replace(
-                                matches.get("prohibited"), ""
-                            )
-                            warn_flag = cfg_val_without_pro != cfg_val.replace(
-                                matches.get("values"), ""
-                            )
-                            self.error(
-                                'Value "%s" of %s.%s parameter match the following prohibited '
-                                'pattern "%s". %s%s',
-                                cfg_val,
-                                nxf_config_scope,
-                                config_prop,
-                                matches.get("prohibited_pattern"),
-                                "It should normally correspond to the string below:\n\t"
-                                if warn_flag
-                                else "",
-                                cfg_val_without_pro if warn_flag else "",
-                            )
 
                     if cfg_val is not None:
                         self.warning(
