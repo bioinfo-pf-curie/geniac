@@ -1,10 +1,15 @@
+version-3.0.0
+05/05/2023
+
 NEW FEATURES
+   - singularity profile:
+      * the profile has been simplified since the option '--containall' has been removed and the profile now sets 'autoMounts = true'
+	  * functionalities introduced in version 2.6.* to manage singularity bindings are not needed anymore
+      * option 'params.containers.specificBinds' (used in the geniac-template) introduced in version-2.1.0 is not needed anymore 
+      * cmake option 'ap_mount_dir' introduced in version-2.0.0 to bind folders inside containers is now deprecated since it is not needed anymore
    - Possibility to define label with variable: label (params.someValue ?: 'toolPrefix')
    - Geniac CLI:
       * 'geniac lint': improve error message when name of a conda recipe is not coherent with the label
-
-DOCUMENTATION
-   - Update
 
 version-2.6.3
 01/06/2023
