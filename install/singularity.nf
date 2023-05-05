@@ -640,193 +640,6 @@ process mergeSingularityConfig {
     """
     cat << EOF > "singularity.config"
     import java.io.File;
-    import java.nio.file.Files;
-    import java.nio.file.Path;
-    import java.nio.file.Paths;
-    import java.util.Arrays;
-    import java.util.TreeMap;
-    import java.util.List;
-    import java.util.Map;
-    import java.util.Map.Entry;
-    import java.util.regex.Matcher;
-    import java.util.regex.Pattern;
-
-    START_PATTERN = "__sta__";
-    STOP_PATTERN = "__sto__";
-    p1 = Pattern.compile("\\\"(.*?)\\\"");
-    p2 = Pattern
-            .compile("(" + START_PATTERN + "((?!" + STOP_PATTERN + ").)*?) +(.*?" + STOP_PATTERN + ")");
-    SPECIAL_PATHS = Arrays.asList(new String[] { "\\\\\\\$PWD" });
-
-
-    String sanitizePath(String path) throws Exception {
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-
-        if (!path.startsWith("/") && !SPECIAL_PATHS.contains(path)) {
-            path = "" + launchDir + "/" + path
-        }
-
-        return Paths.get(path).normalize().toString();
-    }
-
-    void checkPath(String source, String target, Map pathMap) {
-        if ("\\\$HOME".contains(source)) {
-            throw new Exception("ERROR reported from conf/singularity.config. \'" + source
-                    + "\' is an invalid binding source. Indeed, as a result of this binding the user HOME directory would be available inside the container which can drive to unpredictible reproducibility issues. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
-        }
-
-        if (!target.startsWith("/")) {
-            throw new Exception("ERROR reported from conf/singularity.config. \'" + target + "\' is an invalid binding target, it must be an absolute path. You should modify what was passed to the \'-Dap_mount_dir\' option during the cmake configuration step with geniac (see https://geniac.readthedocs.io and the FAQ).");
-        }
-
-        if (pathMap.containsKey(target) && !source.equals(pathMap.get(target))) {
-            throw new Exception("Several bindings for to the same target " + target);
-        }
-    }
-
-    void checkSamplePlan() {
-        if (!params.samplePlan) {
-            return;
-        }
-
-        singularity.runOptions += " -B " + params.samplePlan;
-
-        Set set = [];
-        (new File(params.samplePlan)).eachLine{
-            defSamplePlanRow = it.split(",");
-            nbCol = defSamplePlanRow.size();
-            if(nbCol == 4) {
-                r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
-                r2Dir = defSamplePlanRow[3].substring(0, defSamplePlanRow[3].lastIndexOf("/"));
-                set.add(r1Dir);
-                set.add(r2Dir);
-            } else if(nbCol == 3) {
-                r1Dir = defSamplePlanRow[2].substring(0, defSamplePlanRow[2].lastIndexOf("/"));
-                set.add(r1Dir);
-            } else if(nbCol == 2) {
-                r1Dir = defSamplePlanRow[1].substring(0, defSamplePlanRow[1].lastIndexOf("/"));
-                set.add(r1Dir);
-            }
-            else {
-                return;
-            }
-        };
-
-        set.each{
-            singularity.runOptions += " -B " + it;
-        }
-    }
-
-    void checkSymlink(pathToCheck, add, map) {
-        if (SPECIAL_PATHS.contains(pathToCheck)) {
-            return;
-        }
-
-        if (add) {
-            singularity.runOptions += " -B " + pathToCheck;
-            map.put(pathToCheck, pathToCheck);
-        }
-
-        List<String> pathSteps = Arrays.asList(pathToCheck.split("/"));
-        List<String> recursivePathsToCheck = new ArrayList<>();
-        for (i = 1 ; i <= pathSteps.size() ; i++) {
-            String currPathToCheck = pathSteps.subList(0, i).join("/");
-            File f = new File(currPathToCheck);
-            Path p = f.toPath();
-            if (Files.isSymbolicLink(p)) {
-                String symlinkPath = p.toRealPath();
-                String nextPathToCheck = symlinkPath + "/" + pathSteps.subList(i, pathSteps.size()).join("/");
-                recursivePathsToCheck.add(nextPathToCheck);
-            }
-        }
-
-        checkSymlinks(recursivePathsToCheck, map);
-    }
-
-    void checkSymlinks(pathsToProcess, map) {
-        for (String pathToProcess: pathsToProcess) {
-            checkSymlink(pathToProcess, true, map);
-        }
-    }
-
-    void checkBindings() throws Exception {
-        singularity.runOptions += " -B \\\$projectDir,\\\$launchDir,\\\\\\\$PWD:/tmp,\\\\\\\$PWD:/var/tmp,\\\${params.genomeAnnotationPath?:''},\\\${params.outDir?:''},${params.mountDir?:''}";
-        checkSamplePlan();
-        String input = singularity.runOptions;
-
-        // replace double quotes by start/stop pattern
-        Matcher m = p1.matcher(input);
-        if (m.find()) {
-            input = m.replaceAll(START_PATTERN + "\\\\\\\$1" + STOP_PATTERN);
-        }
-
-        // replace spaces in start/stop pattern by ##
-        m = p2.matcher(input);
-        while (m.find()) {
-            input = m.replaceAll("\\\\\\\$1##\\\\\\\$3");
-            m = p2.matcher(input);
-        }
-
-        // split on remaining spaces
-        String[] tab = input.split(" ");
-        Map<String, String> pathMap = new TreeMap<>();
-        boolean curr = false;
-        String newRunOptions = '';
-        for (String inputElem : tab) {
-            // binding option key
-            if (inputElem.equals("-B") || inputElem.equals("--bind")) {
-                curr = true;
-            }
-            // binding option value
-            else if (!inputElem.startsWith("-") && curr) {
-                // each path to bind
-                for (String path : inputElem.split(",")) {
-                    if (path.isEmpty()) {
-                        continue;
-                    }
-
-                    // restore original value (revert p1/p2 pattern effects)
-                    path = path.replaceAll("##", " ");
-                    path = path.replaceAll(START_PATTERN, "\"");
-                    path = path.replaceAll(STOP_PATTERN, "\"");
-
-                    // source/target paths
-                    String[] pathTab = path.split(":");
-
-                    String target = null;
-                    String source = sanitizePath(pathTab[0]);
-
-                    if (pathTab.length > 1) {
-                        target = sanitizePath(pathTab[1]);
-                    } else {
-                        target = source;
-                    }
-
-                    checkPath(source, target, pathMap);
-                    pathMap.put(target, source);
-
-                    // is symlink
-                    checkSymlink(source, false, pathMap);
-                }
-            }
-            // not binding option value/key
-            else {
-                newRunOptions += " " + inputElem;
-                curr = false;
-            }
-        }
-
-        newRunOptions += " -B ,";
-        for (Entry<String, String> entry : pathMap.entrySet()) {
-            System.out.println("path " + entry.getValue() + " mounted in " + entry.getKey() + ".");
-            newRunOptions += entry.getValue() + (entry.getValue() == entry.getKey() ? '' : ":" + entry.getKey()) + ",";
-        }
-
-        singularity.runOptions = newRunOptions;
-    }
-
 
     def checkProfileSingularity(path){
       if (new File(path).exists()){
@@ -837,7 +650,7 @@ process mergeSingularityConfig {
           System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
           System.exit(-1)
         }
-      }else{
+      } else {
         System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
         System.exit(-1)
       }
@@ -845,13 +658,12 @@ process mergeSingularityConfig {
 
     singularity {
       enabled = true
-      autoMounts = false
-      runOptions = "--containall " + (params.geniac.containers?.singularityRunOptions ?: '').replace('-C', '').replace('--containall', '')
+      autoMounts = true
+      runOptions = (params.geniac.containers?.singularityRunOptions ?: '')
     }
 
     process {
       checkProfileSingularity("\\\${params.geniac.singularityImagePath}")
-      checkBindings()
     EOF
     for keyFile in ${key}
     do

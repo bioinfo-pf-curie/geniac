@@ -307,7 +307,8 @@ Write the custom conda recipe in the directory ``recipes/conda``, for example ad
 
    The ``yml`` file with the conda recipe must follow the following guidelines:
 
-   * Choose a unique name for your conda envirnoment.
+   * Name the file using the name of the label (e.g. if the label is ``trickySoftware``, the file must be named ``trickySoftware.yml``)
+   * Choose a unique name for your conda environment.
    * Each conda package has the naming pattern ``softName = "condaChannelName::softName=version=buildString"``.
    * If you need ``pip`` to install some packages, add ``pip`` in your dependencies and use the pattern ``softName==version`` for each package to be installed with ``pip``.
 

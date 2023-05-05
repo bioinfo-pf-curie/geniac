@@ -39,7 +39,8 @@ class GeniacLint(GeniacCommand):
     )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
-        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
+        #r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>[/\w]+\.(?P<ext>yml|yaml))"
+        r"(?P<nxfvar>\${(baseDir|projectDir)})/(?P<basepath>.+\.(?P<ext>yml|yaml))"
     )
     # REGEX to check if a string is a path for renv.lock file
     RENV_LOCKFILE_PATH_RE = re.compile(
@@ -145,6 +146,7 @@ class GeniacLint(GeniacCommand):
     def labels_from_workflow(self):
         """Workflow labels from Nextflow folders"""
         # Init labels list if empty
+    
         labels = list(
             dict.fromkeys(
                 [
@@ -531,6 +533,13 @@ class GeniacLint(GeniacCommand):
                                                                pip_tool,
                                                                label
                                                            )
+                                # Test that the name of the conda recipe (yml or yaml file) is consistent with the label
+                                if label != os.path.splitext(os.path.basename(conda_path))[0]:
+                                        self.error(
+                                                "In the file 'conf/geniac.config', the label '%s' uses the custom conda recipe '%s'. Rename the recipe into '%s' to match your label.",
+                                                label,
+                                                recipe,
+                                                os.path.dirname(recipe) + "/" + label + ".yml")
                             else:
                                 self.error(
                                     "Conda file %s related to %s tool does not exist.",
@@ -1115,19 +1124,6 @@ class GeniacLint(GeniacCommand):
         self,
     ):
         """Check labels"""
-        # Get the difference with labels from geniac tools and folders and labels used
-        # in the workflow
-        cross_labels = [
-            label
-            for label in self.labels_all
-            if label not in self.labels_from_workflow and label != "onlyLinux"
-        ]
-        if len(cross_labels) >= 1:
-            self.warning(
-                "You have recipes, modules or geniac.tools label(s) that are not used in workflow "
-                "scripts %s.",
-                cross_labels,
-            )
 
         # Check if there is any inconsistencies with labels in other parts of config files (post,
         # envCustom) in global nxf_config scope
@@ -1139,15 +1135,67 @@ class GeniacLint(GeniacCommand):
                 extra_section, self.labels_all
             )
 
+        # List of candidate tools defined in a process
+        # using a label defined by a variable
+        listCandidateToolsWitlLabelVariable = []
         for process, process_scope in self.processes_from_workflow.items():
             # Get the diff of process labels not present in process scope in config
             # files and present within geniac tools scope
-            matched_labels = [
-                label
-                for label in process_scope.get("label")
-                if label not in self.labels_from_process_config
-                and label in self.labels_all
-            ]
+            if process_scope.get("label") == None:
+                matched_labels = []
+                unmatched_labels = []
+            else:
+                matched_labels = [
+                    label
+                    for label in process_scope.get("label")
+                    if label not in self.labels_from_process_config
+                    and label in self.labels_all
+                ]
+                unmatched_labels = [
+                    label
+                    for label in process_scope.get("label")
+                    if label not in self.labels_all
+                    and label not in self.labels_from_process_config
+                ]
+
+            if len(matched_labels) == 0:
+                if process_scope.get("labelVariable") != None:
+                    if len(process_scope.get("labelVariable")) > 0:
+                        foundLabelWithPrefix = False
+                        candidateTools = []
+                        for labelVariable in process_scope.get("labelVariable"):
+                            startWithLabel = list(filter(re.compile(r"^"+labelVariable+r".*").match, self.labels_all))
+                            if len(startWithLabel) > 0:
+                                foundLabelWithPrefix = True
+                                candidateTools = startWithLabel
+                                listCandidateToolsWitlLabelVariable = listCandidateToolsWitlLabelVariable + candidateTools
+                        if foundLabelWithPrefix:
+                            self.info(
+                                    "The process '%s' has a label defined by a variable. Candidate tool(s): '%s'.",
+                                    process,
+                                    candidateTools
+                                    )
+                        else:
+                            self.error(
+                                    "The process '%s' has a label defined by the variable '%s' and associated prefix label '%s' but no candidate tool has been found with such a prefix. Check the nextflow process to be sure that the syntax 'label (params.someValue ?: 'toolPrefix')' has been used. 'toolPrefix' must match one of the available labels among the following list:\n'%s'.",
+                                    process,
+                                    process_scope.get("labelVariableParams"),
+                                    process_scope.get("labelVariable"),
+                                    self.labels_all
+                            )
+                    else:
+                        self.error(
+                                "The process '%s' does not have any label which corresponds to a tool. Available labels are:\n'%s'.",
+                                process,
+                                self.labels_all
+                        )
+                else:
+                    self.error(
+                            "The process '%s' does not have any label which corresponds to a tool. Available labels are:\n'%s'.",
+                            process,
+                            self.labels_all
+                    )
+
             if len(matched_labels) > 1:
                 self.error(
                     "Use only one recipes, modules or geniac.tools label for the process %s %s. "
@@ -1155,12 +1203,7 @@ class GeniacLint(GeniacCommand):
                     process,
                     matched_labels,
                 )
-            unmatched_labels = [
-                label
-                for label in process_scope.get("label")
-                if label not in self.labels_all
-                and label not in self.labels_from_process_config
-            ]
+
             if len(unmatched_labels) >= 1:
                 process_path = self.get_config_path(
                     GeniacLint.GENIAC_CHECK_CONFIG, "process", single_path=True
@@ -1173,6 +1216,29 @@ class GeniacLint(GeniacCommand):
                         self.src_path
                     ),
                     process_path,
+                )
+
+        # Get the difference with labels from geniac tools and folders and labels used
+        # in the workflow
+        cross_labels = [
+            label
+            for label in self.labels_all
+            if label not in self.labels_from_workflow and label != "onlyLinux"
+        ]
+        if len(cross_labels) >= 1:
+            if len(listCandidateToolsWitlLabelVariable) >=1:
+                notFound = set(cross_labels) - set(listCandidateToolsWitlLabelVariable)
+                if len(notFound) >= 1:
+                    self.warning(
+                        "You have recipes, modules or geniac.tools label(s) that are not used in workflow "
+                        "scripts %s.",
+                        notFound,
+                    )
+            else:
+                self.warning(
+                    "You have recipes, modules or geniac.tools label(s) that are not used in workflow "
+                    "scripts %s.",
+                    cross_labels,
                 )
 
     def check_labels_containers(
