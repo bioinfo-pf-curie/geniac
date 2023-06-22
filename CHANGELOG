@@ -1,5 +1,9 @@
+version-3.0.1
+06/22/2023
+
 NEW FEATURES
    - conda 23.3.1 set as default for the containers
+   - conda env with apptainer 1.1.9
 
 version-3.0.0
 05/05/2023
