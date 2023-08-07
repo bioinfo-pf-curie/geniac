@@ -237,14 +237,16 @@ process buildDockerRecipeFromCondaFile {
     ADD \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
     RUN ${cplmtYum}${params.yum} clean all \\\\
-    && conda env create -f /opt/\$(basename ${condaFile}) \\\\
+    && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+    && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${condaFile}) \\\\
     && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
     && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
     && conda init bash \\\\
     && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -a  ${cplmtCmdPost}
+    && conda clean -y -a  ${cplmtCmdPost} \\\\
+    && micromamba clean -y -a ${cplmtCmdPost}
 
     ENV PATH /usr/local/conda/envs/\${env_name}/bin:\\\$PATH
 
@@ -315,7 +317,8 @@ process buildDockerRecipeFromCondaFile4Renv {
     ADD dependencies/${key}/renv.lock /opt/renv/renv.lock
 
     RUN ${cplmtYum}${params.yum} clean all \\\\
-    && conda env create -f /opt/\$(basename ${renvYml}) \\\\
+    && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+    && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
     && mkdir -p /opt/etc \\\\
     && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
     && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
@@ -323,7 +326,8 @@ process buildDockerRecipeFromCondaFile4Renv {
     && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -a ${cplmtCmdPost}
+    && conda clean -y -a ${cplmtCmdPost} \\\\
+    && micromamba clean -y -a ${cplmtCmdPost}
     RUN source /opt/etc/bashrc \\\\
     && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
 
@@ -398,15 +402,16 @@ process buildDockerRecipeFromCondaPackages {
 
     RUN ${cplmtYum}${params.yum} clean all \\\\
     && conda create -y -n ${key}_env \\\\
-    && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
-    && conda clean -a ${cplmtCmdPost} \\\\
+    && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+    && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
     && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
     && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
     && conda init bash \\\\
     && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -a ${cplmtCmdPost}
+    && conda clean -y -a ${cplmtCmdPost} \\\\
+    && micromamba clean -y -a ${cplmtCmdPost}
     EOF
     """
 }
