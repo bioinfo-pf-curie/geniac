@@ -8,6 +8,9 @@ NEW FEATURES
    - Geniac CLI:
       *  Conda env with apptainer 1.2.2, nextflow 22.10.6, pip 23.2.1
 
+DOCUMENTATION
+   - renv updated with BioC 3.17
+
 version-3.0.0
 05/05/2023
 
