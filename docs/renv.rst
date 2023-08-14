@@ -38,7 +38,7 @@ In the section ``params.geniac.tools`` of the file ``conf/geniac.config``, add t
           renvGlad {
             yml = "${projectDir}/recipes/conda/renvGlad.yml"
             env = "${params.condaCacheDir}/custom_renvGlad"
-            bioc = "3.14"
+            bioc = "3.17"
           }
 
 

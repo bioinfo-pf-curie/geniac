@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.1.3",
+    "Version": "4.3.1",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -9,48 +9,81 @@
     ]
   },
   "Bioconductor": {
-    "Version": "3.14"
+    "Version": "3.17"
   },
   "Packages": {
+    "BiocManager": {
+      "Package": "BiocManager",
+      "Version": "1.30.22",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "d57e43105a1aa9cb54fdb4629725acb1"
+    },
+    "BiocVersion": {
+      "Package": "BiocVersion",
+      "Version": "3.17.1",
+      "Source": "Bioconductor",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "f7c0d5521799b7b0d0a211143ed0bfcb"
+    },
     "GLAD": {
       "Package": "GLAD",
-      "Version": "2.58.0",
+      "Version": "2.64.0",
       "Source": "Bioconductor",
-      "git_url": "https://git.bioconductor.org/packages/GLAD",
-      "git_branch": "RELEASE_3_14",
-      "git_last_commit": "b91c49b",
-      "git_last_commit_date": "2021-10-26",
-      "Hash": "549efcfebe668ad72ac08af9e7a69688",
       "Requirements": [
+        "R",
         "aws"
-      ]
+      ],
+      "Hash": "efd50c9f23e052f086c8a22fc92c07c8"
     },
     "aws": {
       "Package": "aws",
-      "Version": "2.5-1",
+      "Version": "2.5-3",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "05024f3255cd1e04541a122d73ab4a9d",
       "Requirements": [
+        "R",
         "awsMethods",
-        "gsl"
-      ]
+        "gsl",
+        "methods"
+      ],
+      "Hash": "0832bb1e53afaba3a37732c1a5760deb"
     },
     "awsMethods": {
       "Package": "awsMethods",
       "Version": "1.1-1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "2dfceb7e0b4e9979cc392acb569c6c0d",
-      "Requirements": []
+      "Requirements": [
+        "R",
+        "methods"
+      ],
+      "Hash": "2dfceb7e0b4e9979cc392acb569c6c0d"
     },
     "gsl": {
       "Package": "gsl",
-      "Version": "2.1-7.1",
+      "Version": "2.1-8",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "167952c96eec4308c9487e1519a90682",
-      "Requirements": []
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "8f8205cbb9f1066a94e22898fe949184"
+    },
+    "renv": {
+      "Package": "renv",
+      "Version": "1.0.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "6523639dd021b32c3199a41cbe6db340"
     }
   }
 }
