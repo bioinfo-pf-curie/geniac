@@ -1,3 +1,18 @@
+version-3.1.0
+08/14/2023
+
+NEW FEATURES
+   - almalinux:8.8 set as default for the containers
+   - conda 25.3.1 set as default for the containers
+   - micromamba is used to create conda envs and install conda packages
+   - conda/multiconda profiles:
+	 * conda.enable has been added
+   - Geniac CLI:
+      *  Conda env with apptainer 1.2.2, nextflow 22.10.6, pip 23.2.1
+
+DOCUMENTATION
+   - renv updated with BioC 3.17
+
 version-3.0.0
 05/05/2023
 

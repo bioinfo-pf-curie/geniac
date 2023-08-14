@@ -304,13 +304,15 @@ process buildSingularityRecipeFromCondaFile {
 
     %post
         ${cplmtYum}${params.yum} clean all \\\\
-        && conda env create -f /opt/\$(basename ${condaFile}) \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${condaFile}) \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
         && conda init bash \\\\
         && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
         && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -a ${cplmtCmdPost}
+        && conda clean -y -a ${cplmtCmdPost} \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
 
     EOF
     """
@@ -384,13 +386,15 @@ process buildSingularityRecipeFromCondaFile4Renv {
         CACHE=TRUE
         CACHE_DIR=/opt/renv_cache
         ${cplmtYum}${params.yum} clean all \\\\
-        && conda env create -f /opt/\$(basename ${renvYml}) \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
         && conda init bash \\\\
         && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
         && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -a ${cplmtCmdPost}
+        && conda clean -y -a ${cplmtCmdPost} \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
         source /opt/etc/bashrc \\\\
         && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
    
@@ -468,13 +472,15 @@ process buildSingularityRecipeFromCondaPackages {
     %post
         ${cplmtYum}${params.yum} clean all \\\\
         && conda create -y -n ${key}_env \\\\
-        && conda install -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
         && conda init bash \\\\
         && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
         && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -a ${cplmtCmdPost}
+        && conda clean -y -a ${cplmtCmdPost} \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
 
     EOF
     """
@@ -803,7 +809,7 @@ process mergeCondaConfig {
 
   script:
     """
-    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n}\n" >> conda.config
+    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n  enabled = 'true'\n}\n" >> conda.config
     echo "process {"  >> conda.config
     echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> conda.config
     for keyFile in ${key}
@@ -856,7 +862,7 @@ process mergeMulticondaConfig {
 
   script:
     """
-    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n}\n" >> multiconda.config
+    echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n  enabled = 'true'\n}\n" >> multiconda.config
     echo "process {"  >> multiconda.config
     echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> multiconda.config
     for keyFile in ${key}
