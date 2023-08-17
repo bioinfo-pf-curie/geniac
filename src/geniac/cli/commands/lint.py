@@ -88,6 +88,9 @@ class GeniacLint(GeniacCommand):
         self._labels_from_folders = OrderedDict()
         self._labels_from_configs = OrderedDict()
         self._processes_from_workflow = OrderedDict()
+        self._renvinitlabel_from_workflow = OrderedDict()
+        self._renvinitout_from_workflow = OrderedDict()
+        self._renvinitinclude_from_workflow = OrderedDict()
         self._labels_from_workflow = []
         self._labels_all = []
         self._nxf_config_container = NextflowConfigContainer()
@@ -429,6 +432,9 @@ class GeniacLint(GeniacCommand):
         # fmt: on
 
         self.processes_from_workflow = script.content.get("process", OrderedDict())
+        self.renvinitlabel_from_workflow = script.content.get("renvInitLabel", OrderedDict())
+        self.renvinitout_from_workflow = script.content.get("renvInitOut", OrderedDict())
+        self.renvinitinclude_from_workflow = script.content.get("renvInitInclude", OrderedDict())
 
     def _check_geniac_config(
         self, config: NextflowConfig, conda_check: bool = False
@@ -474,7 +480,7 @@ class GeniacLint(GeniacCommand):
         conda_env_name = []
         for label, value in geniac_tools_list:
             # If the len(value) equals 1, then this is a standard label,
-            # otherwise, it le labels contains scopes suche as the label for renv.
+            # otherwise, it contains scopes such as the label for renv.
             if len(value) == 1:
                 [recipe] = value
                 (recipe, n_sub) = re.subn(LABEL_USED_BY_A_LABEL , "", recipe)
@@ -581,11 +587,40 @@ class GeniacLint(GeniacCommand):
                                 self.debug("Conda search output:\n%s", conda_search.stdout)
             else:
                 if bool(re.match(r"^renv.*", label)):
+                    # renv.lock file must be located in a folder with the name of the label
+                    # we will test if the file exists later 
                     renvLockfile = "${projectDir}/recipes/dependencies/" + label + "/renv.lock"
-                    if list(self.processes_from_workflow.keys()).count(label + 'Init') < 1:
-                        self.error("The process %s is missing for the renv label '%s'.", label + 'Init', label)
+                    #if list(self.processes_from_workflow.keys()).count(label + 'Init') < 1:
+                    # A dedicated renv<label>Init process takinf the <lavel> as argument must be called
+                    # The renv<label>Init process is used to create conda env when needed
+                    if list(self.renvinitlabel_from_workflow.keys()).count(label) < 1:
+                        self.error("The workflow has the process with label '%s' with R packages using renv. The process '%s('%s')' is missing. It must be called in your workflow. See https://geniac.readthedocs.io/en/latest/renv.html.", label, label + 'Init', label)
                     else:
-                        self.check_renv_init_output_channel(label + 'Init')
+                        # Check that renv<label>Init process is correctly named
+                        if self.renvinitlabel_from_workflow[label] != label + 'Init':
+                            self.error("The workflow has the process with label '%s' with R packages using renv. The process %s has been called in the workflow. Use the syntax %s instead (i.e. concatenate the label name \'%s\' with 'Init' suffix). See https://geniac.readthedocs.io/en/latest/renv.html.", label, '\'' +  self.renvinitlabel_from_workflow[label] + '(\'' + label + '\')' +'\'', '\'' + label + 'Init(' + '\'' + label + '\')\'', label)
+                        else:
+                            # Check that the module renvInit has been included
+                            if list(self.renvinitinclude_from_workflow.keys()).count(self.renvinitlabel_from_workflow[label])  < 1:
+                                self.error("The workflow has the process with label '%s' with R packages using renv. The include directive with the renvInit module is missing. Add a line such as: include { renvInit as %s } from \'./nf-modules/local/process/renvInit\'. See https://geniac.readthedocs.io/en/latest/renv.html.", label, label + 'Init')
+                            else:
+                                renvinit_file = self.src_path / str(self.renvinitinclude_from_workflow[self.renvinitlabel_from_workflow[label]] + ".nf")
+                                # Test that the renvInit module exist
+                                if not renvinit_file.exists():
+                                    self.error("The workflow has the process with label '%s' with R packages using renv.The module %s has been included but it does not exist. See https://geniac.readthedocs.io/en/latest/renv.html.", label, renvinit_file)
+                                    
+                            # Check that the output from renv<label>Init as been used by the process which possibl needs the conda env
+                            if list(self.renvinitout_from_workflow.keys()).count(self.renvinitlabel_from_workflow[label]) < 1:
+                                self.error("The workflow has the process with label '%s' with R packages using renv. The process with the label \'%s\' must be called with the argument %s. See https://geniac.readthedocs.io/en/latest/renv.html.", label, label, '\'' +  self.renvinitlabel_from_workflow[label] + '.out.renvInitDone\'')
+                            else:
+                                # Check that the process exist
+                                process_with_init = self.renvinitout_from_workflow[self.renvinitlabel_from_workflow[label]]
+                                if list(self.processes_from_workflow.keys()).count(process_with_init) < 1:
+                                    self.error("The workflow has the process with label '%s' with R packages using renv. The argument %s has been passed to the process \'%s\' which has not been defined. See https://geniac.readthedocs.io/en/latest/renv.html.", label, '\'' +  self.renvinitlabel_from_workflow[label] + '.out.renvInitDone\'', process_with_init)
+                                else:
+                                    # Check that correct process is used
+                                    if self.processes_from_workflow[process_with_init].get('label').count(label) < 1:
+                                        self.error("The workflow has the process with label '%s' with R packages using renv. The argument %s has been passed to the process \'%s\' but this process does not have any label \'%s\'. See https://geniac.readthedocs.io/en/latest/renv.html.", label, '\'' +  self.renvinitlabel_from_workflow[label] + '.out.renvInitDone\'', process_with_init, label)
 
                     for scope in ['yml', 'env', 'bioc']:
                         if value.get(scope) == None:
@@ -1302,40 +1337,7 @@ class GeniacLint(GeniacCommand):
                                 config_name,
                                 label_name)
 
-    # This function checks that a process which initiate a renv fr MyTool
-    # correctly sets the channel 'val(true) into renvMyToolDoneCh'
-    def check_renv_init_output_channel(self, label):
-        output_content = self.processes_from_workflow.get(label, []).get('output')
-        if output_content:
-            output_list = list(output_content)
-            channel = re.compile(r"val\(true\)[ \t]+into[ \t]+" + label + "DoneCh")
-            inter = list(filter(channel.match, output_list))
-            if inter:
-                self.debug("In the output section of the process '%s', the line 'val(true) into %sDoneCh' is present.", label, label)
-            else:
-                self.error("In the output section of the process '%s', the line 'val(true) into %sDoneCh' is missing.", label, label)
-        else:
-            self.error("The output section is missing in the process '%s'. You need to add it and define the channel '%sDoneCh'.", label, label)
 
-
-    # This function check that a process which relies on a renv tool
-    # depends on the channel set after the process which initiates the renv
-    def check_use_renv_input_channel(self):
-        for process in self.processes_from_workflow.keys():
-            labels = self.processes_from_workflow.get(process, []).get('label')
-            input_content = self.processes_from_workflow.get(process, []).get('input')
-            for label in labels:
-                if bool(re.match("^renv.*", label)):
-                    if input_content:
-                        channel = re.compile(r".*from[ \t]+" + label + "DoneCh")
-                        input_list = list(input_content)
-                        inter = list(filter(channel.match, input_list))
-                        if inter:
-                            self.debug("In the input section of the process '%s' which uses the renv '%s' tool, the line 'val(done) from %sDoneCh' is present.", process, label, label)
-                        else:
-                            self.error("In the input section of the process '%s' which uses the renv '%s' tool, the line 'val(done) from %sDoneCh' is missing.", process, label, label)
-                    else:
-                        self.error("The input section is missing in the process '%s' which uses the renv '%s' tool. You need to add it and define that the procees depends on the input 'val(done) from %sDoneCh'.", process, label, label)
 
     def check_labels_conda_geniac(
         self
@@ -1392,10 +1394,6 @@ class GeniacLint(GeniacCommand):
 
         # Check that a conda recipe has its label defined in geniac.config"""
         self.check_labels_conda_geniac()
-
-        # Check that the process which uses a renv tools
-        # relies on the input channel
-        self.check_use_renv_input_channel()
 
         # End the run with exit code
         if self.error_flag:
