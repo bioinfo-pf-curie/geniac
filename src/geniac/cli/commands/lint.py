@@ -607,7 +607,7 @@ class GeniacLint(GeniacCommand):
                                 renvinit_file = self.src_path / str(self.renvinitinclude_from_workflow[self.renvinitlabel_from_workflow[label]] + ".nf")
                                 # Test that the renvInit module exist
                                 if not renvinit_file.exists():
-                                    self.error("The workflow has the process with label '%s' with R packages using renv.The module %s has been included but it does not exist. See https://geniac.readthedocs.io/en/latest/renv.html.", label, renvinit_file)
+                                    self.error("The workflow has the process with label '%s' with R packages using renv. The module %s has been included but it does not exist. See https://geniac.readthedocs.io/en/latest/renv.html.", label, self.renvinitinclude_from_workflow[self.renvinitlabel_from_workflow[label]] + ".nf")
                                     
                             # Check that the output from renv<label>Init as been used by the process which possibl needs the conda env
                             if list(self.renvinitout_from_workflow.keys()).count(self.renvinitlabel_from_workflow[label]) < 1:
