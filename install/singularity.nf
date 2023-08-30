@@ -272,7 +272,7 @@ process buildSingularityRecipeFromCondaFile {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -346,7 +346,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -445,7 +445,7 @@ process buildSingularityRecipeFromCondaPackages {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -508,7 +508,7 @@ process buildSingularityRecipeFromSourceCode {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -545,7 +545,7 @@ process buildSingularityRecipeFromSourceCode {
         /usr/local/bin/${key}/ /usr/local/bin/
 
     %post
-        ${cplmtYum}${params.yum} install -y glibc-devel libstdc++-devel
+        ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
     %environment
         export R_LIBS_USER="-"

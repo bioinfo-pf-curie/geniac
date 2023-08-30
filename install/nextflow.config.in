@@ -61,6 +61,7 @@ params {
 
   // package manager for the Linux Distro
   yum = 'dnf'
+  yumOptions = '--setopt=fastestmirror=1 --setopt=metadata_expire=0'
 
 }
 
