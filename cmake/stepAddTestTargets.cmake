@@ -23,7 +23,7 @@
 # Custom targets for tests
 # ##############################################################################
 
-set(profile_list "standard" "conda" "multiconda" "singularity" "docker" "podman" "path" "multipath")
+set(profile_list "standard" "conda" "multiconda" "apptainer" "singularity" "docker" "podman" "path" "multipath")
 
 add_custom_target(
     myinstall
