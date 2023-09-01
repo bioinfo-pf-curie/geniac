@@ -576,7 +576,7 @@ singularityRecipeCh6
   .groupTuple()
   .map{ key, tab -> [key, tab[0]] }
   .into {
-    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
+    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh; singularityAllRecipe4buildApptainerCh;
     singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
   }
 
@@ -605,6 +605,79 @@ process buildImages {
 }
 
 
+/**
+ * Generate apptainer.config
+ **/
+
+process buildApptainerConfig {
+  tag "${key}"
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildApptainerCh
+
+  output:
+    file("${key}ApptainerConfig.txt") into mergeApptainerConfigCh
+
+  script:
+    """
+    cat << EOF > "${key}ApptainerConfig.txt"
+      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.sif" }
+    EOF
+    """
+}
+
+process mergeApptainerConfig {
+  tag "mergeApptainerConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    file key from mergeApptainerConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeApptainerConfigCh")
+
+  output:
+    file("apptainer.config") into finalApptainerConfigCh
+
+  script:
+    """
+    cat << EOF > "apptainer.config"
+    import java.io.File;
+
+    def checkProfileApptainer(path){
+      if (new File(path).exists()){
+        File directory = new File(path)
+        def contents = []
+        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
+        if (!path?.trim() || contents == null || contents.size() == 0){
+          System.out.println("   ### ERROR ###    The option '-profile apptainer' requires the apptainer images to be installed on your system. See \\`--apptainerImagePath\\` for advanced usage.");
+          System.exit(-1)
+        }
+      } else {
+        System.out.println("   ### ERROR ###    The option '-profile apptainer' requires the apptainerimages to be installed on your system. See \\`--apptainerImagePath\\` for advanced usage.");
+        System.exit(-1)
+      }
+    }
+
+    apptainer {
+      enabled = true
+      autoMounts = true
+      runOptions = (params.geniac.containers?.apptainerRunOptions ?: '')
+    }
+
+    process {
+      checkProfileApptainer("\\\${params.geniac.apptainerImagePath}")
+    EOF
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> apptainer.config
+    done
+    echo "}"  >> apptainer.config
+    """
+}
 /**
  * Generate singularity.config
  **/
