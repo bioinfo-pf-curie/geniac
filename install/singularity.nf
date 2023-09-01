@@ -374,8 +374,8 @@ process buildSingularityRecipeFromCondaFile4Renv {
 
     # real path from projectDir: ${renvYml}
     %files
-        \$(basename ${renvYml}) /tmp/\$(basename ${renvYml})
-        ${key}/renv.lock /tmp/renv/renv.lock
+        \$(basename ${renvYml}) /root/\$(basename ${renvYml})
+        ${key}/renv.lock /root/renv.lock
 
     %post
         R_MIRROR=https://cloud.r-project.org
@@ -383,8 +383,8 @@ process buildSingularityRecipeFromCondaFile4Renv {
         CACHE=TRUE
         CACHE_DIR=/opt/renv_cache
         mkdir -p /opt/renv /opt/renv_cache
-        mv /tmp/\$(basename ${renvYml}) /opt/\$(basename ${renvYml})
-        mv /tmp/renv/renv.lock /opt/renv/renv.lock
+        mv /root/\$(basename ${renvYml}) /opt/\$(basename ${renvYml})
+        mv /root/renv.lock /opt/renv/renv.lock
         ${cplmtYum}${params.yum} clean all \\\\
         && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
         && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
@@ -522,11 +522,11 @@ process buildSingularityRecipeFromSourceCode {
     Stage: devel
 
     %files
-        ${key}/ /tmp/
+        ${key}/ /root/
 
     %post
         mkdir -p /opt/modules
-        mv /tmp/${key}/ /opt/modules
+        mv /root/${key}/ /opt/modules
         ${cplmtYum}cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
         && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
