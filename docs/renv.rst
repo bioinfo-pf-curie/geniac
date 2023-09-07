@@ -95,7 +95,7 @@ Write you process using the label with the ``renv`` tool and always define in th
     process glad {
       label 'renvGlad'
       label 'minCpu'
-      label 'minMem'
+      label 'lowMem'
       publishDir "${params.outDir}/GLAD", mode: 'copy'
     
       input:
