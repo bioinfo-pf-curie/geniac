@@ -272,7 +272,7 @@ process buildSingularityRecipeFromCondaFile {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -346,7 +346,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -356,9 +356,6 @@ process buildSingularityRecipeFromCondaFile4Renv {
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
-
-    %setup
-        mkdir -p \\\${SINGULARITY_ROOTFS}/opt/renv \\\${SINGULARITY_ROOTFS}/opt/renv_cache
 
     %labels
         gitUrl ${params.gitUrl}
@@ -377,14 +374,17 @@ process buildSingularityRecipeFromCondaFile4Renv {
 
     # real path from projectDir: ${renvYml}
     %files
-        \$(basename ${renvYml}) /opt/\$(basename ${renvYml})
-        ${key}/renv.lock /opt/renv/renv.lock
+        \$(basename ${renvYml}) /root/\$(basename ${renvYml})
+        ${key}/renv.lock /root/renv.lock
 
     %post
         R_MIRROR=https://cloud.r-project.org
         R_ENV_DIR=/opt/renv
         CACHE=TRUE
         CACHE_DIR=/opt/renv_cache
+        mkdir -p /opt/renv /opt/renv_cache
+        mv /root/\$(basename ${renvYml}) /opt/\$(basename ${renvYml})
+        mv /root/renv.lock /opt/renv/renv.lock
         ${cplmtYum}${params.yum} clean all \\\\
         && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
         && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
@@ -445,7 +445,7 @@ process buildSingularityRecipeFromCondaPackages {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -508,7 +508,7 @@ process buildSingularityRecipeFromSourceCode {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -521,13 +521,12 @@ process buildSingularityRecipeFromSourceCode {
     From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
     Stage: devel
 
-    %setup
-        mkdir -p \\\${SINGULARITY_ROOTFS}/opt/modules
-
     %files
-        ${key}/ /opt/modules
+        ${key}/ /root/
 
     %post
+        mkdir -p /opt/modules
+        mv /root/${key}/ /opt/modules
         ${cplmtYum}cd /opt/modules \\\\
         && mkdir build && cd build || exit \\\\
         && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
@@ -545,7 +544,7 @@ process buildSingularityRecipeFromSourceCode {
         /usr/local/bin/${key}/ /usr/local/bin/
 
     %post
-        ${cplmtYum}${params.yum} install -y glibc-devel libstdc++-devel
+        ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
     %environment
         export R_LIBS_USER="-"
@@ -576,7 +575,7 @@ singularityRecipeCh6
   .groupTuple()
   .map{ key, tab -> [key, tab[0]] }
   .into {
-    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh;
+    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh; singularityAllRecipe4buildApptainerCh;
     singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
   }
 
@@ -605,6 +604,79 @@ process buildImages {
 }
 
 
+/**
+ * Generate apptainer.config
+ **/
+
+process buildApptainerConfig {
+  tag "${key}"
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    set val(key), file(singularityRecipe) from singularityAllRecipe4buildApptainerCh
+
+  output:
+    file("${key}ApptainerConfig.txt") into mergeApptainerConfigCh
+
+  script:
+    """
+    cat << EOF > "${key}ApptainerConfig.txt"
+      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.sif" }
+    EOF
+    """
+}
+
+process mergeApptainerConfig {
+  tag "mergeApptainerConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    file key from mergeApptainerConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeApptainerConfigCh")
+
+  output:
+    file("apptainer.config") into finalApptainerConfigCh
+
+  script:
+    """
+    cat << EOF > "apptainer.config"
+    import java.io.File;
+
+    def checkProfileApptainer(path){
+      if (new File(path).exists()){
+        File directory = new File(path)
+        def contents = []
+        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
+        if (!path?.trim() || contents == null || contents.size() == 0){
+          System.out.println("   ### ERROR ###    The option '-profile apptainer' requires the apptainer images to be installed on your system. See \\`--apptainerImagePath\\` for advanced usage.");
+          System.exit(-1)
+        }
+      } else {
+        System.out.println("   ### ERROR ###    The option '-profile apptainer' requires the apptainerimages to be installed on your system. See \\`--apptainerImagePath\\` for advanced usage.");
+        System.exit(-1)
+      }
+    }
+
+    apptainer {
+      enabled = true
+      autoMounts = true
+      runOptions = (params.geniac.containers?.apptainerRunOptions ?: '')
+    }
+
+    process {
+      checkProfileApptainer("\\\${params.geniac.apptainerImagePath}")
+    EOF
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> apptainer.config
+    done
+    echo "}"  >> apptainer.config
+    """
+}
 /**
  * Generate singularity.config
  **/

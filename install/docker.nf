@@ -210,7 +210,7 @@ process buildDockerRecipeFromCondaFile {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -282,7 +282,7 @@ process buildDockerRecipeFromCondaFile4Renv {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -379,7 +379,7 @@ process buildDockerRecipeFromCondaPackages {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
     && """
     }
 
@@ -438,7 +438,7 @@ process buildDockerRecipeFromSourceCode {
 
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install -y ${yumPkgs} ${cplmtGit} \\\\
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
         && """
     }
 
@@ -465,7 +465,7 @@ process buildDockerRecipeFromSourceCode {
 
     COPY --from=devel /usr/local/bin/${key}/ /usr/local/bin/${key}/
 
-    RUN ${cplmtYum}${params.yum} install -y glibc-devel libstdc++-devel
+    RUN ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
     ENV R_LIBS_USER "-"
     ENV R_PROFILE_USER "-"
