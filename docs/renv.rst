@@ -25,7 +25,7 @@ Create the conda recipes in the folder ``recipes/conda`` which defines which R v
         - bioconda
         - defaults
     dependencies:
-        - r-base=4.1.3=h06d3f91_1
+        - r-base=4.3.1=h29c4799_3
 
 
 Add the label in geniac.config
@@ -49,77 +49,32 @@ In the section ``params.geniac.tools`` of the file ``conf/geniac.config``, add t
 Create a process to init the renv
 =================================
 
-This process allows the usage of the R software with the ``multiconda`` and ``conda`` profiles. During this process, the dependencies provided in the ``renv.lock`` will be installed.
+This process allows the usage of the R software with the ``multiconda`` and ``conda`` profiles. During this process, the dependencies provided in the ``renv.lock`` will be installed. The process ``renvInit`` is provided with the documentation: copy the code :download:`renvInit <../data/nf-modules/local/process/renvInit.nf>` into the file ``nf-modules/local/process/renvInit.nf``:
 
-In your ``main.nf``, add the following process:
+
+
+.. literalinclude:: ../data/nf-modules/local/process/renvInit.nf
+
+
+In your ``main.nf``, include the file  ``./nf-modules/local/process/renvInit.nf`` as a nextflow module. The module should be included using a prefix wich is the same as the name of the label of the process that will use `renv <https://rstudio.github.io/renv/>`_. In this example, we will consider that the process ``glad`` has the label ``renvGlad``. Therefore, ``renvInit`` module is included as ``renvGladInit`` (i.e. concatenate the label name with ``Init`` suffix):
 
 ::
 
-    process renvGladInit {
-      label 'onlyLinux'
-      label 'minCpu'
-      label 'minMem'
-    
-      output:
-      val(true) into renvGladInitDoneCh
-    
-      script:
-        def renvName = 'renvGlad' // This is the only variable which needs to be modified
-        def renvYml = params.geniac.tools.get(renvName).get('yml')
-        def renvEnv = params.geniac.tools.get(renvName).get('env')
-        def renvBioc = params.geniac.tools.get(renvName).get('bioc')
-        def renvLockfile = projectDir.toString() + '/recipes/dependencies/' + renvName + '/renv.lock'
-        
-    
-        // The code below is generic, normally, no modification is required
-        if (workflow.profile.contains('multiconda') || workflow.profile.contains('conda')) {
-            """
-            if conda env list | grep -wq ${renvEnv} || [ -d "${params.condaCacheDir}" -a -d "${renvEnv}" ] ; then
-                echo "prefix already exists, skipping environment creation"
-            else
-                CONDA_PKGS_DIRS=. conda env create --prefix ${renvEnv} --file ${renvYml}
-            fi
-      
-            set +u
-            conda_base=\$(dirname \$(which conda))
-            if [ -f \$conda_ conda/../../etc/profile.d/conda.sh ]; then
-              conda_script="\$conda_base/../../etc/profile.d/conda.sh"
-            else
-              conda_script="\$conda_base/../etc/profile.d/conda.sh"
-            fi
-      
-            echo \$conda_script
-            source \$conda_script
-            conda activate ${renvEnv}
-            set -u
-      
-            export PKG_CONFIG_PATH=\$(dirname \$(which conda))/../lib/pkgconfig
-            export PKG_LIBS="-liconv"
-      
-            R -q -e "options(repos = \\"https://cloud.r-project.org\\") ; install.packages(\\"renv\\") ; options(renv.consent = TRUE, renv.config.install.staged=FALSE, renv.settings.use.cache=TRUE) ; install.packages(\\"BiocManager\\"); BiocManager::install(version=\\"${renvBioc}\\", ask=FALSE) ; renv::restore(lockfile = \\"${renvLockfile}\\")"
-            """
-        } else {
-            """
-            echo "profiles: ${workflow.profile} ; skip renv step"
-            """
-        }
-    }
-    
-    renvGladInitDoneCh.set{ renvGladDoneCh}
+    include { renvInit as renvGladInit } from './nf-modules/local/process/renvInit'
 
 
-.. important::
+Then, in your ``main.nf``:
 
-    The name of the process must start by the label of the tool followed by the ``Init`` suffix, for example ``renvGladInit``.
+* invoke the nextflow module ``renvGladInit`` using the label of the tool ``'renvGlad'`` as an argument
+* call the process ``glad`` taking as an argument the output of the process ``renvInitGlad``
 
-    This process must use the label ``onlyLinux`` (see :ref:`process-unix`).
+::
 
-    In the ``output`` section, define a channel with the name of the label followed by the ``InitDoneCh`` suffixe, for example ``val(true) into renvGladInitDoneCh``.
+    renvGladInit('renvGlad')
+    glad(renvGladInit.out.renvInitDone)
 
-    After the process, define a channel to indicate that the ``renv`` has been initiated. The channel must start by the name of the label followd by the ``DoneCh`` suffixe, for example ``renvGladInitDoneCh.set{ renvGladDoneCh}``
 
-    In this process, set the content of the variable ``renvName`` to the label of the tool, for axample ``renvGlad``.
-
+If you have several processes using `renv <https://rstudio.github.io/renv/>`_, do the extact same procedure just using the other label name of your other process.
 
 Copy you ``renv.lock`` file  is a sublder inside ``recipes/dependencies/``
 ==========================================================================
@@ -133,21 +88,21 @@ We assume that the reader is familiar with `renv <https://rstudio.github.io/renv
 Add a process which uses the renv
 =================================
 
-Write you process using the label with the ``renv`` tool and always define in the ``input`` section of the process the channel that has been previously set, for example ``val(done) from renvGladDoneCh``
+Write you process using the label with the ``renv`` tool and always define in the ``input`` section of the ``val renvInitDone``
 
 ::
 
     process glad {
       label 'renvGlad'
       label 'minCpu'
-      label 'minMem'
+      label 'lowMem'
       publishDir "${params.outDir}/GLAD", mode: 'copy'
     
       input:
-      val(done) from renvGladDoneCh
+      val renvInitDone
     
       output: 
-      file "BkpInfo.tsv"
+      path "BkpInfo.tsv"
     
       script:
       """

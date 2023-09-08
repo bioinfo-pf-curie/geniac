@@ -29,6 +29,10 @@ class NextflowScript(GeniacParser):
     )
     # output/input flag
     INOUT_RE=re.compile(r"^[ \t]*(?P<inout>input|output|script):[ \t]*")
+    # renvInit invokation
+    RENV_INIT_RE = re.compile(r"\s*(?P<renvInit>renv\w+Init)\(['\"'](?P<renvLabel>\w+)['\"']\)")
+    RENV_INIT_OUT_RE = re.compile(r"\s*(?P<renvProcess>\w+)\((?P<renvInit>\w+).*\.out\.renvInitDone\)")
+    RENV_INIT_INCLUDE_RE = re.compile(r"\s*include\s*{\s*renvInit\s+as\s+(?P<renvInitInclude>\w+)\s*}\s+from\s+['\"'](?P<renvInitFile>.*)['\"']")
 
 
     def _read(
@@ -53,7 +57,25 @@ class NextflowScript(GeniacParser):
         input_flag = False
         # TODO: change process keys to ("processName", filePath)
         self.content["process"] = self.content.get("process") or OrderedDict()
+        self.content["renvInitLabel"] = self.content.get("renvInitLabel") or OrderedDict()
+        self.content["renvInitOut"] = self.content.get("renvInitOut") or OrderedDict()
+        self.content["renvInitInclude"] = self.content.get("renvInitInclude") or OrderedDict()
         for idx, line in enumerate(super()._read(in_file, **kwargs)):
+            if match := self.RENV_INIT_RE.match(line):
+                values = match.groupdict()
+                renvInit = values.get("renvInit")
+                renvLabel = values.get("renvLabel")
+                self.content["renvInitLabel"][renvLabel] = renvInit
+            if match := self.RENV_INIT_OUT_RE.match(line):
+                values = match.groupdict()
+                renvInit = values.get("renvInit")
+                renvProcess = values.get("renvProcess")
+                self.content["renvInitOut"][renvInit] = renvProcess
+            if match := self.RENV_INIT_INCLUDE_RE.match(line):
+                values = match.groupdict()
+                renvInitInclude = values.get("renvInitInclude")
+                renvInitFile = values.get("renvInitFile")
+                self.content["renvInitInclude"][renvInitInclude] = renvInitFile
             if match := self.PROCESS_RE.match(line):
                 inout = ""
                 input_flag = False

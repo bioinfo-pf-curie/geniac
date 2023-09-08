@@ -19,6 +19,8 @@ Installation from source code offers a great flexibility as the software develop
 
    mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
 
+
+
    # clone the repository
    # the option --recursive is needed if you use geniac as a submodule
    # the option --remote-submodules will pull the last geniac version
@@ -26,8 +28,9 @@ Installation from source code offers a great flexibility as the software develop
    git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
 
    # copy miscellaneous examples "Install from Source"
+   for misc_file in $(find ${SRC_DIR}/test/misc/ -name "*nf.misc"); do mv ${misc_file} ${misc_file%%.misc} ;done
    rsync -avh --progress ${SRC_DIR}/test/misc/* ${SRC_DIR}
-   mv ${SRC_DIR}/main.nf.misc ${SRC_DIR}/main.nf
+   rm -rf  ${SRC_DIR}/test/misc
 
    cd ${BUILD_DIR}
 

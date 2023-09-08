@@ -797,7 +797,7 @@ To optimize the resources used in a computing cluster, you may want to finely tu
 ::
 
   withName:outputDocumentation {
-    memory = { checkMax( 1500.MB, 'memory' ) }
+    memory = { checkMax( 2500.MB, 'memory' ) }
   }
 
 .. tip::

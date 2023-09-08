@@ -1,3 +1,14 @@
+version-3.2.0
+09/08/2023
+
+NEW FEATURES
+   - singularity/docker profiles:
+      * params.yumOptions added ine the nextflow.config file, and options set with '--setopt=fastestmirror=1 --setopt=metadata_expire=0'
+   - new profile created by geniac: apptainer (since 'apptainer.enabled' has been introduced in nextflow 23.04.0)
+   - Geniac CLI:
+      * 'geniac lint': consider that the nextflow pipeline is implemented using DSL2. Modifications have been made only for process using renv. 'geniac lint' could still work on DSL1 pipeline provided that there is no process using renv.
+      * Update conda env with new tool versions
+
 version-3.1.0
 08/14/2023
 
