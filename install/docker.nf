@@ -245,7 +245,7 @@ process buildDockerRecipeFromCondaFile {
     && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -y -a  ${cplmtCmdPost} \\\\
+    && conda clean -y -a \\\\
     && micromamba clean -y -a ${cplmtCmdPost}
 
     ENV PATH /usr/local/conda/envs/\${env_name}/bin:\\\$PATH
@@ -326,7 +326,7 @@ process buildDockerRecipeFromCondaFile4Renv {
     && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -y -a ${cplmtCmdPost} \\\\
+    && conda clean -y -a \\\\
     && micromamba clean -y -a ${cplmtCmdPost}
     RUN source /opt/etc/bashrc \\\\
     && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
@@ -410,7 +410,7 @@ process buildDockerRecipeFromCondaPackages {
     && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
     && mkdir -p /opt/etc \\\\
     && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -y -a ${cplmtCmdPost} \\\\
+    && conda clean -y -a \\\\
     && micromamba clean -y -a ${cplmtCmdPost}
     EOF
     """

@@ -311,7 +311,7 @@ process buildSingularityRecipeFromCondaFile {
         && conda init bash \\\\
         && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
         && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a ${cplmtCmdPost} \\\\
+        && conda clean -y -a \\\\
         && micromamba clean -y -a ${cplmtCmdPost}
 
     EOF
@@ -393,7 +393,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
         && conda init bash \\\\
         && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
         && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a ${cplmtCmdPost} \\\\
+        && conda clean -y -a \\\\
         && micromamba clean -y -a ${cplmtCmdPost}
         source /opt/etc/bashrc \\\\
         && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
@@ -479,7 +479,7 @@ process buildSingularityRecipeFromCondaPackages {
         && conda init bash \\\\
         && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
         && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a ${cplmtCmdPost} \\\\
+        && conda clean -y -a \\\\
         && micromamba clean -y -a ${cplmtCmdPost}
 
     EOF
