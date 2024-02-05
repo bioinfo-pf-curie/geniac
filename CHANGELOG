@@ -3,6 +3,9 @@ NEW FEATURES
    - almalinux:9.3 set as default for the containers
    - conda 23.10.0 set as default for the containers
 
+BUGFIX
+   - singularity/docker recipes: post command were printed twice.
+
 version-3.2.1
 10/12/2023
 
