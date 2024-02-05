@@ -1,3 +1,8 @@
+
+NEW FEATURES
+   - almalinux:9.3 set as default for the containers
+   - conda 23.10.0 set as default for the containers
+
 version-3.2.1
 10/12/2023
 
@@ -21,7 +26,7 @@ version-3.1.0
 
 NEW FEATURES
    - almalinux:8.8 set as default for the containers
-   - conda 25.3.1 set as default for the containers
+   - conda 23.5.1 set as default for the containers
    - micromamba is used to create conda envs and install conda packages
    - conda/multiconda profiles:
 	 * conda.enable has been added
