@@ -77,7 +77,7 @@ Let's consider you run ``singularity build myTool.sif myTool.def`` from this ``m
 ::
 
    Bootstrap: docker
-   From: 4geniac/almalinux:8.8_conda-py311_23.5.1-0
+   From: 4geniac/almalinux:9.3_conda-py311_23.10.0-1
    
    %environment
        export LC_ALL=en_US.utf-8
@@ -131,7 +131,7 @@ From the Definition file used in :ref:`conda-singularity-impossible`, add ``expo
 ::
 
    Bootstrap: docker
-   From: 4geniac/almalinux:8.8_conda-py311_23.5.1-0
+   From: 4geniac/almalinux:9.3_conda-py311_23.10.0-1
    
    %environment
        export LC_ALL=en_US.utf-8
@@ -193,7 +193,7 @@ From the Definition file used in :ref:`conda-singularity-impossible`, add ``sour
 ::
 
    Bootstrap: docker
-   From: 4geniac/almalinux:8.8_conda-py311_23.5.1-0
+   From: 4geniac/almalinux:9.3_conda-py311_23.10.0-1
    
    %environment
        export LC_ALL=en_US.utf-8
@@ -255,7 +255,7 @@ Let's consider you run ``sudo docker build  -f myToolV0.Dockerfile -t mytool .``
 
 ::
 
-   FROM 4geniac/almalinux:8.8_conda-py311_23.5.1-0
+   FROM 4geniac/almalinux:9.3_conda-py311_23.10.0-1
    
    # install conda env
    RUN yum install -y which \
@@ -302,7 +302,7 @@ Let's add ``ENV BASH_ENV ~/.bashrc`` in the Dockerfile and set the ``PS1`` varia
 
 ::
 
-   FROM 4geniac/almalinux:8.8_conda-py311_23.5.1-0
+   FROM 4geniac/almalinux:9.3_conda-py311_23.10.0-1
    
    # install conda env
    RUN yum install -y which \

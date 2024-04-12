@@ -159,5 +159,5 @@ if(NOT "${ap_docker_registry}" STREQUAL "")
 endif()
   
 if(NOT "${ap_linux_distro}" MATCHES ".*:.*")
-  message_color(ERROR "ap_linux_distro '${ap_linux_distro}' must be formatted like 'distro:version' (e.g. almalinux:8.4).")
+  message_color(ERROR "ap_linux_distro '${ap_linux_distro}' must be formatted like 'distro:version' (e.g. almalinux:9.3).")
 endif()
