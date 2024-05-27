@@ -20,6 +20,7 @@ from geniac.cli.commands.options import GeniacOptions
 from geniac.cli.commands.recipes import GeniacRecipes
 from geniac.cli.commands.test import GeniacTest
 from geniac.cli.utils.base import MethodRecord, load_logging_config
+import geniac.cli.utils.errorcounter
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2020"
@@ -458,6 +459,10 @@ class GeniacEntryPoint:
         else:
             self.parser.print_help()
         _logger.debug("Script ends here.")
+
+        if geniac.cli.utils.errorcounter.error_counter > 0:
+            raise SystemExit(1)
+
 
 
 if __name__ == "__main__":
