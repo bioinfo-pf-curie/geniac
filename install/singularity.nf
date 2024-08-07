@@ -4,7 +4,7 @@
 
 This file is part of geniac.
 
-Copyright Institut Curie 2020.
+Copyright Institut Curie 2020-2024.
 
 This software is a computer program whose purpose is to perform
 Automatic Configuration GENerator and Installer for nextflow pipeline.
@@ -22,11 +22,11 @@ of the license and that you accept its terms.
 
 */
 
-nextflow.enable.dsl=1
+nextflow.enable.dsl=2
 
-/**
- * CUSTOM FUNCTIONS
- **/
+/********************
+ * CUSTOM FUNCTIONS *
+ ********************/
 
 def addYumAndGitAndCmdConfs(List input) {
   List<String> gitList = []
@@ -67,13 +67,11 @@ String buildCplmtPath(List gitEntries) {
 }
 
 
-/**
- * CHANNELS INIT
- **/
+/*****************
+ * CHANNELS INIT *
+ *****************/
 
-condaPackagesCh = Channel.create()
-condaFilesCh = Channel.create()
-condaEnvsCh = Channel.create()
+// Channel with conda env info form geniac.config
 Channel
   .from(params.geniac.tools)
   .flatMap {
@@ -105,124 +103,66 @@ Channel
       return it
   }.set{ condaForks }
 
-(condaExistingEnvs, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
-condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh; condaExistingEnvsBisCh }
-condaExistingRenvCh
+(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+
+condaPackagesCh
+  .multiMap { pTool -> 
+    condaChannelFromSpecs: pTool[1][0]
+    condaDepFromSpecs: pTool[1][1]
+  }
+  .set { condaPackages }
+
+// The 2 following channels contain information
+// about conda env defined in the geniac.config file
+condaChannelFromSpecsCh = condaPackages.condaChannelFromSpecs
+condaDepFromSpecsCh = condaPackages.condaDepFromSpecs
+
+// Channel for Renv environment
+condaExistingEnvsCh
   .filter {  it[0] =~/^renv.*/ }
-  .set { condaFiles4Renv } // Channel for Renv environment
+  .set { condaFiles4Renv }
 
-condaFiles4Renv.into{ condaFiles4SingularityRecipesCh4Renv; condaFilesOneEnvWithRenv; checkIsEmptyRenv }
-condaPackagesCh.into{ condaPackages4SingularityRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
-condaFilesCh.into{ condaFiles4SingularityRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
-
+// SINGULARITY RECIPES
 Channel
   .fromPath("${projectDir}/recipes/singularity/*.def")
   .map{ [it.simpleName, it] }
-  .set{ singularityRecipeCh1 }
+  .set{ singularityRecipesCh }
 
-/**
- * CONDA RECIPES
- **/
-
+// CONDA RECIPES
 Channel
   .fromPath("${projectDir}/recipes/conda/*.yml")
   .map{ [it.simpleName, it] }
-  .set{ condaRecipes }
+  .set{ condaRecipesCh }
 
-
-/**
- * DEPENDENCIES
- **/
-
+// DEPENDENCIES
 Channel
   .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
   .map{ [it.name, it] }
-  .set{ fileDependencies }
+  .set{ fileDependenciesCh }
 
-/**
- * SOURCE CODE
- **/
-
-
+// SOURCE CODE
 Channel
   .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
   .map{ [it.name, it] }
-  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4; sourceCodeCh5 }
+  .set{ sourceCodeCh }
 
 
-
-/**
- * PROCESSES
- **/
-// TODO: use worklow.manifest.name for the name field
-// TODO: check if it works with pip packages
-// TODO: Add a process in order to test the generated environment.yml (create a venv from it, activate, export and check diffs)
-// TODO: Check if order of dependencies can be an issue
-condaChannelFromSpecsCh = Channel.create()
-condaDepFromSpecsCh = Channel.create()
-condaPackages4CondaEnvCh.separate(condaChannelFromSpecsCh, condaDepFromSpecsCh){ pTool -> [pTool[1][0], pTool[1][1]] }
-
-process buildCondaDepFromRecipes {
-  tag{ "condaDepBuild-" + key }
-
-  input:
-    set val(key), file(condaFile) from condaFilesForCondaDepCh
-
-  output:
-    file "condaChannels.txt" into condaChanFromFilesCh
-    file "condaDependencies.txt" into condaDepFromFilesCh
-    file "condaPipDependencies.txt" into condaPipDepFromFilesCh
-
-  script:
-    flags = 'BEGIN {flag=""} /channels/{flag="chan";next}  /dependencies/{flag="dep";next} /pip/{flag="pip";next}'
-    """
-    awk '${flags}  /^ *-/{if(flag == "chan"){print \$2}}' ${condaFile} > condaChannels.txt
-    awk '${flags}  /^ *-/{if(flag == "dep"){print \$2}}' ${condaFile} > condaDependencies.txt
-    awk '${flags}  /^ *-/{if(flag == "pip"){print \$2}}' ${condaFile} > condaPipDependencies.txt
-    """
-}
-
-process buildCondaEnvFromCondaPackages {
-  tag "condaEnvBuild"
-  publishDir "${projectDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
-
-  input:
-    val condaDependencies from condaDepFromFilesCh.flatMap{ it.text.split() }.mix(condaDepFromSpecsCh).unique().toSortedList()
-    val condaChannels from condaChanFromFilesCh.flatMap{ it.text.split() }.mix(condaChannelFromSpecsCh).filter(~/!(bioconda|conda-forge|defaults)/).unique().toSortedList().ifEmpty('NO_CHANNEL')
-    val condaPipDependencies from condaPipDepFromFilesCh.flatMap{ it.text.split() }.unique().toSortedList().ifEmpty("")
-
-  output:
-    file("environment.yml")
-
-  script:
-    condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
-    condaDepEnv = String.join("\n      - ", condaDependencies)
-    condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
-    condaPipDep = condaPipDependencies ? "\n      - pip:\n        - " + String.join("\n        - ", condaPipDependencies) : ""
-    """
-    cat << EOF > environment.yml
-    # You can use this file to create a conda environment for this pipeline:
-    #   conda env create -f environment.yml
-    name: pipeline_env
-    channels:
-      - ${condaChanEnv}
-    dependencies:
-      - which
-      - bc
-      - pip
-      - ${condaDepEnv}${condaPipDep}
-    """
-}
+/*************
+ * PROCESSES *
+ *************/
 
 /**
- * default recipes
+ * onlyLinux tool
  **/
 
+// This process creates the container recipe for the onlyLinux label.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#process-unix
 process buildDefaultSingularityRecipe {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   output:
-    set val(key), file("${key}.def") into singularityRecipeCh2
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
 
   script:
     key = 'onlyLinux'
@@ -246,21 +186,180 @@ process buildDefaultSingularityRecipe {
     """
 }
 
+/**
+ *
+ * conda profile
+ *
+ * Geniac documentation:
+ *   - https://geniac.readthedocs.io/en/latest/run.html#run-profile-conda
+ *
+ **/
+
+// This process parses each conda recipe (yml file) and creates 3 files with:
+//  - the list of channels used in the recipe
+//  - the list of dependencies (i.e. conda package name)
+//  - le list of pip dependencies (i.e. pip package name)
+process buildCondaDepFromRecipes {
+  tag{ "condaDepBuild-" + key }
+
+  input:
+    tuple val(key), file(condaFile)
+
+  output:
+    path "condaChannels.txt", emit: condaChanFromFiles
+    path "condaDependencies.txt", emit: condaDepFromFiles
+    path "condaPipDependencies.txt", emit: condaPipDepFromFiles
+
+  script:
+    flags = 'BEGIN {flag=""} /channels/{flag="chan";next}  /dependencies/{flag="dep";next} /pip/{flag="pip";next}'
+    """
+    awk '${flags}  /^ *-/{if(flag == "chan"){print \$2}}' ${condaFile} > condaChannels.txt
+    awk '${flags}  /^ *-/{if(flag == "dep"){print \$2}}' ${condaFile} > condaDependencies.txt
+    awk '${flags}  /^ *-/{if(flag == "pip"){print \$2}}' ${condaFile} > condaPipDependencies.txt
+    """
+}
+
+
+// This process generate a single conda recipe (environment.yml file)
+// which contains all the conda packages defined in both
+// the geniac.config file and the yml files.
+// This recipe will make it possible to use the 'conda' profile
+process buildCondaEnvFromCondaPackages {
+  tag "condaEnvBuild"
+  publishDir "${projectDir}/${params.publishDirConda}", overwrite: true, mode: 'copy'
+
+  input:
+    val(condaDependencies)
+    val(condaChannels)
+    val(condaPipDependencies)
+
+  output:
+    path("environment.yml")
+
+  script:
+    condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
+    condaDepEnv = String.join("\n      - ", condaDependencies)
+    condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
+    condaPipDep = condaPipDependencies ? "\n      - pip:\n        - " + String.join("\n        - ", condaPipDependencies) : ""
+    """
+    cat << EOF > environment.yml
+    # You can use this file to create a conda environment for this pipeline:
+    #   conda env create -f environment.yml
+    name: pipeline_env
+    channels:
+      - ${condaChanEnv}
+    dependencies:
+      - which
+      - bc
+      - pip
+      - ${condaDepEnv}${condaPipDep}
+    """
+}
+
+
+/**
+ *
+ * singularity profile
+ *
+ * Geniac documentation:
+ *   - https://geniac.readthedocs.io/en/latest/run.html#run-profile-singularity
+ *
+ **/
+
+
+//////////////////////
+// STEP - CONDA ENV //
+//////////////////////
+
+// This process creates the container recipes for each tool defined as a conda env with the
+// packages listed in params.geniac.tools.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#easy-install-with-conda
+process buildSingularityRecipeFromCondaPackages {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv)
+
+  output:
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
+
+  script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    List condaChannels = []
+    List condaPackages = []
+    for (String[] tab : tools) {
+      if (!condaChannels.contains(tab[0])) {
+        condaChannels.add(tab[0])
+      }
+      condaPackages.add(tab[1])
+    }
+    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
+    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
+
+    %post
+        ${cplmtYum}${params.yum} clean all \\\\
+        && conda create -y -n ${key}_env \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -y -a \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
+
+    EOF
+    """
+}
+
+// This process creates the container recipes for each tool defined as a conda env from a yml file
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#process-custom-conda
 process buildSingularityRecipeFromCondaFile {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4SingularityRecipesCh
-      // to prevent conda recipes for specific fromSourceCode cases
-      .join(sourceCodeCh1, remainder: true)
-      .filter{ it[1] && !it[2] }
-      .map{ [it[0], it[1]] }
-      .groupTuple()
-      .map{ addYumAndGitAndCmdConfs(it) }
+    tuple val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    set val(key), file("${key}.def") into singularityRecipeCh3
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -318,21 +417,18 @@ process buildSingularityRecipeFromCondaFile {
     """
 }
 
+// This process creates the container recipes for each tool defined as a Renv.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#r-packages-using-renv
 process buildSingularityRecipeFromCondaFile4Renv {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4SingularityRecipesCh4Renv
-      // to prevent conda recipes for specific fromSourceCode cases
-      .join(sourceCodeCh5, remainder: true)
-      .filter{ it[1] && !it[2] }
-      .map{ [it[0], it[1]] }
-      .groupTuple()
-      .map{ addYumAndGitAndCmdConfs(it) }
+    tuple val(key), val(condaEnv), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    set val(key), file("${key}.def") into singularityRecipeCh6
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
 
   script:
     def renvYml = params.geniac.tools.get(key).get('yml')
@@ -402,100 +498,22 @@ process buildSingularityRecipeFromCondaFile4Renv {
     """
 }
 
-/**
- * Build Singularity recipe from conda specifications in params.geniac.tools
- **/
-process buildSingularityRecipeFromCondaPackages {
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+////////////////////////
+// STEP - SOURCE CODE //
+////////////////////////
 
-  input:
-    set val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaPackages4SingularityRecipesCh
-
-      // to prevent conda recipes for specific fromSourceCode cases
-      .join(sourceCodeCh2, remainder: true)
-      .filter{ it[1] && !it[2] }
-
-      .map{ [it[0], it[1]] }
-      .groupTuple()
-      .map{ addYumAndGitAndCmdConfs(it) }
-
-  output:
-    set val(key), file("${key}.def") into singularityRecipeCh4
-
-  script:
-    def cplmtGit = buildCplmtGit(git)
-    def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
-    def yumPkgs = yum ?: ''
-    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
-
-
-    List condaChannels = []
-    List condaPackages = []
-    for (String[] tab : tools) {
-      if (!condaChannels.contains(tab[0])) {
-        condaChannels.add(tab[0])
-      }
-      condaPackages.add(tab[1])
-    }
-    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
-    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
-
-    def cplmtYum = ''
-    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
-    }
-
-    """
-    cat << EOF > ${key}.def
-    Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
-
-    %labels
-        gitUrl ${params.gitUrl}
-        gitCommit ${params.gitCommit}
-
-    %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
-        source /opt/etc/bashrc
-        ${cplmtCmdEnv}
-
-    %post
-        ${cplmtYum}${params.yum} clean all \\\\
-        && conda create -y -n ${key}_env \\\\
-        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
-        && mkdir -p /opt/etc \\\\
-        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
-        && conda init bash \\\\
-        && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
-        && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a \\\\
-        && micromamba clean -y -a ${cplmtCmdPost}
-
-    EOF
-    """
-}
-
-
+// This process creates the container recipes for each tool installed from source code.
+// Geniac documentation.
+//   - https://geniac.readthedocs.io/en/latest/process.html#install-from-source-code
 process buildSingularityRecipeFromSourceCode {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs(it) }
+    tuple val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    set val(key), file("${key}.def") into singularityRecipeCh5
+    tuple  val(key), file("${key}.def"), emit: singularityRecipes
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -560,25 +578,11 @@ process buildSingularityRecipeFromSourceCode {
     """
 }
 
-// onlyCondaRecipeCh = condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh)
-condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
-  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh
-}
+/////////////////////////////
+// STEP - BUILD CONTAINERS //
+/////////////////////////////
 
-
-singularityRecipeCh6
-  .concat(singularityRecipeCh5)
-  .concat(singularityRecipeCh4)
-  .concat(singularityRecipeCh3)
-  .concat(singularityRecipeCh2)
-  .concat(singularityRecipeCh1) // DONT'T MOVE: this channel must be the last one to be concatenated
-  .groupTuple()
-  .map{ key, tab -> [key, tab[0]] }
-  .into {
-    singularityAllRecipe4buildImagesCh; singularityAllRecipe4buildSingularityCh; singularityAllRecipe4buildApptainerCh;
-    singularityAllRecipe4buildDockerCh; singularityAllRecipe4buildPathCh
-  }
-
+// This process creates the containers for all the tools
 process buildImages {
   maxForks 1
   tag "${key}"
@@ -588,26 +592,38 @@ process buildImages {
     params.buildSingularityImages
 
   input:
-    set val(key), file(singularityRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) from singularityAllRecipe4buildImagesCh
-      .join(fileDependencies, remainder: true)
-      .join(condaRecipes, remainder: true)
-      .join(sourceCodeCh4, remainder: true)
-      .filter{ it[1] }
+    tuple val(key), file(singularityRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir)
 
   output:
-    file("${key.toLowerCase()}.sif")
+    path("${key.toLowerCase()}.sif")
 
   script:
     """
     singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe}
     """
+
+  stub:
+    """
+    touch ${key.toLowerCase()}.sif
+    """
 }
 
 
 /**
- * Generate apptainer.config
+ *
+ * singularity profiles and config files
+ *
+ * Geniac documentation:
+ *   - https://geniac.readthedocs.io/en/latest/run.html#profiles
+ *
  **/
 
+
+/////////////////////////////
+// STEP - apptainer config //
+/////////////////////////////
+
+// This process create on file for each tool to declare its 'withLabel' parameter.
 process buildApptainerConfig {
   tag "${key}"
 
@@ -615,10 +631,10 @@ process buildApptainerConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe) from singularityAllRecipe4buildApptainerCh
+    tuple val(key), path(singularityRecipe)
 
   output:
-    file("${key}ApptainerConfig.txt") into mergeApptainerConfigCh
+    path("${key}ApptainerConfig.txt"), emit: mergeApptainerConfig
 
   script:
     """
@@ -628,6 +644,9 @@ process buildApptainerConfig {
     """
 }
 
+
+// This process concatenates the outputs from buildApptainerConfig
+// to create the apptainer.config file.
 process mergeApptainerConfig {
   tag "mergeApptainerConfig"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
@@ -636,10 +655,10 @@ process mergeApptainerConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeApptainerConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeApptainerConfigCh")
+    path(key)
 
   output:
-    file("apptainer.config") into finalApptainerConfigCh
+    path("apptainer.config")
 
   script:
     """
@@ -656,7 +675,7 @@ process mergeApptainerConfig {
           System.exit(-1)
         }
       } else {
-        System.out.println("   ### ERROR ###    The option '-profile apptainer' requires the apptainerimages to be installed on your system. See \\`--apptainerImagePath\\` for advanced usage.");
+        System.out.println("   ### ERROR ###    The option '-profile apptainer' requires the apptainer images to be installed on your system. See \\`--apptainerImagePath\\` for advanced usage.");
         System.exit(-1)
       }
     }
@@ -677,84 +696,15 @@ process mergeApptainerConfig {
     echo "}"  >> apptainer.config
     """
 }
-/**
- * Generate singularity.config
- **/
 
-process buildSingularityConfig {
-  tag "${key}"
 
-  when:
-    params.buildConfigFiles
 
-  input:
-    set val(key), file(singularityRecipe) from singularityAllRecipe4buildSingularityCh
 
-  output:
-    file("${key}SingularityConfig.txt") into mergeSingularityConfigCh
+//////////////////////////
+// STEP - docker config //
+//////////////////////////
 
-  script:
-    """
-    cat << EOF > "${key}SingularityConfig.txt"
-      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.sif" }
-    EOF
-    """
-}
-
-process mergeSingularityConfig {
-  tag "mergeSingularityConfig"
-  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
-
-  when:
-    params.buildConfigFiles
-
-  input:
-    file key from mergeSingularityConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeSingularityConfigCh")
-
-  output:
-    file("singularity.config") into finalSingularityConfigCh
-
-  script:
-    """
-    cat << EOF > "singularity.config"
-    import java.io.File;
-
-    def checkProfileSingularity(path){
-      if (new File(path).exists()){
-        File directory = new File(path)
-        def contents = []
-        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
-        if (!path?.trim() || contents == null || contents.size() == 0){
-          System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
-          System.exit(-1)
-        }
-      } else {
-        System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
-        System.exit(-1)
-      }
-    }
-
-    singularity {
-      enabled = true
-      autoMounts = true
-      runOptions = (params.geniac.containers?.singularityRunOptions ?: '')
-    }
-
-    process {
-      checkProfileSingularity("\\\${params.geniac.singularityImagePath}")
-    EOF
-    for keyFile in ${key}
-    do
-        cat \${keyFile} >> singularity.config
-    done
-    echo "}"  >> singularity.config
-    """
-}
-
-/**
- * Generate docker.config
- **/
-
+// This process creates one file for each tool to declare its 'withLabel' parameter.
 process buildDockerConfig {
   tag "${key}"
 
@@ -762,10 +712,10 @@ process buildDockerConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe) from singularityAllRecipe4buildDockerCh
+    tuple val(key), path(singularityRecipe)
 
   output:
-    file("${key}DockerConfig.txt") into mergeDockerConfigCh
+    path("${key}DockerConfig.txt"), emit: mergeDockerConfig
 
   script:
     """
@@ -775,6 +725,8 @@ process buildDockerConfig {
     """
 }
 
+// This process concatenates the outputs from buildDockerConfig
+// to create the docker.config file.
 process mergeDockerConfig {
   tag "mergeDockerConfig"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
@@ -783,10 +735,10 @@ process mergeDockerConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeDockerConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeDockerConfigCh")
+    path(key)
 
   output:
-    file("docker.config") into finalDockerConfigCh
+    path("docker.config"), emit: dockerConfig
 
 
   script:
@@ -811,35 +763,11 @@ process mergeDockerConfig {
     """
 }
 
-/**
- * Generate podman.config
- **/
+//////////////////////////
+// STEP - conda config //
+//////////////////////////
 
-process buildPodmanConfig {
-  tag "buildPodmanConfig"
-  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
-
-  when:
-    params.buildConfigFiles
-
-  input:
-    file dockerConfig from finalDockerConfigCh
-
-  output:
-    file("podman.config") into finalPodmanConfigCh
-
-  script:
-    """
-    sed -e "s/docker {/podman {/g" ${dockerConfig} > podman.config
-    sed -i -e "s/dockerRunOptions/podmanRunOptions/g" podman.config
-    """
-}
-
-
-/**
- * Generate conda.config
- **/
-
+// This process creates one file for each tool to declare its 'withLabel' parameter.
 process buildCondaConfig {
   tag "${key}"
 
@@ -847,10 +775,10 @@ process buildCondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), val(condaDef) from onlyCondaRecipe4buildCondaCh.mix(condaExistingEnvsCh)
+    tuple val(key), val(condaDef)
 
   output:
-    file("${key}CondaConfig.txt") into mergeCondaConfigCh
+    path("${key}CondaConfig.txt"), emit: mergeCondaConfig
 
   script:
     if(condaDef == 'ENV'){
@@ -866,6 +794,8 @@ process buildCondaConfig {
     """
 }
 
+// This process concatenates the outputs from buildCondaConfig
+// to create the conda.config file.
 process mergeCondaConfig {
   tag "mergeCondaConfig"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
@@ -874,10 +804,10 @@ process mergeCondaConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeCondaConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeCondaConfigCh")
+    path(key)
 
   output:
-    file("conda.config") into finalCondaConfigCh
+    path("conda.config")
 
   script:
     """
@@ -892,10 +822,13 @@ process mergeCondaConfig {
     """
 }
 
-/**
- * Generate multiconda.config
- **/
 
+
+//////////////////////////////
+// STEP - multiconda config //
+//////////////////////////////
+
+// This process creates one file for each tool to declare its 'withLabel' parameter.
 process buildMulticondaConfig {
   tag "${key}"
   //publishDir "${projectDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
@@ -904,10 +837,10 @@ process buildMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), val(condaDef) from onlyCondaRecipe4buildMulticondaCh.mix(condaExistingEnvsBisCh)
+    tuple val(key), val(condaDef)
 
   output:
-    file("${key}MulticondaConfig.txt") into mergeMulticondaConfigCh
+    path("${key}MulticondaConfig.txt"), emit:mergeMulticondaConfig
 
   script:
     cplmt = condaDef == 'ENV' ? '.env' : ''
@@ -916,9 +849,10 @@ process buildMulticondaConfig {
       withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}${cplmt}}" }
     EOF
     """
-    // withLabel:${key}{ conda = "\\\${params.geniac.tools?.${key}}" }
 }
 
+// This process concatenates the outputs from buildCondaConfig
+// to create the conda.config file.
 process mergeMulticondaConfig {
   tag "mergeMulticondaConfig"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
@@ -927,10 +861,10 @@ process mergeMulticondaConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeMulticondaConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMulticondaConfigCh")
+    path(key)
 
   output:
-    file("multiconda.config") into finalMulticondaConfigCh
+    path("multiconda.config")
 
   script:
     """
@@ -945,10 +879,11 @@ process mergeMulticondaConfig {
     """
 }
 
-/**
- * Generate path.config
- **/
+/////////////////////////////
+// STEP - multipath config //
+/////////////////////////////
 
+// This process creates one file for each tool to declare its 'withLabel' parameter.
 process buildMultiPathConfig {
   tag "${key}"
   //publishDir "${projectDir}/${params.publishDirNextflowConf}", overwrite: true, mode: 'copy'
@@ -957,11 +892,11 @@ process buildMultiPathConfig {
     params.buildConfigFiles
 
   input:
-    set val(key), file(singularityRecipe) from singularityAllRecipe4buildPathCh
+    tuple val(key), file(singularityRecipe)
 
   output:
-    file("${key}MultiPathConfig.txt") into mergeMultiPathConfigCh
-    file("${key}MultiPathLink.txt") into mergeMultiPathLinkCh
+    path("${key}MultiPathConfig.txt"), emit: mergeMultiPathConfig
+    path("${key}MultiPathLink.txt"), emit: mergeMultiPathLink
 
   script:
     """
@@ -974,6 +909,8 @@ process buildMultiPathConfig {
     """
 }
 
+// This process concatenates the outputs from buildCondaConfig
+// to create the multipath.config file.
 process mergeMultiPathConfig {
   tag "mergeMultiPathConfig"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
@@ -982,10 +919,10 @@ process mergeMultiPathConfig {
     params.buildConfigFiles
 
   input:
-    file key from mergeMultiPathConfigCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMultiPathConfigCh")
+    path(key)
 
   output:
-    file("multipath.config") into finalMultiPathConfigCh
+    path("multipath.config")
 
   script:
     def eofContent = """\
@@ -1029,6 +966,8 @@ process mergeMultiPathConfig {
     """
 }
 
+
+// This process creates a file that will be used in cmake script.
 process mergeMultiPathLink {
   tag "mergeMultiPathLink"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
@@ -1037,10 +976,10 @@ process mergeMultiPathLink {
     params.buildConfigFiles
 
   input:
-    file key from mergeMultiPathLinkCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMultiPathLinkCh")
+    path(key) // from mergeMultiPathLinkCh.toSortedList({ a, b -> a.getName().compareTo(b.getName()) }).dump(tag:"mergeMultiPathLinkCh")
 
   output:
-    file("multiPathLink.txt") into finalMultiPathLinkCh
+    path("multiPathLink.txt") // into finalMultiPathLinkCh
 
   script:
     """
@@ -1053,36 +992,19 @@ process mergeMultiPathLink {
     """
 }
 
-process clusterConfig {
-  tag "clusterConfig"
-  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+/////////////////////////////
+// STEP - path config //
+/////////////////////////////
 
-  output:
-    file("cluster.config")
-
-  script:
-    """
-    cat << EOF > "cluster.config"
-    /*
-     * -------------------------------------------------
-     *  Config the cluster profile and your scheduler
-     * -------------------------------------------------
-     */
-
-    process {
-      executor = '${params.clusterExecutor}'
-      queue = params.queue ?: null
-    }
-    """
-}
-
+// This process creates the path.config file.
+// It also creates a file needed by cmake.
 process globalPathConfig {
   tag "globalPathConfig"
   publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
 
   output:
-    file("path.config") into finalPathConfigCh
-    file("PathLink.txt") into finalPathLinkCh
+    path("path.config")
+    path("PathLink.txt")
 
   script:
     """
@@ -1121,7 +1043,307 @@ process globalPathConfig {
     """
 }
 
+//////////////////////////
+// STEP - podman config //
+//////////////////////////
 
+// This process creates the podman.config file from the docker.config file.
+process buildPodmanConfig {
+  tag "buildPodmanConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    path(dockerConfig)
+
+  output:
+    path("podman.config")
+
+  script:
+    """
+    sed -e "s/docker {/podman {/g" ${dockerConfig} > podman.config
+    sed -i -e "s/dockerRunOptions/podmanRunOptions/g" podman.config
+    """
+}
+
+///////////////////////////////
+// STEP - singularity config //
+///////////////////////////////
+
+// This process create on file for each tool to declare its 'withLabel' parameter.
+process buildSingularityConfig {
+  tag "${key}"
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    tuple val(key), path(singularityRecipe)
+
+  output:
+    path("${key}SingularityConfig.txt"), emit: mergeSingularityConfig
+
+  script:
+    """
+    cat << EOF > "${key}SingularityConfig.txt"
+      withLabel:${key}{ container = "\\\${params.geniac.singularityImagePath}/${key.toLowerCase()}.sif" }
+    EOF
+    """
+}
+
+
+// This process concatenates the outputs from buildSingularityConfig
+// to create the singularity.config file.
+process mergeSingularityConfig {
+  tag "mergeSingularityConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildConfigFiles
+
+  input:
+    path(key)
+
+  output:
+    path("singularity.config")
+
+  script:
+    """
+    cat << EOF > "singularity.config"
+    import java.io.File;
+
+    def checkProfileSingularity(path){
+      if (new File(path).exists()){
+        File directory = new File(path)
+        def contents = []
+        directory.eachFileRecurse (groovy.io.FileType.FILES){ file -> contents << file }
+        if (!path?.trim() || contents == null || contents.size() == 0){
+          System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
+          System.exit(-1)
+        }
+      } else {
+        System.out.println("   ### ERROR ###    The option '-profile singularity' requires the singularity images to be installed on your system. See \\`--singularityImagePath\\` for advanced usage.");
+        System.exit(-1)
+      }
+    }
+
+    singularity {
+      enabled = true
+      autoMounts = true
+      runOptions = (params.geniac.containers?.singularityRunOptions ?: '')
+    }
+
+    process {
+      checkProfileSingularity("\\\${params.geniac.singularityImagePath}")
+    EOF
+    for keyFile in ${key}
+    do
+        cat \${keyFile} >> singularity.config
+    done
+    echo "}"  >> singularity.config
+    """
+}
+
+/**
+ *
+ * cluster config
+ *
+ * Geniac documentation:
+ *   - https://geniac.readthedocs.io/en/latest/run.html#cluster
+ *
+ **/
+
+// This process creates the cluster.config file.
+process clusterConfig {
+  tag "clusterConfig"
+  publishDir "${projectDir}/${params.publishDirConf}", overwrite: true, mode: 'copy'
+
+  output:
+    path("cluster.config")
+
+  script:
+    """
+    cat << EOF > "cluster.config"
+    /*
+     * -------------------------------------------------
+     *  Config the cluster profile and your scheduler
+     * -------------------------------------------------
+     */
+
+    process {
+      executor = '${params.clusterExecutor}'
+      queue = params.queue ?: null
+    }
+    """
+}
+
+workflow {
+  main:
+
+  // Get conda en information from yml files
+  buildCondaDepFromRecipes(condaFilesCh)
+
+  // Create the conda env used by the 'conda' profile
+  buildCondaEnvFromCondaPackages(
+    buildCondaDepFromRecipes.out.condaDepFromFiles
+     .flatMap{ it.text.split() }
+     .mix(condaDepFromSpecsCh)
+     .unique()
+     .toSortedList(),
+    buildCondaDepFromRecipes.out.condaChanFromFiles
+      .flatMap{ it.text.split() }
+      .mix(condaChannelFromSpecsCh)
+      .filter(~/!(bioconda|conda-forge|defaults)/) // only official channels are allowed
+      .unique()
+      .toSortedList()
+      .ifEmpty('NO_CHANNEL'),
+    buildCondaDepFromRecipes.out.condaPipDepFromFiles
+      .flatMap{ it.text.split() }
+      .unique()
+      .toSortedList()
+      .ifEmpty("")
+  )
+
+  ///////////////////////////
+  // STEP - CREATE RECIPES //
+  ///////////////////////////
+
+  // Create the onlyLinux container recipe
+  buildDefaultSingularityRecipe()
+
+  // Create the container recipes for each tool defined with a list of packages in geniac.config
+  buildSingularityRecipeFromCondaPackages(
+    condaPackagesCh
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  // Create the container recipes for each tool defined as a conda env from a yml file
+  buildSingularityRecipeFromCondaFile(
+    condaFilesCh
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  // Create the container recipes for each tool defined as a Renv
+  buildSingularityRecipeFromCondaFile4Renv(
+    condaFiles4Renv
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  // Create the container recipes for each tool installed from source code
+  buildSingularityRecipeFromSourceCode(
+    sourceCodeCh
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+  
+  /////////////////////////////
+  // STEP - BUILD CONTAINERS //
+  /////////////////////////////
+
+  // Create a channel with all the container recipes
+  buildSingularityRecipeFromCondaFile4Renv.out.singularityRecipes
+    .concat(buildSingularityRecipeFromSourceCode.out.singularityRecipes)
+    .concat(buildSingularityRecipeFromCondaPackages.out.singularityRecipes)
+    .concat(buildSingularityRecipeFromCondaFile.out.singularityRecipes)
+    .concat(buildDefaultSingularityRecipe.out.singularityRecipes)
+    .concat(singularityRecipesCh)
+    // je pense que les deux lignes de dessous ne servent à rien
+    //.groupTuple()
+    //.map{ key, tab -> [key, tab[0]] }
+    .set {singularityAllRecipes}
+
+  // Create all the containers
+  buildImages(
+    singularityAllRecipes
+      .join(fileDependenciesCh, remainder: true)
+      .join(condaRecipesCh, remainder: true)
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] }
+  )
+  
+  ////////////////////////////////
+  // STEP - CREATE CONFIG FILES //
+  ///////////////////////////////
+
+  // Create the apptainer config 
+  buildApptainerConfig(singularityAllRecipes)
+  mergeApptainerConfig(
+    buildApptainerConfig.out.mergeApptainerConfig
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) }))
+
+  // Create the conda config
+  buildCondaConfig(
+    condaPackagesCh
+      .mix(condaFilesCh)
+      .groupTuple()
+      .mix(condaExistingEnvsCh)
+  )
+  mergeCondaConfig(
+    buildCondaConfig.out.mergeCondaConfig
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) })
+  )
+
+  // Create the cluster config 
+  clusterConfig()
+
+  // Create the docker config 
+  buildDockerConfig(singularityAllRecipes)
+  mergeDockerConfig(
+    buildDockerConfig.out.mergeDockerConfig
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) }))
+
+  // Create the multiconda config
+  buildMulticondaConfig(
+    condaPackagesCh
+      .mix(condaFilesCh)
+      .groupTuple()
+      .mix(condaExistingEnvsCh)
+  )
+  mergeMulticondaConfig(
+    buildMulticondaConfig.out.mergeMulticondaConfig
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) })
+  )
+
+  // Create the multipath config 
+  buildMultiPathConfig(singularityAllRecipes)
+  mergeMultiPathConfig(
+    buildMultiPathConfig.out.mergeMultiPathConfig
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) })
+  )
+  mergeMultiPathLink(
+    buildMultiPathConfig.out.mergeMultiPathLink
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) })
+  )
+
+  // Create the path config 
+  globalPathConfig()
+
+  // Create the podman config 
+  buildPodmanConfig(mergeDockerConfig.out.dockerConfig)
+
+  // Create the singularity config 
+  buildSingularityConfig(singularityAllRecipes)
+  mergeSingularityConfig(
+    buildSingularityConfig.out.mergeSingularityConfig
+      .toSortedList({ a, b -> a.getName().compareTo(b.getName()) }))
+
+}
 
 workflow.onComplete {
   Map endSummary = [:]
