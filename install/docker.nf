@@ -4,7 +4,7 @@
 
 This file is part of geniac.
 
-Copyright Institut Curie 2020.
+Copyright Institut Curie 2020-2024.
 
 This software is a computer program whose purpose is to perform
 Automatic Configuration GENerator and Installer for nextflow pipeline.
@@ -22,11 +22,11 @@ of the license and that you accept its terms.
 
 */
 
-nextflow.enable.dsl=1
+nextflow.enable.dsl=2
 
-/**
- * CUSTOM FUNCTIONS
- **/
+/********************
+ * CUSTOM FUNCTIONS *
+ ********************/
 
 def addYumAndGitAndCmdConfs(List input) {
   List<String> gitList = []
@@ -67,13 +67,10 @@ String buildCplmtPath(List gitEntries) {
 }
 
 
-/**
- * CHANNELS INIT
- **/
+/*****************
+ * CHANNELS INIT *
+ *****************/
 
-condaPackagesCh = Channel.create()
-condaFilesCh = Channel.create()
-condaEnvsCh = Channel.create()
 Channel
   .from(params.geniac.tools)
   .flatMap {
@@ -105,65 +102,53 @@ Channel
       return it
   }.set{ condaForks }
 
-(condaExistingEnvs, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
-condaExistingEnvs.into{ condaExistingEnvsCh; condaExistingRenvCh }
-condaExistingRenvCh
+(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
+
+// Channel for Renv environment
+condaExistingEnvsCh
   .filter {  it[0] =~/^renv.*/ }
-  .set { condaFiles4DockerRecipesCh4Renv } // Channel for Renv environment
-condaPackagesCh.into{ condaPackages4DockerRecipesCh; condaPackages4CondaEnvCh; condaPackagesUnfilteredCh }
-condaFilesCh.into{ condaFiles4DockerRecipesCh; condaFilesForCondaDepCh; condaFilesUnfilteredCh }
+  .set { condaFiles4Renv }
 
-
-
+// DOCKER RECIPES
 Channel
   .fromPath("${projectDir}/recipes/docker/*.Dockerfile")
   .map{ [it.simpleName, it] }
-  .set{ dockerRecipeCh1 }
+  .set{ dockerRecipesCh }
 
-/**
- * CONDA RECIPES
- **/
-
+// CONDA RECIPES
 Channel
   .fromPath("${projectDir}/recipes/conda/*.yml")
   .map{ [it.simpleName, it] }
-  .set{ condaRecipes }
+  .set{ condaRecipesCh }
 
-
-/**
- * DEPENDENCIES
- **/
-
+// DEPENDENCIES
 Channel
   .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
   .map{ [it.name, it] }
-  .set{ fileDependencies }
+  .set{ fileDependenciesCh }
 
-/**
- * SOURCE CODE
- **/
-
-
+// SOURCE CODE
 Channel
   .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
   .map{ [it.name, it] }
-  .into{ sourceCodeCh1; sourceCodeCh2; sourceCodeCh3; sourceCodeCh4; sourceCodeCh5 }
+  .set { sourceCodeCh }
 
-
-
-/**
- * PROCESSES
- **/
+/*************
+ * PROCESSES *
+ *************/
 
 /**
- * default recipes
+ * onlyLinux recipe
  **/
 
+// This process creates the container recipe for the onlyLinux label.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#process-unix
 process buildDefaultDockerRecipe {
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   output:
-    set val(key), file("${key}.Dockerfile") into dockerRecipeCh2
+    tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
 
   script:
     key = 'onlyLinux'
@@ -184,21 +169,104 @@ process buildDefaultDockerRecipe {
     """
 }
 
+/**
+ *
+ * docker profile
+ *
+ * Geniac documentation:
+ *   - https://geniac.readthedocs.io/en/latest/run.html#run-profile-docker
+ *
+ **/
+
+//////////////////////
+// STEP - CONDA ENV //
+//////////////////////
+
+// This process creates the container recipes for each tool defined as a conda env with the
+// packages listed in params.geniac.tools.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#easy-install-with-conda
+process buildDockerRecipeFromCondaPackages {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv)
+
+  output:
+    tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
+
+  script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    List condaChannels = []
+    List condaPackages = []
+    for (String[] tab : tools) {
+      if (!condaChannels.contains(tab[0])) {
+        condaChannels.add(tab[0])
+      }
+      condaPackages.add(tab[1])
+    }
+    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
+    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
+    && """
+    }
+
+    """
+    cat << EOF > ${key}.Dockerfile
+    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    LABEL gitUrl="${params.gitUrl}"
+    LABEL gitCommit="${params.gitCommit}"
+
+    ENV R_LIBS_USER "-"
+    ENV R_PROFILE_USER "-"
+    ENV R_ENVIRON_USER "-"
+    ENV PYTHONNOUSERSITE 1
+    ENV PATH ${cplmtPath}\\\$PATH
+    ENV LC_ALL en_US.utf-8
+    ENV LANG en_US.utf-8
+    ENV BASH_ENV /opt/etc/bashrc
+    ${cplmtCmdEnv}
+
+    RUN ${cplmtYum}${params.yum} clean all \\\\
+    && conda create -y -n ${key}_env \\\\
+    && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+    && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+    && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
+    && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
+    && conda init bash \\\\
+    && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
+    && mkdir -p /opt/etc \\\\
+    && cp ~/.bashrc /opt/etc/bashrc \\\\
+    && conda clean -y -a \\\\
+    && micromamba clean -y -a ${cplmtCmdPost}
+    EOF
+    """
+}
+
+// This process creates the container recipes for each tool defined as a conda env from a yml file
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#process-custom-conda
 process buildDockerRecipeFromCondaFile {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4DockerRecipesCh
-      // to prevent conda recipes for specific fromSourceCode cases
-      .join(sourceCodeCh1, remainder: true)
-      .filter{ it[1] && !it[2] }
-      .map{ [it[0], it[1]] }
-      .groupTuple()
-      .map{ addYumAndGitAndCmdConfs(it) }
+    tuple val(key), path(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    set val(key), file("${key}.Dockerfile") into dockerRecipeCh3
+    tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -254,21 +322,18 @@ process buildDockerRecipeFromCondaFile {
     """
 }
 
+// This process creates the container recipes for each tool defined as a Renv.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#r-packages-using-renv
 process buildDockerRecipeFromCondaFile4Renv {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaFiles4DockerRecipesCh4Renv
-      // to prevent conda recipes for specific fromSourceCode cases
-      .join(sourceCodeCh5, remainder: true)
-      .filter{ it[1] && !it[2] }
-      .map{ [it[0], it[1]] }
-      .groupTuple()
-      .map{ addYumAndGitAndCmdConfs(it) }
+    tuple val(key), val(condaEnv), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    set val(key), file("${key}.Dockerfile") into dockerRecipeCh6
+    tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
 
   script:
     def renvYml = params.geniac.tools.get(key).get('yml')
@@ -336,96 +401,23 @@ process buildDockerRecipeFromCondaFile4Renv {
     EOF
     """
 }
-/**
- * Build Docker recipe from conda specifications in params.geniac.tools
- **/
-process buildDockerRecipeFromCondaPackages {
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
-  input:
-    set val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv) from condaPackages4DockerRecipesCh
+////////////////////////
+// STEP - SOURCE CODE //
+////////////////////////
 
-      // to prevent conda recipes for specific fromSourceCode cases
-      .join(sourceCodeCh2, remainder: true)
-      .filter{ it[1] && !it[2] }
-
-      .map{ [it[0], it[1]] }
-      .groupTuple()
-      .map{ addYumAndGitAndCmdConfs(it) }
-
-  output:
-    set val(key), file("${key}.Dockerfile") into dockerRecipeCh4
-
-  script:
-    def cplmtGit = buildCplmtGit(git)
-    def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
-    def yumPkgs = yum ?: ''
-    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
-
-
-    List condaChannels = []
-    List condaPackages = []
-    for (String[] tab : tools) {
-      if (!condaChannels.contains(tab[0])) {
-        condaChannels.add(tab[0])
-      }
-      condaPackages.add(tab[1])
-    }
-    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
-    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
-
-    def cplmtYum = ''
-    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-    && """
-    }
-
-    """
-    cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
-
-    LABEL gitUrl="${params.gitUrl}"
-    LABEL gitCommit="${params.gitCommit}"
-
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
-    ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
-    ENV BASH_ENV /opt/etc/bashrc
-    ${cplmtCmdEnv}
-
-    RUN ${cplmtYum}${params.yum} clean all \\\\
-    && conda create -y -n ${key}_env \\\\
-    && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-    && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
-    && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
-    && echo "export PS1='Docker> '" >> ~/.bashrc \\\\
-    && conda init bash \\\\
-    && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
-    && mkdir -p /opt/etc \\\\
-    && cp ~/.bashrc /opt/etc/bashrc \\\\
-    && conda clean -y -a \\\\
-    && micromamba clean -y -a ${cplmtCmdPost}
-    EOF
-    """
-}
-
-
+// This process creates the container recipes for each tool installed from source code.
+// Geniac documentation.
+//   - https://geniac.readthedocs.io/en/latest/process.html#install-from-source-code
 process buildDockerRecipeFromSourceCode {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    set val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv) from sourceCodeCh3.map{ addYumAndGitAndCmdConfs(it) }
+    tuple val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    set val(key), file("${key}.Dockerfile") into dockerRecipeCh5
+    tuple val(key), file("${key}.Dockerfile"), emit: dockerRecipes
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -480,25 +472,11 @@ process buildDockerRecipeFromSourceCode {
     """
 }
 
-// onlyCondaRecipeCh = condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh)
-condaPackagesUnfilteredCh.mix(condaFilesUnfilteredCh).groupTuple().into {
-  onlyCondaRecipe4buildCondaCh; onlyCondaRecipe4buildMulticondaCh
-}
+/////////////////////////////
+// STEP - BUILD CONTAINERS //
+/////////////////////////////
 
-
-dockerRecipeCh6
-  .concat(dockerRecipeCh5)
-  .concat(dockerRecipeCh4)
-  .concat(dockerRecipeCh3)
-  .concat(dockerRecipeCh2)
-  .concat(dockerRecipeCh1) // DONT'T MOVE: this channel must be the last one to be concatenated
-  .groupTuple()
-  .map{ key, tab -> [key, tab[0]] }
-  .into {
-    dockerAllRecipe4buildImagesCh; dockerAllRecipe4buildDockerCh;
-    dockerAllRecipe4buildPathCh
-  }
-
+// This process creates the containers for all the tools
 process buildImages {
   maxForks 1
   tag "${key}"
@@ -508,11 +486,11 @@ process buildImages {
     params.buildDockerImages
 
   input:
-    set val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) from dockerAllRecipe4buildImagesCh
-      .join(fileDependencies, remainder: true)
-      .join(condaRecipes, remainder: true)
-      .join(sourceCodeCh4, remainder: true)
-      .filter{ it[1] }
+    tuple val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) // from dockerAllRecipe4buildImagesCh
+    //  .join(fileDependencies, remainder: true)
+    //  .join(condaRecipes, remainder: true)
+    //  .join(sourceCodeCh4, remainder: true)
+    //  .filter{ it[1] }
 
 
   script:
@@ -534,5 +512,103 @@ process buildImages {
     """
     ${params.dockerCmd} build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
     """
+
+  stub:
+    """
+    echo "build docker image for the tool ${key}"
+    """
+  
+}
+
+workflow {
+  main:
+
+  ///////////////////////////
+  // STEP - CREATE RECIPES //
+  ///////////////////////////
+
+  // Create the onlyLinux container recipe
+  buildDefaultDockerRecipe()
+  
+  // Create the container recipes for each tool defined with a list of packages in geniac.config
+  buildDockerRecipeFromCondaPackages(
+    condaPackagesCh
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  // Create the container recipes for each tool defined as a conda env from a yml file
+  buildDockerRecipeFromCondaFile(
+    condaFilesCh
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  // Create the container recipes for each tool defined as a Renv
+  buildDockerRecipeFromCondaFile4Renv(
+    condaFiles4Renv
+      // to prevent conda recipes for specific fromSourceCode cases
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] && !it[2] }
+      .map{ [it[0], it[1]] }
+      .groupTuple()
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  // Create the container recipes for each tool installed from source code
+  buildDockerRecipeFromSourceCode(
+    sourceCodeCh
+      .map{ addYumAndGitAndCmdConfs(it) }
+  )
+
+  /////////////////////////////
+  // STEP - BUILD CONTAINERS //
+  /////////////////////////////
+
+  // Create a channel with all the container recipes
+  buildDockerRecipeFromCondaFile4Renv.out.dockerRecipes
+    .concat(buildDockerRecipeFromSourceCode.out.dockerRecipes)
+    .concat(buildDockerRecipeFromCondaPackages.out.dockerRecipes)
+    .concat(buildDockerRecipeFromCondaFile.out.dockerRecipes)
+    .concat(buildDefaultDockerRecipe.out.dockerRecipes)
+    .concat(dockerRecipesCh)
+    // je pense que les deux lignes de dessous ne servent à rien
+    //.groupTuple()
+    //.map{ key, tab -> [key, tab[0]] }
+    .set {dockerAllRecipes}
+
+  // Create all the containers
+  buildImages(
+    dockerAllRecipes
+      .join(fileDependenciesCh, remainder: true)
+      .join(condaRecipesCh, remainder: true)
+      .join(sourceCodeCh, remainder: true)
+      .filter{ it[1] }
+  )
+
+}
+
+workflow.onComplete {
+  Map endSummary = [:]
+  endSummary['Completed on'] = workflow.complete
+  endSummary['Duration']     = workflow.duration
+  endSummary['Success']      = workflow.success
+  endSummary['exit status']  = workflow.exitStatus
+  endSummary['Error report'] = workflow.errorReport ?: '-'
+  endSummary['Distro Linux'] = "${params.dockerLinuxDistro}"
+  endSummary['Distro Linux / Conda'] ="${params.dockerLinuxDistroConda}"
+  endSummary['Docker registry'] = "${params.dockerRegistry}"
+  endSummary['Cluster executor'] = "${params.clusterExecutor}"
+  String endWfSummary = endSummary.collect { k,v -> "${k.padRight(30, '.')}: $v" }.join("\n")
+  println endWfSummary
+
 }
 
