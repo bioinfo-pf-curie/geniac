@@ -4,6 +4,7 @@
 """handlers.py: Custom logging handlers."""
 
 import logging
+import geniac.cli.utils.errorcounter
 
 __author__ = "Fabrice Allain"
 __copyright__ = "Institut Curie 2021"
@@ -65,3 +66,6 @@ class ExitOnExceptionHandler(logging.StreamHandler):
         super().emit(record)
         if record.levelno is logging.CRITICAL:
             raise SystemExit(-1)
+        if record.levelno >= logging.ERROR:
+            geniac.cli.utils.errorcounter.error_counter = geniac.cli.utils.errorcounter.error_counter + 1
+
