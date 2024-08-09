@@ -146,14 +146,22 @@ Channel
   .map{ [it.name, it] }
   .set{ sourceCodeCh }
 
-
 /*************
  * PROCESSES *
  *************/
 
 /**
- * onlyLinux tool
+ *
+ * singularity profile
+ *
+ * Geniac documentation:
+ *   - https://geniac.readthedocs.io/en/latest/run.html#run-profile-singularity
+ *
  **/
+
+//////////////////////
+// STEP - ONLYLINUX //
+//////////////////////
 
 // This process creates the container recipe for the onlyLinux label.
 // Geniac documentation:
@@ -162,11 +170,13 @@ process buildDefaultSingularityRecipe {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   output:
-    tuple val(key), file("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}.def"), emit: singularityRecipes
+    path("${key}.sha256sum"), emit: sha256sum
 
   script:
     key = 'onlyLinux'
     """
+    # write recipe
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: ${params.dockerRegistry}${params.dockerLinuxDistro}
@@ -183,6 +193,381 @@ process buildDefaultSingularityRecipe {
         export LC_ALL=en_US.utf-8
         export LANG=en_US.utf-8
     EOF
+    
+    # compute hash digest of the recipe using:
+    #   - only the recipe
+    sha256sum ${key}.def | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    """
+}
+
+//////////////////////
+// STEP - CONDA ENV //
+//////////////////////
+
+// This process creates the container recipes for each tool defined as a conda env with the
+// packages listed in params.geniac.tools.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#easy-install-with-conda
+process buildSingularityRecipeFromCondaPackages {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv)
+
+  output:
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
+    path("${key}.sha256sum"), emit: sha256sum
+
+  script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    List condaChannels = []
+    List condaPackages = []
+    for (String[] tab : tools) {
+      if (!condaChannels.contains(tab[0])) {
+        condaChannels.add(tab[0])
+      }
+      condaPackages.add(tab[1])
+    }
+    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
+    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+    # write the recipe
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
+
+    %post
+        ${cplmtYum}${params.yum} clean all \\\\
+        && conda create -y -n ${key}_env \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -y -a \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
+
+    EOF
+
+    # compute hash digest of the recipe using
+    #  - only the recipe file without the labels
+    cat ${key}.def | grep -v gitCommit | grep -v gitUrl | sha256sum  | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    """
+}
+
+// This process creates the container recipes for each tool defined as a conda env from a yml file
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#process-custom-conda
+process buildSingularityRecipeFromCondaFile {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv)
+
+  output:
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
+    path("${key}.sha256sum"), emit: sha256sum
+
+  script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+    declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
+
+    # write the recipe
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
+
+    # real path from projectDir: ${condaFile}
+    %files
+        \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
+
+    %post
+        ${cplmtYum}${params.yum} clean all \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${condaFile}) \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -y -a \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
+
+    EOF
+
+    # compute hash digest of the recipe using:
+    #   - the recipe file without the labels / comments
+    #   - the conda yml
+    cat ${key}.def ${condaFile} | grep -v gitCommit | grep -v gitUrl | grep -v "real path from projectDir" | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    """
+}
+
+// This process creates the container recipes for each tool defined as a Renv.
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/process.html#r-packages-using-renv
+process buildSingularityRecipeFromCondaFile4Renv {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), val(condaEnv), val(yum), val(git), val(cmdPost), val(cmdEnv), path(dependencies)
+
+  output:
+    tuple val(key), file("${key}.def"), emit: singularityRecipes
+    path("${key}.sha256sum"), emit: sha256sum
+
+  script:
+    def renvYml = params.geniac.tools.get(key).get('yml')
+    def bioc = params.geniac.tools.get(key).get('bioc')
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+    declare env_name=\$(head -1 ${renvYml} | cut -d' ' -f2)
+
+    # write the recipe
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export PATH=${cplmtPath}\\\$PATH
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        source /opt/etc/bashrc
+        ${cplmtCmdEnv}
+
+    # real path from projectDir: ${renvYml}
+    %files
+        \$(basename ${renvYml}) /root/\$(basename ${renvYml})
+        ${key}/renv.lock /root/renv.lock
+
+    %post
+        R_MIRROR=https://cloud.r-project.org
+        R_ENV_DIR=/opt/renv
+        CACHE=TRUE
+        CACHE_DIR=/opt/renv_cache
+        mkdir -p /opt/renv /opt/renv_cache
+        mv /root/\$(basename ${renvYml}) /opt/\$(basename ${renvYml})
+        mv /root/renv.lock /opt/renv/renv.lock
+        ${cplmtYum}${params.yum} clean all \\\\
+        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
+        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
+        && mkdir -p /opt/etc \\\\
+        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
+        && conda init bash \\\\
+        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
+        && cp ~/.bashrc /opt/etc/bashrc \\\\
+        && conda clean -y -a \\\\
+        && micromamba clean -y -a ${cplmtCmdPost}
+        source /opt/etc/bashrc \\\\
+        && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
+   
+    EOF
+
+    # compute hash digest of the recipe using:
+    #   - the recipe file without the labels
+    #   - the conda yml
+    #   - the renv.lock
+    cat ${key}.def ${renvYml} ${key}/renv.lock | grep -v gitCommit | grep -v gitUrl | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    """
+}
+
+////////////////////////
+// STEP - SOURCE CODE //
+////////////////////////
+
+// This process creates the container recipes for each tool installed from source code.
+// Geniac documentation.
+//   - https://geniac.readthedocs.io/en/latest/process.html#install-from-source-code
+process buildSingularityRecipeFromSourceCode {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv)
+
+  output:
+    tuple  val(key), file("${key}.def"), emit: singularityRecipes
+    path("${key}.sha256sum"), emit: sha256sum
+
+  script:
+    def cplmtGit = buildCplmtGit(git)
+    def cplmtPath = buildCplmtPath(git)
+    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
+    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
+    def yumPkgs = yum ?: ''
+    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
+
+
+    def cplmtYum = ''
+    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
+      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
+        && """
+    }
+
+    """
+
+    image_name=\$(grep -q conda ${cmdPost} && echo "${params.dockerLinuxDistroConda}" || echo "${params.dockerLinuxDistro}")
+
+    # write the recipe
+    cat << EOF > ${key}.def
+    Bootstrap: docker
+    From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
+    Stage: devel
+
+    %files
+        ${key}/ /root/
+
+    %post
+        mkdir -p /opt/modules
+        mv /root/${key}/ /opt/modules
+        ${cplmtYum}cd /opt/modules \\\\
+        && mkdir build && cd build || exit \\\\
+        && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
+        && make && make install ${cplmtCmdPost}
+
+    Bootstrap: docker
+    From: ${params.dockerRegistry}\${image_name}
+    Stage: final
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %files from devel
+        /usr/local/bin/${key}/ /usr/local/bin/
+
+    %post
+        ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
+
+    %environment
+        export R_LIBS_USER="-"
+        export R_PROFILE_USER="-"
+        export R_ENVIRON_USER="-"
+        export PYTHONNOUSERSITE=1
+        export LC_ALL=en_US.utf-8
+        export LANG=en_US.utf-8
+        export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
+        ${cplmtCmdEnv}
+
+    EOF
+
+    # compute hash digest of the recipe using:
+    #   - the recipe file without the labels / comments
+    #   - the source code
+    tar --mtime='1970-01-01' -cf ${key}.tar ${key}/*
+    grep -v gitCommit ${key}.def | grep -v gitUrl > ${key}-nolabels.def 
+    cat ${key}.tar ${key}-nolabels.def | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    """
+}
+
+/////////////////////////////
+// STEP - BUILD CONTAINERS //
+/////////////////////////////
+
+// This process creates the containers for all the tools
+process buildImages {
+  maxForks 1
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
+
+  when:
+    params.buildSingularityImages
+
+  input:
+    tuple val(key), file(singularityRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir)
+
+  output:
+    path("${key.toLowerCase()}.sif")
+
+  script:
+    """
+    singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe}
+    """
+
+  stub:
+    """
+    touch ${key.toLowerCase()}.sif
     """
 }
 
@@ -255,359 +640,6 @@ process buildCondaEnvFromCondaPackages {
       - ${condaDepEnv}${condaPipDep}
     """
 }
-
-
-/**
- *
- * singularity profile
- *
- * Geniac documentation:
- *   - https://geniac.readthedocs.io/en/latest/run.html#run-profile-singularity
- *
- **/
-
-
-//////////////////////
-// STEP - CONDA ENV //
-//////////////////////
-
-// This process creates the container recipes for each tool defined as a conda env with the
-// packages listed in params.geniac.tools.
-// Geniac documentation:
-//   - https://geniac.readthedocs.io/en/latest/process.html#easy-install-with-conda
-process buildSingularityRecipeFromCondaPackages {
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
-
-  input:
-    tuple val(key), val(tools), val(yum), val(git), val(cmdPost), val(cmdEnv)
-
-  output:
-    tuple val(key), file("${key}.def"), emit: singularityRecipes
-
-  script:
-    def cplmtGit = buildCplmtGit(git)
-    def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
-    def yumPkgs = yum ?: ''
-    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
-
-
-    List condaChannels = []
-    List condaPackages = []
-    for (String[] tab : tools) {
-      if (!condaChannels.contains(tab[0])) {
-        condaChannels.add(tab[0])
-      }
-      condaPackages.add(tab[1])
-    }
-    String  condaChannelsOption = condaChannels.collect() {"-c $it"}.join(' ')
-    String  condaPackagesOption = condaPackages.collect() {"$it"}.join(' ')
-
-    def cplmtYum = ''
-    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
-    }
-
-    """
-    cat << EOF > ${key}.def
-    Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
-
-    %labels
-        gitUrl ${params.gitUrl}
-        gitCommit ${params.gitCommit}
-
-    %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
-        source /opt/etc/bashrc
-        ${cplmtCmdEnv}
-
-    %post
-        ${cplmtYum}${params.yum} clean all \\\\
-        && conda create -y -n ${key}_env \\\\
-        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
-        && mkdir -p /opt/etc \\\\
-        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
-        && conda init bash \\\\
-        && echo "conda activate ${key}_env" >> ~/.bashrc \\\\
-        && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a \\\\
-        && micromamba clean -y -a ${cplmtCmdPost}
-
-    EOF
-    """
-}
-
-// This process creates the container recipes for each tool defined as a conda env from a yml file
-// Geniac documentation:
-//   - https://geniac.readthedocs.io/en/latest/process.html#process-custom-conda
-process buildSingularityRecipeFromCondaFile {
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
-
-  input:
-    tuple val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv)
-
-  output:
-    tuple val(key), file("${key}.def"), emit: singularityRecipes
-
-  script:
-    def cplmtGit = buildCplmtGit(git)
-    def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
-    def yumPkgs = yum ?: ''
-    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
-
-    def cplmtYum = ''
-    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
-    }
-
-    """
-    declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
-
-    cat << EOF > ${key}.def
-    Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
-
-    %labels
-        gitUrl ${params.gitUrl}
-        gitCommit ${params.gitCommit}
-
-    %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
-        source /opt/etc/bashrc
-        ${cplmtCmdEnv}
-
-    # real path from projectDir: ${condaFile}
-    %files
-        \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
-
-    %post
-        ${cplmtYum}${params.yum} clean all \\\\
-        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${condaFile}) \\\\
-        && mkdir -p /opt/etc \\\\
-        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
-        && conda init bash \\\\
-        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
-        && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a \\\\
-        && micromamba clean -y -a ${cplmtCmdPost}
-
-    EOF
-    """
-}
-
-// This process creates the container recipes for each tool defined as a Renv.
-// Geniac documentation:
-//   - https://geniac.readthedocs.io/en/latest/process.html#r-packages-using-renv
-process buildSingularityRecipeFromCondaFile4Renv {
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
-
-  input:
-    tuple val(key), val(condaEnv), val(yum), val(git), val(cmdPost), val(cmdEnv)
-
-  output:
-    tuple val(key), file("${key}.def"), emit: singularityRecipes
-
-  script:
-    def renvYml = params.geniac.tools.get(key).get('yml')
-    def bioc = params.geniac.tools.get(key).get('bioc')
-    def cplmtGit = buildCplmtGit(git)
-    def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
-    def yumPkgs = yum ?: ''
-    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
-
-    def cplmtYum = ''
-    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
-    }
-
-    """
-    declare env_name=\$(head -1 ${renvYml} | cut -d' ' -f2)
-
-    cat << EOF > ${key}.def
-    Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
-
-    %labels
-        gitUrl ${params.gitUrl}
-        gitCommit ${params.gitCommit}
-
-    %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
-        source /opt/etc/bashrc
-        ${cplmtCmdEnv}
-
-    # real path from projectDir: ${renvYml}
-    %files
-        \$(basename ${renvYml}) /root/\$(basename ${renvYml})
-        ${key}/renv.lock /root/renv.lock
-
-    %post
-        R_MIRROR=https://cloud.r-project.org
-        R_ENV_DIR=/opt/renv
-        CACHE=TRUE
-        CACHE_DIR=/opt/renv_cache
-        mkdir -p /opt/renv /opt/renv_cache
-        mv /root/\$(basename ${renvYml}) /opt/\$(basename ${renvYml})
-        mv /root/renv.lock /opt/renv/renv.lock
-        ${cplmtYum}${params.yum} clean all \\\\
-        && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
-        && mkdir -p /opt/etc \\\\
-        && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
-        && conda init bash \\\\
-        && echo "conda activate \${env_name}" >> ~/.bashrc \\\\
-        && cp ~/.bashrc /opt/etc/bashrc \\\\
-        && conda clean -y -a \\\\
-        && micromamba clean -y -a ${cplmtCmdPost}
-        source /opt/etc/bashrc \\\\
-        && R -q -e "options(repos = \\\\"\\\${R_MIRROR}\\\\") ; install.packages(\\\\"renv\\\\") ; options(renv.config.install.staged=FALSE, renv.settings.use.cache=FALSE) ; install.packages(\\\\"BiocManager\\\\"); BiocManager::install(version=\\\\"${bioc}\\\\", ask=FALSE) ; renv::restore(lockfile = \\\\"\\\${R_ENV_DIR}/renv.lock\\\\")"
-   
-    EOF
-    """
-}
-
-////////////////////////
-// STEP - SOURCE CODE //
-////////////////////////
-
-// This process creates the container recipes for each tool installed from source code.
-// Geniac documentation.
-//   - https://geniac.readthedocs.io/en/latest/process.html#install-from-source-code
-process buildSingularityRecipeFromSourceCode {
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
-
-  input:
-    tuple val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv)
-
-  output:
-    tuple  val(key), file("${key}.def"), emit: singularityRecipes
-
-  script:
-    def cplmtGit = buildCplmtGit(git)
-    def cplmtPath = buildCplmtPath(git)
-    def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
-    def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
-    def yumPkgs = yum ?: ''
-    yumPkgs = git ? "${yumPkgs} git" : yumPkgs
-
-
-    def cplmtYum = ''
-    if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
-      cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
-    }
-
-    """
-
-    image_name=\$(grep -q conda ${cmdPost} && echo "${params.dockerLinuxDistroConda}" || echo "${params.dockerLinuxDistro}")
-
-    cat << EOF > ${key}.def
-    Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
-    Stage: devel
-
-    %files
-        ${key}/ /root/
-
-    %post
-        mkdir -p /opt/modules
-        mv /root/${key}/ /opt/modules
-        ${cplmtYum}cd /opt/modules \\\\
-        && mkdir build && cd build || exit \\\\
-        && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
-        && make && make install ${cplmtCmdPost}
-
-    Bootstrap: docker
-    From: ${params.dockerRegistry}\${image_name}
-    Stage: final
-
-    %labels
-        gitUrl ${params.gitUrl}
-        gitCommit ${params.gitCommit}
-
-    %files from devel
-        /usr/local/bin/${key}/ /usr/local/bin/
-
-    %post
-        ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
-
-    %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
-        export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
-        ${cplmtCmdEnv}
-
-    EOF
-    """
-}
-
-/////////////////////////////
-// STEP - BUILD CONTAINERS //
-/////////////////////////////
-
-// This process creates the containers for all the tools
-process buildImages {
-  maxForks 1
-  tag "${key}"
-  publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
-
-  when:
-    params.buildSingularityImages
-
-  input:
-    tuple val(key), file(singularityRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir)
-
-  output:
-    path("${key.toLowerCase()}.sif")
-
-  script:
-    """
-    singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe}
-    """
-
-  stub:
-    """
-    touch ${key.toLowerCase()}.sif
-    """
-}
-
 
 /**
  *
@@ -1146,6 +1178,51 @@ process mergeSingularityConfig {
     """
 }
 
+
+/******************
+ * SHA256SUM file *
+ ******************/
+
+// This process concatenates all the sha256sum files into a single file
+process sha256sumManualRecipes {
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), path(recipe)
+
+  output:
+    path("${key}.sha256sum"), emit: sha256sum
+
+  script:
+    """
+    if [[ -d ${projectDir}/recipes/dependencies ]] ; then
+      tar --mtime='1970-01-01' -cf dependencies.tar -C ${projectDir}/recipes dependencies
+      cat dependencies.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    else
+      sha256sum ${recipe} | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    fi
+    """
+}
+
+// This process concatenates all the sha256sum files into a single file
+process sha256sumFile {
+  tag "sha256sum"
+  publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
+
+  input:
+    path("*")
+
+  output:
+    path("sha256sum")
+
+  script:
+    """
+    cat *.sha256sum > sha256sum
+    """
+}
+
+
 /**
  *
  * cluster config
@@ -1244,6 +1321,7 @@ workflow {
       .map{ [it[0], it[1]] }
       .groupTuple()
       .map{ addYumAndGitAndCmdConfs(it) }
+      .join(fileDependenciesCh)
   )
 
   // Create the container recipes for each tool installed from source code
@@ -1251,7 +1329,21 @@ workflow {
     sourceCodeCh
       .map{ addYumAndGitAndCmdConfs(it) }
   )
-  
+
+  // SHA256SUM
+  sha256sumManualRecipes(singularityRecipesCh)
+
+  buildSingularityRecipeFromCondaFile4Renv.out.sha256sum
+    .concat(buildSingularityRecipeFromSourceCode.out.sha256sum)
+    .concat(buildSingularityRecipeFromCondaPackages.out.sha256sum)
+    .concat(buildSingularityRecipeFromCondaFile.out.sha256sum)
+    .concat(buildDefaultSingularityRecipe.out.sha256sum)
+    .concat(sha256sumManualRecipes.out.sha256sum)
+    .collect()
+    .set{ sha256sumCh }
+
+  sha256sumFile(sha256sumCh)
+
   /////////////////////////////
   // STEP - BUILD CONTAINERS //
   /////////////////////////////
