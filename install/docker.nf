@@ -134,6 +134,17 @@ Channel
   .map{ [it.name, it] }
   .set{ sourceCodeCh }
 
+// CONTAINER LIST
+if(params.containerList != null) {
+
+  Channel
+    .fromPath(params.containerList)
+    .splitCsv()
+    .set{ containerListCh }
+
+}
+
+
 /*************
  * PROCESSES *
  *************/
@@ -159,7 +170,7 @@ process buildDefaultDockerRecipe {
 
   output:
     tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
-    path("${key}.sha256sum"), emit: sha256sum
+    tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     key = 'onlyLinux'
@@ -202,7 +213,7 @@ process buildDockerRecipeFromCondaPackages {
 
   output:
     tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
-    path("${key}.sha256sum"), emit: sha256sum
+    tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -280,7 +291,7 @@ process buildDockerRecipeFromCondaFile {
 
   output:
     tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
-    path("${key}.sha256sum"), emit: sha256sum
+    tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -353,7 +364,7 @@ process buildDockerRecipeFromCondaFile4Renv {
 
   output:
     tuple val(key), path("${key}.Dockerfile"), emit: dockerRecipes
-    path("${key}.sha256sum"), emit: sha256sum
+    tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     def renvYml = params.geniac.tools.get(key).get('yml')
@@ -445,7 +456,7 @@ process buildDockerRecipeFromSourceCode {
 
   output:
     tuple val(key), file("${key}.Dockerfile"), emit: dockerRecipes
-    path("${key}.sha256sum"), emit: sha256sum
+    tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     def cplmtGit = buildCplmtGit(git)
@@ -572,7 +583,7 @@ process sha256sumManualRecipes {
     tuple val(key), path(recipe), path(fileDependencies)
 
   output:
-    path("${key}.sha256sum"), emit: sha256sum
+    tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     """
@@ -669,10 +680,20 @@ workflow {
     .concat(buildDockerRecipeFromCondaFile.out.sha256sum)
     .concat(buildDefaultDockerRecipe.out.sha256sum)
     .concat(sha256sumManualRecipes.out.sha256sum)
-    .collect()
     .set{ sha256sumCh }
 
-  sha256sumFile(sha256sumCh)
+  // Select the list of tools if containerList has been provided
+  if (params.containerList != null) {
+    sha256sumCh
+      .join(containerListCh)
+      .set{ sha256sumCh }
+  }
+
+  sha256sumFile(
+    sha256sumCh
+      .map{ it[1] }
+      .collect()
+  )
 
   /////////////////////////////
   // STEP - BUILD CONTAINERS //
@@ -688,7 +709,14 @@ workflow {
     // je pense que les deux lignes de dessous ne servent à rien
     //.groupTuple()
     //.map{ key, tab -> [key, tab[0]] }
-    .set {dockerAllRecipes}
+    .set { dockerAllRecipes }
+
+  // Select the list of tools if containerList has been provided
+  if (params.containerList != null) {
+    dockerAllRecipes
+      .join(containerListCh)
+      .set{ dockerAllRecipes }
+  }
 
   // Create all the containers
   buildImages(
