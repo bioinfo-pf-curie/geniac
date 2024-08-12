@@ -242,7 +242,7 @@ process buildSingularityRecipeFromCondaPackages {
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
       cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
+    && """
     }
 
     """
@@ -295,10 +295,10 @@ process buildSingularityRecipeFromCondaFile {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), file(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv)
+    tuple val(key), path(condaFile), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    tuple val(key), file("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}.def"), emit: singularityRecipes
     path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -355,7 +355,6 @@ process buildSingularityRecipeFromCondaFile {
         && micromamba clean -y -a ${cplmtCmdPost}
 
     EOF
-
     # compute hash digest of the recipe using:
     #   - the recipe file without the labels / comments
     #   - the conda yml
@@ -374,7 +373,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
     tuple val(key), val(condaEnv), val(yum), val(git), val(cmdPost), val(cmdEnv), path(dependencies)
 
   output:
-    tuple val(key), file("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}.def"), emit: singularityRecipes
     path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -464,10 +463,10 @@ process buildSingularityRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), file(dir), val(yum), val(git), val(cmdPost), val(cmdEnv)
+    tuple val(key), path(sourceCode), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
-    tuple  val(key), file("${key}.def"), emit: singularityRecipes
+    tuple  val(key), path("${key}.def"), emit: singularityRecipes
     path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -1183,22 +1182,24 @@ process mergeSingularityConfig {
  * SHA256SUM file *
  ******************/
 
-// This process concatenates all the sha256sum files into a single file
+// This process computes the sha256sum for the recipes written manually
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/run.html#cluster
 process sha256sumManualRecipes {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), path(recipe)
+    tuple val(key), path(recipe), path(fileDependencies)
 
   output:
     path("${key}.sha256sum"), emit: sha256sum
 
   script:
     """
-    if [[ -d ${projectDir}/recipes/dependencies ]] ; then
-      tar --mtime='1970-01-01' -cf dependencies.tar -C ${projectDir}/recipes dependencies
-      cat dependencies.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    if [[ -d ${key} ]] ; then
+      tar --mtime='1970-01-01' -cf ${key}.tar ${key}/* 
+      cat ${key}.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     else
       sha256sum ${recipe} | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     fi
@@ -1331,7 +1332,15 @@ workflow {
   )
 
   // SHA256SUM
-  sha256sumManualRecipes(singularityRecipesCh)
+  sha256sumManualRecipes(
+    singularityRecipesCh
+      .combine(
+        fileDependenciesCh
+          .map{ it[1] }
+          .collect()
+          .toList()
+      )
+  )
 
   buildSingularityRecipeFromCondaFile4Renv.out.sha256sum
     .concat(buildSingularityRecipeFromSourceCode.out.sha256sum)

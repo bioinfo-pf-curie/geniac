@@ -561,22 +561,24 @@ process buildImages {
  * SHA256SUM file *
  ******************/
 
-// This computes the hash digest for the recipes which have been written manually.
+// This process computes the sha256sum for the recipes written manually
+// Geniac documentation:
+//   - https://geniac.readthedocs.io/en/latest/run.html#cluster
 process sha256sumManualRecipes {
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), path(recipe)
+    tuple val(key), path(recipe), path(fileDependencies)
 
   output:
     path("${key}.sha256sum"), emit: sha256sum
 
   script:
     """
-    if [[ -d ${projectDir}/recipes/dependencies ]] ; then
-      tar --mtime='1970-01-01' -cf dependencies.tar -C ${projectDir}/recipes dependencies
-      cat dependencies.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    if [[ -d ${key} ]] ; then
+      tar --mtime='1970-01-01' -cf ${key}.tar ${key}/* 
+      cat ${key}.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     else
       sha256sum ${recipe} | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     fi
@@ -651,7 +653,16 @@ workflow {
   )
 
   // SHA256SUM
-  sha256sumManualRecipes(dockerRecipesCh)
+  sha256sumManualRecipes(
+    dockerRecipesCh
+      .combine(
+        fileDependenciesCh
+          .map{ it[1] }
+          .collect()
+          .toList()
+      )
+  )
+
   buildDockerRecipeFromCondaFile4Renv.out.sha256sum
     .concat(buildDockerRecipeFromSourceCode.out.sha256sum)
     .concat(buildDockerRecipeFromCondaPackages.out.sha256sum)
