@@ -545,7 +545,7 @@ process buildSingularityRecipeFromSourceCode {
     # compute hash digest of the recipe using:
     #   - the recipe file without the labels / comments
     #   - the source code
-    tar --mtime='1970-01-01' -cf ${key}.tar -C ${key} .
+    tar --mtime='1970-01-01' -cf ${key}.tar -C ${key} --sort=name --group=0 --owner=0 --numeric-owner --mode=777 .
     grep -v gitCommit ${key}.def | grep -v gitUrl > ${key}-nolabels.def 
     cat ${key}.tar ${key}-nolabels.def | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     """
@@ -1209,7 +1209,7 @@ process sha256sumManualRecipes {
   script:
     """
     if [[ -d ${key} ]] ; then
-      tar --mtime='1970-01-01' -cf ${key}.tar -C ${key} .
+    tar --mtime='1970-01-01' -cf ${key}.tar -C ${key} --sort=name --group=0 --owner=0 --numeric-owner --mode=777 .
       cat ${key}.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     else
       sha256sum ${recipe} | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
