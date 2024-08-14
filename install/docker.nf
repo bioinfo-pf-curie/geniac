@@ -436,7 +436,7 @@ process buildDockerRecipeFromCondaFile4Renv {
     #   - the recipe file without the labels
     #   - the conda yml
     #   - the renv.lock
-    cat ${key}.Dockerfile ${renvYml} ${key}/renv.lock | grep -v gitCommit | grep -v gitUrl | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
+    cat ${key}.Dockerfile ${renvYml} ${key}/renv.lock | grep -v gitCommit | grep -v gitUrl | grep -v "real path from projectDir" | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     """
 }
 
