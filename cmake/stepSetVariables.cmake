@@ -98,6 +98,13 @@ set(ap_conda_release
         "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. When a tool is installed with Conda, the container obviously needs Conda. Therefore, this variable defines which Conda release to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is py311_23.10.0-1."
 )
 
+set(ap_container_list
+    ""
+    CACHE
+        STRING
+				"Provide PATH to a text file which contains the list of tool labels for which the containers will be built. This makes it possible to build only a subset of containers instead of building all the container for all the tools."
+)
+
 set(ap_mount_dir
     ""
     CACHE
