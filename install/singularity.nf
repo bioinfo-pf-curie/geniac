@@ -43,6 +43,7 @@ def addYumAndGitAndCmdConfs(List input) {
   result.add(gitList)
   result.add(cmdPostConf[input[0]])
   result.add(cmdEnvConf[input[0]])
+  println result
   return result
 }
 
@@ -50,7 +51,7 @@ String buildCplmtGit(def gitEntries) {
   String cplmtGit = ''
   for (String[] tab : gitEntries) {
     cplmtGit += """ \\\\
-    && mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
+        && mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
   }
 
   return cplmtGit
@@ -233,6 +234,10 @@ process buildSingularityRecipeFromCondaPackages {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
+
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
@@ -253,7 +258,7 @@ process buildSingularityRecipeFromCondaPackages {
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
       cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-    && """
+        && """
     }
 
     """
@@ -315,6 +320,9 @@ process buildSingularityRecipeFromCondaFile {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
@@ -392,6 +400,9 @@ process buildSingularityRecipeFromCondaFile4Renv {
     def bioc = params.geniac.tools.get(key).get('bioc')
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
@@ -483,6 +494,9 @@ process buildSingularityRecipeFromSourceCode {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''

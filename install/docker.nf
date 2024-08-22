@@ -218,6 +218,9 @@ process buildDockerRecipeFromCondaPackages {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
     def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
     def yumPkgs = yum ?: ''
@@ -296,6 +299,9 @@ process buildDockerRecipeFromCondaFile {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
     def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
     def yumPkgs = yum ?: ''
@@ -304,7 +310,7 @@ process buildDockerRecipeFromCondaFile {
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
       cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
+    && """
     }
 
     """
@@ -371,6 +377,9 @@ process buildDockerRecipeFromCondaFile4Renv {
     def bioc = params.geniac.tools.get(key).get('bioc')
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n        && ' + cmdPost.join(' \\\\\n        && '): ''
     def cplmtCmdEnv = cmdEnv ? 'export ' + cmdEnv.join('\n        export '): ''
     def yumPkgs = yum ?: ''
@@ -379,7 +388,7 @@ process buildDockerRecipeFromCondaFile4Renv {
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
       cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
+    && """
     }
 
     """
@@ -461,6 +470,9 @@ process buildDockerRecipeFromSourceCode {
   script:
     def cplmtGit = buildCplmtGit(git)
     def cplmtPath = buildCplmtPath(git)
+    if ("${cplmtPath}".length()> 0 ) {
+      cplmtPath += ":"
+    }
     def cplmtCmdPost = cmdPost ? '\\\\\n    && ' + cmdPost.join(' \\\\\n    && '): ''
     def cplmtCmdEnv = cmdEnv ? 'ENV ' + cmdEnv.join('\n    ENV ').replace('=', ' '): ''
     def yumPkgs = yum ?: ''
@@ -470,7 +482,7 @@ process buildDockerRecipeFromSourceCode {
     def cplmtYum = ''
     if ("${yumPkgs}${cplmtGit}".length()> 0 ) {
       cplmtYum = """${params.yum} install ${params.yumOptions} -y ${yumPkgs} ${cplmtGit} \\\\
-        && """
+    && """
     }
 
     """
