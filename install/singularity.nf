@@ -43,7 +43,6 @@ def addYumAndGitAndCmdConfs(List input) {
   result.add(gitList)
   result.add(cmdPostConf[input[0]])
   result.add(cmdEnvConf[input[0]])
-  println result
   return result
 }
 
