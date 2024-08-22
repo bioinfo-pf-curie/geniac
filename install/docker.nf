@@ -126,6 +126,7 @@ Channel
 Channel
   .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
   .map{ [it.name, it] }
+  .ifEmpty(['NO_DEPENDENCIES', file('NO_DEPENDENCIES')])
   .set{ fileDependenciesCh }
 
 // SOURCE CODE
@@ -592,7 +593,7 @@ process sha256sumManualRecipes {
   publishDir "${projectDir}/${params.publishDirDockerfiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), path(recipe), path(fileDependencies)
+    tuple val(key), path(recipe), file(fileDependencies)
 
   output:
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum

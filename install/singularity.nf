@@ -138,6 +138,7 @@ Channel
 Channel
   .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
   .map{ [it.name, it] }
+  .ifEmpty(['NO_DEPENDENCIES', file('NO_DEPENDENCIES')])
   .set{ fileDependenciesCh }
 
 // SOURCE CODE
@@ -484,7 +485,7 @@ process buildSingularityRecipeFromSourceCode {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), path(sourceCode), val(yum), val(git), val(cmdPost), val(cmdEnv)
+    tuple val(key), file(sourceCode), val(yum), val(git), val(cmdPost), val(cmdEnv)
 
   output:
     tuple  val(key), path("${key}.def"), emit: singularityRecipes
@@ -1214,7 +1215,7 @@ process sha256sumManualRecipes {
   publishDir "${projectDir}/${params.publishDirDeffiles}", overwrite: true, mode: 'copy'
 
   input:
-    tuple val(key), path(recipe), path(fileDependencies)
+    tuple val(key), path(recipe), file(fileDependencies)
 
   output:
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
