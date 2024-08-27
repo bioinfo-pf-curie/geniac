@@ -102,7 +102,7 @@ set(ap_container_list
     ""
     CACHE
         STRING
-				"Provide PATH to a text file which contains the list of tool labels for which the containers will be built. This makes it possible to build only a subset of containers instead of building all the container for all the tools."
+				"Provide PATH to a text file which contains the list of tool labels for which the containers will be built. This makes it possible to build only a subset of containers instead of building all the containers for all the tools."
 )
 
 set(ap_mount_dir
