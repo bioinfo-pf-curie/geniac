@@ -161,3 +161,28 @@ endif()
 if(NOT "${ap_linux_distro}" MATCHES ".*:.*")
   message_color(ERROR "ap_linux_distro '${ap_linux_distro}' must be formatted like 'distro:version' (e.g. almalinux:9.3).")
 endif()
+
+if(NOT "${ap_container_list}" STREQUAL "")
+  if(NOT IS_ABSOLUTE ${ap_container_list})
+    message_color(
+        FATAL_ERROR
+        "ap_container_list must be an absolute path. \n\tThe current value is invalid: \n\t'${ap_container_list}'. \n\tProvide a valid path with -Dap_container_list"
+    )
+  else()
+    if(IS_DIRECTORY ${ap_container_list})
+      message_color(
+          FATAL_ERROR
+          "ap_container_list must be a file. \n\tThe current value is invalid: \n\t'${ap_container_list}'."
+      )
+    else()
+      if(NOT EXISTS ${ap_container_list})
+        message_color(
+            FATAL_ERROR
+            "ap_container_list does no exist. \n\tThe current value is invalid: \n\t'${ap_container_list}'. \n\tProvide a valid path with -Dap_container_list"
+        )
+      endif()
+    endif()
+  endif()
+  # A list (sep is semi-colon is needed here to be firther expanded in the add_custom_command)
+  set(ap_container_list "--containerList;${ap_container_list}")
+endif()

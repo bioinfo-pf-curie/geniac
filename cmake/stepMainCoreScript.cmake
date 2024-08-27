@@ -75,11 +75,11 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildConfigFiles true
+        ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildConfigFiles true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
@@ -104,10 +104,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityRecipes true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
+        ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildSingularityRecipes true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityRecipes true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/deffiles.done"
@@ -119,9 +119,9 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerfiles true
+        ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf
+    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf -resume
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done"
@@ -154,30 +154,39 @@ add_custom_target(
     DEPENDS ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done)
 
 # generate singularity recipes and images
+# the syntax below is required with both COMMAND_EXPAND_LISTS and VERBATIM.
+# As the ap_container_list contains space, without this syntax, quotes will be put around
+# which would not take into account the correct args
+set(cmd_build_singularity_images "${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildSingularityImages;true")
+list(APPEND cmd_build_singularity_images "${ap_container_list}")
+set(cmd_build_singularity_images "${cmd_build_singularity_images};-with-report;--gitCommit;${git_commit};--gitUrl;${git_url}")
+string(REPLACE ";" " " cmd_build_singularity_images_msg "${cmd_build_singularity_images}")
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
-    COMMAND
-        ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
+    COMMAND "${cmd_build_singularity_images}"
+	COMMAND_EXPAND_LISTS
+	VERBATIM
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume singularity.nf --buildSingularityImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
+        "Running command: ${cmd_build_singularity_images_msg}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/singularityImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # generate docker recipes and images
+set(cmd_build_docker_images "${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildDockerImages;true")
+list(APPEND cmd_build_docker_images "${ap_container_list}")
+set(cmd_build_docker_images "${cmd_build_docker_images};-with-report;--gitCommit;${git_commit};--gitUrl;${git_url}")
+string(REPLACE ";" " " cmd_build_docker_images_msg "${cmd_build_docker_images}")
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
-    COMMAND
-        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd docker
+    COMMAND "${cmd_build_docker_images}"
+	COMMAND_EXPAND_LISTS
+	VERBATIM
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd docker"
+        "Running command: ${cmd_build_docker_images_msg}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/dockerImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
@@ -188,10 +197,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/podmanImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build podman recipes and images"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
+        ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd podman
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run -resume docker.nf --buildDockerImages true
+        "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}  --dockerCmd podman"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/podmanImages.done"

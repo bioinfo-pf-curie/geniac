@@ -1,3 +1,13 @@
+version-3.5.0
+08/27/2024
+
+NEW FEATURES
+   - a sha256sum signature is generated for each container recipe (including its dependencies). The list of signatures is provided both as global file (sha256sum) and individual files for each tool (eg python.sha256sum)
+   - new cmake option 'ap_container_list' to build only a subset of container provided as a list in a txt file.
+
+BUGFIX
+   - Missing ':' added in PATH variable when information from params.containers.git is provided
+
 version-3.4.0
 08/08/2024
 

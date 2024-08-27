@@ -34,6 +34,7 @@ params {
   buildPodmanImages = false
   dockerCmd = 'docker'
   singularityBuildOptions = '@singularity_build_options@'
+  containerList = null
 
   // option for the cluster executor
   clusterExecutor = 'pbs'

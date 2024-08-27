@@ -90,6 +90,14 @@ ap_conda_release
 | When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry |4geniac|_. When a tool is installed with Conda, the container obviously needs Conda. Therefore, this variable defines which Conda release to use from |4geniac|_. For details, about the docker containers see |4geniacgithub|_.
 | Default is ``py311_23.10.0-1``. See also options :ref:`install-ap_linux_distro` and :ref:`install-ap_docker_registry`.
 
+
+ap_container_list
++++++++++++++++++
+        
+| STRING
+| Provide PATH to a text file which contains the list of tool labels for which the containers will be built. This makes it possible to build only a subset of containers instead of building all the containers for all the tools.
+| Default is none.
+
 .. _install-ap_docker_registry:
 
 ap_docker_registry
