@@ -84,7 +84,7 @@ if(GIT_FOUND)
             "GIT hash does not have a production tag:\n\t===> this is a development version"
             )
 
-        set(git_commit "${git_commit} / devel") # do not change this, the variable must contain "devel"
+        set(git_commit "${git_commit}/devel") # do not change this, the variable must contain "devel"
     else()
         message_color(
             OK
