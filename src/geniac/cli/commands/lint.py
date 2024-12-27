@@ -70,7 +70,7 @@ class GeniacLint(GeniacCommand):
     )
     # REGEX to check if a dependency has been correctly added in a docker
     # recipe
-    DOCKER_DEP_RE_TEMP = r"ADD +{tool}/{dependency} [\/\w.]+{dependency}"
+    DOCKER_DEP_RE_TEMP = r"(ADD|COPY) +{tool}/{dependency} [\/\w.]+{dependency}"
     
 
     # Name of config sections used in this class
