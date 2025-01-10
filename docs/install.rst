@@ -18,6 +18,7 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
    wget ${GENIAC_CONDA}
    conda env create -f environment.yml
    conda activate geniac
+   pip install geniac
    
    # Prepare the working directory for the use case
    export WORK_DIR="${HOME}/tmp/myPipeline"

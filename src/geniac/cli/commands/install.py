@@ -233,7 +233,7 @@ class GeniacInstall(GeniacInit):
                 proc = subprocess.run(softname_cmd.split(), stdout=subprocess.PIPE, encoding="ascii")
                 user_version = proc.stdout.strip()
                 print(f"Checking that the {softname} version used with sudo privilege is the same as the one defined in the user environment detected during the cmake configuration step.")
-                softname_cmd = "sudo -S -k " + softname_cmd
+                softname_cmd = "sudo -E -S -k " + softname_cmd
                 proc = subprocess.run(softname_cmd.split(), stdout=subprocess.PIPE, encoding="ascii")
                 root_version = proc.stdout.strip()
                 if user_version != root_version:
@@ -252,9 +252,9 @@ class GeniacInstall(GeniacInit):
             )
         user_uid=str(os.getuid())
         user_gid=str(os.getgid())
-        chown_command='sudo -S -k chown -R ' + user_uid + ':' + user_gid + ' ' + (self.working_dirs["build"]).as_posix()
+        chown_command='sudo -E -S -k chown -R ' + user_uid + ':' + user_gid + ' ' + (self.working_dirs["build"]).as_posix()
         commands = {
-            "make": f"{'sudo -S -k ' if self.is_sudo else ''}make",
+            "make": f"{'sudo -E -S -k ' if self.is_sudo else ''}make",
             "chown": f"{chown_command if self.is_sudo else 'echo OK'}",
             "make install": "make install",
         }

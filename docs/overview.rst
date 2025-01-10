@@ -23,11 +23,11 @@ Prerequisites
 The following software are required:
 
 * a Linux distribution
-* |nextflow|_ >= 20.01.0
-* |git|_  >= 2.0
+* |nextflow|_ >= 24.04
+* |git|_  >= 2.46
 * |gitlfs|_
-* |cmake|_ >= 3.19
-* |make|_ >= 4.1
+* |cmake|_ >= 3.30.2
+* |make|_ >= 4.4.1
 * |conda|_ >= 4.12.0
 
 To use the containers, at least one of the following software is required:
@@ -50,6 +50,7 @@ As a quick start, you can try the |geniacdemo|_ pipeline as follows:
    wget ${GENIAC_CONDA}
    conda env create -f environment.yml
    conda activate geniac
+   pip install geniac
    
    # Prepare the working directory for the use case
    export WORK_DIR="${HOME}/tmp/myPipeline"
