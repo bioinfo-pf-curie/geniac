@@ -75,12 +75,12 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/conf.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build config files"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildConfigFiles true
+        NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildConfigFiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}
     COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/workDir/conf.done"
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildConfigFiles true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
+        "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildConfigFiles true
+        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --clusterExecutor ${ap_nf_executor}"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
@@ -104,10 +104,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/deffiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipe"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildSingularityRecipes true
+        NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildSingularityRecipes true
+        "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run singularity.nf -resume --buildSingularityRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/deffiles.done"
@@ -119,9 +119,9 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerfiles true
+        NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMENT "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf -resume
+    COMMENT "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerfiles true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done"
@@ -157,7 +157,7 @@ add_custom_target(
 # the syntax below is required with both COMMAND_EXPAND_LISTS and VERBATIM.
 # As the ap_container_list contains space, without this syntax, quotes will be put around
 # which would not take into account the correct args
-set(cmd_build_singularity_images "${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildSingularityImages;true")
+set(cmd_build_singularity_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildSingularityImages;true")
 list(APPEND cmd_build_singularity_images "${ap_container_list}")
 set(cmd_build_singularity_images "${cmd_build_singularity_images};-with-report;--gitCommit;${git_commit};--gitUrl;${git_url}")
 string(REPLACE ";" " " cmd_build_singularity_images_msg "${cmd_build_singularity_images}")
@@ -175,7 +175,7 @@ add_custom_command(
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # generate docker recipes and images
-set(cmd_build_docker_images "${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildDockerImages;true")
+set(cmd_build_docker_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildDockerImages;true")
 list(APPEND cmd_build_docker_images "${ap_container_list}")
 set(cmd_build_docker_images "${cmd_build_docker_images};-with-report;--gitCommit;${git_commit};--gitUrl;${git_url}")
 string(REPLACE ";" " " cmd_build_docker_images_msg "${cmd_build_docker_images}")
@@ -197,10 +197,10 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/podmanImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build podman recipes and images"
     COMMAND
-        ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
+        NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd podman
     COMMENT
-        "Running command: ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
+        "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}  --dockerCmd podman"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/podmanImages.done"

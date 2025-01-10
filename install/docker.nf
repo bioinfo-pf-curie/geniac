@@ -77,7 +77,7 @@ Channel
   .flatMap {
     List<String> result = []
     for (Map.Entry<String, String> entry : it.entrySet()) {
-      if (entry.value instanceof String) {
+      if (entry.value instanceof String || entry.value instanceof GString) {
         List<String> tab = entry.value.split()
         for (String s : tab) {
           result.add([entry.key, s.split('::')])

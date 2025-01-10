@@ -37,7 +37,7 @@ foreach(profile_i ${profile_list})
         test_${profile_i}
         COMMAND ${CMAKE_COMMAND} -E echo "Start test profile ${profile_i}"
         COMMAND
-            ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
+            NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
             ${profile_i}
         WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/pipeline
         DEPENDS myinstall)
@@ -46,7 +46,7 @@ foreach(profile_i ${profile_list})
         test_${profile_i}_cluster
         COMMAND ${CMAKE_COMMAND} -E echo "Start test profile ${profile_i}"
         COMMAND
-            ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
+            NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run main.nf -c conf/test.config -profile
             ${profile_i},cluster
         WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/pipeline
         DEPENDS myinstall)

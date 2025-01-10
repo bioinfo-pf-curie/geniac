@@ -1,4 +1,18 @@
+version-3.6.0
+01/10/2025
+
+NEW FEATURES
+   - Geniac CLI:
+      * Environment variables from the user space are passed to the sudo command
+      * Conda env with nextflow 24.04.4, pip 24.2, make 4.4.1, python 3.12.5
+      * geniac must be installed using pip after the geniac conda env is created
+
+BUGFIX
+   - Geniac CLI:
+      * Both ADD and COPY directives in Dockerfile are considered to check file dependencies
+
 version-3.5.0
+
 08/27/2024
 
 NEW FEATURES
