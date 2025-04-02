@@ -85,17 +85,17 @@ set(ap_docker_registry
 )
 
 set(ap_linux_distro
-    "almalinux:9.3"
+    "almalinux:9.5"
     CACHE
         STRING
-        "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. This variable defines which Linux distro (i.e. which repository) and which version (i.e. which tag) to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is almalinux:9.3."
+        "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. This variable defines which Linux distro (i.e. which repository) and which version (i.e. which tag) to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is almalinux:9.5."
 )
 
 set(ap_conda_release
-    "py311_23.10.0-1"
+    "py312_25.1.1-2"
     CACHE
         STRING
-        "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. When a tool is installed with Conda, the container obviously needs Conda. Therefore, this variable defines which Conda release to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is py311_23.10.0-1."
+        "When building the docker/singularity images, geniac bootstraps from docker containers available on the docker hub registry https://hub.docker.com/u/4geniac. When a tool is installed with Conda, the container obviously needs Conda. Therefore, this variable defines which Conda release to use from https://hub.docker.com/u/4geniac. For details, about the docker containers see https://github.com/bioinfo-pf-curie/4geniac. Default is py312_25.1.1-2."
 )
 
 set(ap_container_list
