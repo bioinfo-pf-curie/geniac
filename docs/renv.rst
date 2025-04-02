@@ -25,7 +25,7 @@ Create the conda recipes in the folder ``recipes/conda`` which defines which R v
         - bioconda
         - defaults
     dependencies:
-        - r-base=4.3.1=h29c4799_3
+        - r-base=4.3.1=h29c4799.5
 
 
 Add the label in geniac.config
