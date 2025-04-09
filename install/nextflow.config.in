@@ -57,6 +57,9 @@ params {
   dockerLinuxDistroConda = "${params.dockerLinuxDistro}_miniforge-${params.dockerCondaRelease}"
   dockerLinuxDistroSdk = "${params.dockerLinuxDistro}_sdk-miniforge-${params.dockerCondaRelease}"
 
+  // avoid the use of the conda defaults channel to avoid license issue
+  condaNoDefaultsChannel = true
+
   // docker registry
   dockerRegistry = '@docker_registry@'
 

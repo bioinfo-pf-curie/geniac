@@ -515,6 +515,15 @@ class GeniacLint(GeniacCommand):
                                         )
                                     else:
                                         conda_env_name.append(yml_content['name'])
+
+                                    conda_no_defaults_channel = self.default_config.getboolean(self.GENIAC_PARAMS, "condaNoDefaultsChannel")
+                                    if 'channels' in yml_content and conda_no_defaults_channel:
+                                        for channel_in_yml in yml_content['channels']:
+                                            if channel_in_yml == 'defaults':
+                                                   self.error(
+                                                       "In the file '%s', the 'defaults' channel entry must be removed to avoid license issue.",
+                                                       conda_path.relative_to(self.src_path)
+                                                   )
                                     if 'dependencies' in yml_content:
                                         for dep_in_yml in yml_content['dependencies']:
                                             if type(dep_in_yml) is str and dep_in_yml != 'pip':
@@ -527,6 +536,14 @@ class GeniacLint(GeniacCommand):
                                                        dep_in_yml,
                                                        label
                                                    )
+                                                else:
+                                                   if conda_no_defaults_channel:
+                                                       if dep_in_yml.startswith('defaults::'):
+                                                           self.error(
+                                                               "In the file '%s', the 'defaults' channel entry must be removed to avoid license issue. Use another channel than defaults in the dependency '%s'",
+                                                               conda_path.relative_to(self.src_path),
+                                                               dep_in_yml
+                                                               )
                                             else:
                                                 if type(dep_in_yml) is dict and 'pip' in dep_in_yml:
                                                     for pip_tool in dep_in_yml['pip']:
@@ -564,6 +581,16 @@ class GeniacLint(GeniacCommand):
                                    conda_recipe,
                                    label,
                                )
+                            else:
+                               conda_no_defaults_channel = self.default_config.getboolean(self.GENIAC_PARAMS, "condaNoDefaultsChannel")
+                               if conda_no_defaults_channel:
+                                   if conda_recipe.startswith('defaults::'):
+                                       self.error(
+                                           "In the geniac.config file, the label '%s' uses the 'defaults' channel which must be removed to avoid license issue. Use another channel than defaults in the dependency '%s'",
+                                           label,
+                                           conda_recipe
+                                           )
+                                 
                         if conda_check:
                             # Check if the recipes exists in the actual OS with conda search
                             try:

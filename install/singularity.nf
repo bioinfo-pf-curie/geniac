@@ -648,7 +648,11 @@ process buildCondaEnvFromCondaPackages {
   script:
     condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
     condaDepEnv = String.join("\n      - ", condaDependencies)
-    condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
+    if (params.noCondaDefaultsChannel) {
+      condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge"] + condaChansEnv)
+    } else {
+      condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
+    }
     condaPipDep = condaPipDependencies ? "\n      - pip:\n        - " + String.join("\n        - ", condaPipDependencies) : ""
     """
     cat << EOF > environment.yml
