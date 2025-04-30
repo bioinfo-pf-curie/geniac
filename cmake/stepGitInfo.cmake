@@ -83,12 +83,13 @@ if(GIT_FOUND)
             "GIT hash does not have a production tag:\n\t===> this is a development version"
             )
 
-        set(git_commit "${git_commit}/devel") # do not change this, the variable must contain "devel"
+        set(git_commit "commit:${git_commit}/devel") # do not change this, the variable must contain "devel"
     else()
         message_color(
             OK
-            "GIT hash has a 'version-x.y.x' or 'vx.y.z' tag pattern:\n\t===> this is a production version"
+            "GIT hash has a 'version-x.y.x' or 'vx.y.z' tag pattern:\n\t===> this is a production version with commit ${git_commit} ${_has_production_tag}"
             )
+        set(git_commit "tag:${_has_production_tag}-commit:${git_commit}") # do not change this, the variable must contain "devel"
     endif()
 
 else()
