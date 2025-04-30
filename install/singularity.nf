@@ -284,9 +284,9 @@ process buildSingularityRecipeFromCondaPackages {
 
     %post
         ${cplmtYum}${params.yum} clean all \\\\
-        && conda create -y -n ${key}_env \\\\
+        && conda create --no-default-packages -y -n ${key}_env \\\\
         && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba install --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
+        && micromamba install --override-channels --root-prefix \\\${CONDA_ROOT} -y ${condaChannelsOption} -n ${key}_env ${condaPackagesOption} \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment ${key}_env" > ~/.bashrc \\\\
         && conda init bash \\\\
@@ -364,7 +364,7 @@ process buildSingularityRecipeFromCondaFile {
     %post
         ${cplmtYum}${params.yum} clean all \\\\
         && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${condaFile}) \\\\
+        && micromamba env create --override-channels --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${condaFile}) \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
         && conda init bash \\\\
@@ -452,7 +452,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
         mv /root/renv.lock /opt/renv/renv.lock
         ${cplmtYum}${params.yum} clean all \\\\
         && CONDA_ROOT=\\\$(conda info --system | grep CONDA_ROOT | awk '{print \\\$2}') \\\\
-        && micromamba env create --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
+        && micromamba env create --override-channels --root-prefix \\\${CONDA_ROOT} -f /opt/\$(basename ${renvYml}) \\\\
         && mkdir -p /opt/etc \\\\
         && echo -e "#! /bin/bash\\\\n\\\\n# script to activate the conda environment \${env_name}" > ~/.bashrc \\\\
         && conda init bash \\\\
@@ -648,8 +648,8 @@ process buildCondaEnvFromCondaPackages {
   script:
     condaChansEnv = condaChannels != 'NO_CHANNEL' ? condaChannels : []
     condaDepEnv = String.join("\n      - ", condaDependencies)
-    if (params.noCondaDefaultsChannel) {
-      condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge"] + condaChansEnv)
+    if (params.condaNoDefaultsChannel) {
+      condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "nodefaults"] + condaChansEnv)
     } else {
       condaChanEnv = String.join("\n      - ", ["bioconda", "conda-forge", "defaults"] + condaChansEnv)
     }
@@ -1302,7 +1302,7 @@ workflow {
     buildCondaDepFromRecipes.out.condaChanFromFiles
       .flatMap{ it.text.split() }
       .mix(condaChannelFromSpecsCh)
-      .filter(~/!(bioconda|conda-forge|defaults)/) // only official channels are allowed
+      .filter(~/!(bioconda|conda-forge|nodefaults|defaults)/) // only official channels are allowed
       .unique()
       .toSortedList()
       .ifEmpty('NO_CHANNEL'),
