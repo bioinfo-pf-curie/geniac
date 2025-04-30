@@ -69,9 +69,8 @@ if(GIT_FOUND)
 
     message(STATUS "GIT repository name: ${git_repo_name}")
 
-
     execute_process(
-        COMMAND bash "-c" "${GIT_EXECUTABLE} describe --tags --match 'version-*' --exact-match ${git_commit}"
+        COMMAND bash "-c" "${GIT_EXECUTABLE} describe --tags --match 'version-[0-9].[0-9].[0-9]' --match 'v[0-9].[0-9].[0-9]' --exact-match ${git_commit}"
         WORKING_DIRECTORY "${pipeline_source_dir}"
         OUTPUT_VARIABLE _has_production_tag
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -88,7 +87,7 @@ if(GIT_FOUND)
     else()
         message_color(
             OK
-            "GIT hash has a 'version-*' tag:\n\t===> this is a production version"
+            "GIT hash has a 'version-x.y.x' or 'vx.y.z' tag pattern:\n\t===> this is a production version"
             )
     endif()
 
