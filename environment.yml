@@ -12,4 +12,4 @@ dependencies:
   - pip=24.2=pyh8b19718_1
   - python=3.12.5=h2ad013b_0_cpython
   - wheel=0.44.0=pyhd8ed1ab_0
-  - geniac::apptainer=1.4.0=hd5d28ae_2
+  - geniac::apptainer=1.2.2-hd5d28ae_2
