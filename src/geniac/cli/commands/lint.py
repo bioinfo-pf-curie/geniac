@@ -19,7 +19,7 @@ from geniac.cli.parsers.config import NextflowConfig, NextflowConfigContainer
 from geniac.cli.parsers.scripts import NextflowScript
 
 __author__ = "Fabrice Allain"
-__copyright__ = "Institut Curie 2020"
+__copyright__ = "Institut Curie 2025"
 
 
 class GeniacLint(GeniacCommand):
@@ -518,12 +518,21 @@ class GeniacLint(GeniacCommand):
 
                                     conda_no_defaults_channel = self.default_config.getboolean(self.GENIAC_PARAMS, "condaNoDefaultsChannel")
                                     if 'channels' in yml_content and conda_no_defaults_channel:
+                                        has_nodefaults_channel = False
                                         for channel_in_yml in yml_content['channels']:
                                             if channel_in_yml == 'defaults':
                                                    self.error(
                                                        "In the file '%s', the 'defaults' channel entry must be removed to avoid license issue.",
                                                        conda_path.relative_to(self.src_path)
                                                    )
+                                            if channel_in_yml == 'nodefaults':
+                                                has_nodefaults_channel = True
+                                    if has_nodefaults_channel is False and conda_no_defaults_channel:
+                                        self.error(
+                                            "In the file '%s', the 'nodefaults' channel is missing. It ensure that no package will be installed from the defaults channel to avoid license issue.",
+                                            conda_path.relative_to(self.src_path)
+                                        )
+
                                     if 'dependencies' in yml_content:
                                         for dep_in_yml in yml_content['dependencies']:
                                             if type(dep_in_yml) is str and dep_in_yml != 'pip':
@@ -667,6 +676,39 @@ class GeniacLint(GeniacCommand):
                                             conda_path.relative_to(self.src_path),
                                             label,
                                         )
+                                    else:
+                                        # check the defaults channel
+                                        with open(conda_path, 'r') as yml_f:
+                                            try:
+                                                yml_content = list(yaml.load_all(yml_f, Loader=SafeLoader))[0]
+                                            except yaml.YAMLError as exception:
+                                                self.error("The file '%s' is not correctly formatted. Check that the YAML syntax is correct.", conda_path.relative_to(self.src_path))
+                                                raise exception
+                                            if not 'name' in yml_content:
+                                                self.error(
+                                                    "Conda file %s related to %s tool does not have a name entry for the conda environment. For example, add 'name: someValue_env' in the file %s.",
+                                                    conda_path.relative_to(self.src_path),
+                                                    label,
+                                                    conda_path.relative_to(self.src_path)
+                                                )
+
+                                            conda_no_defaults_channel = self.default_config.getboolean(self.GENIAC_PARAMS, "condaNoDefaultsChannel")
+                                            if 'channels' in yml_content and conda_no_defaults_channel:
+                                                has_nodefaults_channel = False
+                                                for channel_in_yml in yml_content['channels']:
+                                                    if channel_in_yml == 'defaults':
+                                                           self.error(
+                                                               "In the file '%s', the 'defaults' channel entry must be removed to avoid license issue.",
+                                                               conda_path.relative_to(self.src_path)
+                                                           )
+                                                    if channel_in_yml == 'nodefaults':
+                                                        has_nodefaults_channel = True
+                                            if has_nodefaults_channel is False and conda_no_defaults_channel:
+                                                self.error(
+                                                    "In the file '%s', the 'nodefaults' channel is missing. It ensure that no package will be installed from the defaults channel to avoid license issue.",
+                                                    conda_path.relative_to(self.src_path)
+                                                )
+
 
                     if match := GeniacLint.RENV_LOCKFILE_PATH_RE.search(renvLockfile):
                         if (
@@ -1383,6 +1425,7 @@ class GeniacLint(GeniacCommand):
                         self.error("The conda recipe corresponding to the label '%s' has not been declared in the geniac.config file. It should be added in the section params.geniac.tools", label)
 
 
+
     def run(self):
         """Execute the main routine
 
@@ -1425,7 +1468,6 @@ class GeniacLint(GeniacCommand):
         # End the run with exit code
         if self.error_flag:
             raise SystemExit(1)
-
 
 def find_duplicates(listOfElem):
     """Extract duplicates in a list"""
