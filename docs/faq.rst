@@ -371,3 +371,13 @@ Geniac computes a sha256sum signature for each tool which takes into account:
 * the recipes written manually in the ``recipes/singularity`` and ``recipes/docker`` folder
 
 The list of signatures is provided both as global file (sha256sum) and individual files for each tool (eg python.sha256sum).
+
+Why does geniac lint complain about the defaults conda channel?
+===============================================================
+
+The use of the defaults conda channel requires to comply with the Anaconda license. Therefore, the defaults conda channel is now disabled in geniac which uses miniforge instead of miniconda geniac `version-3.7.0`.
+
+If you are allowed to use the defaults channel, you will have to apply the following settings:
+
+  * edit the `src/geniac/cli/data/conf/geniac.ini` and replace `condaNoDefaultsChannel   =   true` by `condaNoDefaultsChannel   =   false`
+  * assuming that the `geniac conda env` is installed in `/path/to/miniforge/envs/geniac`, then edit the file `/lib/python3.12/site-packages/geniac/install/nextflow.config.in`, to replace `condaNoDefaultsChannel = true` by `condaNoDefaultsChannel = false`

@@ -96,7 +96,7 @@ In order to tack from which repository and version the containers were built, so
 
    %labels
        gitUrl ssh://git@gitlab.curie.fr:2222/pipeline_templates/data-analysis_template.git
-       gitCommit 80f6511b453a365be39e3bede6d79f0ce7253d16
+       gitCommit 80f6511b453a365be39.5bede6d79f0ce7253d16
    
 
 Documentation

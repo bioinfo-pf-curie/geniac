@@ -1,4 +1,4 @@
-FROM 4geniac/almalinux:8.5_conda-py39_4.11.0
+FROM 4geniac/almalinux:9.5_conda-py312_25.1.1-2
 
 ENV R_LIBS_USER "-"
 ENV R_PROFILE_USER "-"
