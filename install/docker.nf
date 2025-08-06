@@ -183,13 +183,9 @@ process buildDefaultDockerRecipe {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
     
     # compute hash digest of the recipe using:
     #   - only the recipe
@@ -253,13 +249,12 @@ process buildDockerRecipeFromCondaPackages {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
@@ -324,13 +319,12 @@ process buildDockerRecipeFromCondaFile {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
@@ -402,13 +396,12 @@ process buildDockerRecipeFromCondaFile4Renv {
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     ENV BASH_ENV /opt/etc/bashrc
     ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig
     ENV PKG_LIBS -liconv
@@ -512,12 +505,11 @@ process buildDockerRecipeFromSourceCode {
 
     RUN ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH /usr/local/bin/${key}:${cplmtPath}\\\$PATH
     ${cplmtCmdEnv}
 

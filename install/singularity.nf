@@ -198,13 +198,9 @@ process buildDefaultSingularityRecipe {
         gitCommit ${params.gitCommit}
 
     %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
     EOF
+
+    cat ${projectDir}/assets/def.env >> ${key}.def
     
     # compute hash digest of the recipe using:
     #   - only the recipe
@@ -272,13 +268,12 @@ process buildSingularityRecipeFromCondaPackages {
         gitCommit ${params.gitCommit}
 
     %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
+    EOF
+
+    cat ${projectDir}/assets/def.env >> ${key}.def
+
+    cat << EOF >> ${key}.def
         export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
 
@@ -347,13 +342,12 @@ process buildSingularityRecipeFromCondaFile {
         gitCommit ${params.gitCommit}
 
     %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
+    EOF
+
+    cat ${projectDir}/assets/def.env >> ${key}.def
+
+    cat << EOF >> ${key}.def
         export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
 
@@ -427,13 +421,12 @@ process buildSingularityRecipeFromCondaFile4Renv {
         gitCommit ${params.gitCommit}
 
     %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
+    EOF
+
+    cat ${projectDir}/assets/def.env >> ${key}.def
+
+    cat << EOF >> ${key}.def
         export PATH=${cplmtPath}\\\$PATH
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
 
@@ -545,12 +538,11 @@ process buildSingularityRecipeFromSourceCode {
         ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
     %environment
-        export R_LIBS_USER="-"
-        export R_PROFILE_USER="-"
-        export R_ENVIRON_USER="-"
-        export PYTHONNOUSERSITE=1
-        export LC_ALL=en_US.utf-8
-        export LANG=en_US.utf-8
+    EOF
+
+    cat ${projectDir}/assets/def.env >> ${key}.def
+
+    cat << EOF >> ${key}.def
         export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
         ${cplmtCmdEnv}
 
@@ -873,7 +865,9 @@ process mergeCondaConfig {
     """
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n  enabled = 'true'\n}\n" >> conda.config
     echo "process {"  >> conda.config
-    echo "\n  beforeScript = \\\"export R_LIBS_USER=\\\\\\\"-\\\\\\\"; export R_PROFILE_USER=\\\\\\\"-\\\\\\\"; export R_ENVIRON_USER=\\\\\\\"-\\\\\\\"; export PYTHONNOUSERSITE=1; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> conda.config
+
+    beforescript_content="\$(cat ${projectDir}/assets/def.env | sed -e 's/    //g' -e 's/\"/\\/\"/g' | sed -z 's/\\n/; /g')"
+    echo "\n  beforeScript = \\\"\$beforescript_content; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config

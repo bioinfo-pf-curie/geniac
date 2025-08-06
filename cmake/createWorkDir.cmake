@@ -37,6 +37,7 @@ configure_file(
 file(COPY ${geniac_source_dir}/install/singularity.nf DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${geniac_source_dir}/install/docker.nf DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${pipeline_source_dir}/conf/ DESTINATION ${geniac_binary_dir}/workDir/conf)
+file(COPY ${geniac_source_dir}/assets/ DESTINATION ${geniac_binary_dir}/workDir/assets)
 
 if(EXISTS ${pipeline_source_dir}/modules/fromSource/)
     file(COPY ${pipeline_source_dir}/modules/fromSource/ DESTINATION ${geniac_binary_dir}/workDir/modules/fromSource)
