@@ -1,3 +1,7 @@
+
+NEW FEATURES
+  - Ad-hoc variable to sensure reproducibility set in both assets/Dockerfile.env and assets/def.env
+
 version-3.7.0
 05/23/2025
 
