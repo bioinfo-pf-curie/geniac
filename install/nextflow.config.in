@@ -35,6 +35,7 @@ params {
   dockerCmd = 'docker'
   singularityBuildOptions = '@singularity_build_options@'
   containerList = null
+  pushDockerImages = false
 
   // option for the cluster executor
   clusterExecutor = 'pbs'

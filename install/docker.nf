@@ -538,12 +538,7 @@ process buildImages {
     params.buildDockerImages
 
   input:
-    tuple val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) // from dockerAllRecipe4buildImagesCh
-    //  .join(fileDependencies, remainder: true)
-    //  .join(condaRecipes, remainder: true)
-    //  .join(sourceCodeCh4, remainder: true)
-    //  .filter{ it[1] }
-
+    tuple val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir), val(sha256sum)
 
   script:
     String contextDir
@@ -561,17 +556,66 @@ process buildImages {
     } else {
       contextDir = "."
     }
+    if (params.dockerCmd == "podman") {
+      println "We use podman"
+      buildOptions = "--format docker"
+    }
     """
-    ${params.dockerCmd} build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
+    ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
     """
 
   stub:
+    if (params.dockerCmd == "podman") {
+      println "We use podman"
+      buildOptions = "--format docker"
+    }
     """
     echo "build docker image for the tool ${key}"
+    echo ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${key.toLowerCase()}:${sha256sum} contextDir
     """
   
 }
 
+////////////////////////////
+// STEP - PUSH CONTAINERS //
+////////////////////////////
+
+// This process pushes the containers for all the tools on a registry
+// It expects that:
+// 1. 
+//   you define the secret nextflow variable with the CI_REGISTRY_PASSWORD
+//   (this environment variable must be defined in youir shell). You must run:
+//   nextflow secrets set CI_REGISTRY_PASSWORD $CI_REGISTRY_PASSWORD
+// 2.
+//   The following variables must exist in your environment:
+//     - CI_REGISTRY_USER
+//     - CI_REGISTRY
+process pushImages {
+  maxForks 1
+  tag "${key}"
+  secret 'CI_REGISTRY_PASSWORD'
+
+  when:
+    params.pushDockerImages
+
+  input:
+    tuple val(key), val(sha256sum)
+
+  script:
+    """
+		${params.dockerCmd} login -u \$CI_REGISTRY_USER -p \$CI_REGISTRY_PASSWORD \$CI_REGISTRY
+    ${params.dockerCmd} push ${key.toLowerCase()}:${sha256sum}
+    """
+
+  stub:
+    """
+    echo "push docker image for the tool ${key}"
+		#echo ${params.dockerCmd} login -u \$CI_REGISTRY_USER -p \$CI_REGISTRY_PASSWORD \$CI_REGISTRY
+		echo ${params.dockerCmd} login -u \$CI_REGISTRY_PASSWORD
+    echo ${params.dockerCmd} push ${key.toLowerCase()}:${sha256sum}
+    """
+  
+}
 
 /******************
  * SHA256SUM file *
@@ -679,6 +723,10 @@ workflow {
       )
   )
 
+  // sha256sumCh contains
+  // tuple val(key), file(sha256sum)
+  // Example:
+  // [alpine, /path/to/alpine.sha256sum]
   buildDockerRecipeFromCondaFile4Renv.out.sha256sum
     .concat(buildDockerRecipeFromSourceCode.out.sha256sum)
     .concat(buildDockerRecipeFromCondaPackages.out.sha256sum)
@@ -687,18 +735,36 @@ workflow {
     .concat(sha256sumManualRecipes.out.sha256sum)
     .set{ sha256sumCh }
 
-  // Select the list of tools if containerList has been provided
+  // Select the list of tools if containerList has been provided.
+  // containerList is a file which contains a subset of labels
+  // for which to build the container (useful when we don't want
+  // to build all the containers of the pipeline
   if (params.containerList != null) {
     sha256sumCh
       .join(containerListCh)
       .set{ sha256sumCh }
   }
-
+ 
+  // Create a single sha256sum file with all the key and sha256sum value
   sha256sumFile(
     sha256sumCh
       .map{ it[1] }
       .collect()
   )
+
+  // sha256sumValCh contains:
+  // tuple val(key), val(sha256sumVal)
+  // Example:
+  // [alpine, 4ddadc38f843082008fb00a3ba36232cbf5f9c71457a5afe63fabbaac7862a86]
+	sha256sumCh
+    .map{
+      sha256sumFile = it[1]
+	 	  sha256 = sha256sumFile.text.split(' ')[0]
+      tuple(it[0], sha256)
+    }
+    .set{ sha256sumValCh}
+  sha256sumValCh.view()
+  
 
   /////////////////////////////
   // STEP - BUILD CONTAINERS //
@@ -711,9 +777,6 @@ workflow {
     .concat(buildDockerRecipeFromCondaFile.out.dockerRecipes)
     .concat(buildDefaultDockerRecipe.out.dockerRecipes)
     .concat(dockerRecipesCh)
-    // je pense que les deux lignes de dessous ne servent à rien
-    //.groupTuple()
-    //.map{ key, tab -> [key, tab[0]] }
     .set { dockerAllRecipes }
 
   // Select the list of tools if containerList has been provided
@@ -730,7 +793,11 @@ workflow {
       .join(condaRecipesCh, remainder: true)
       .join(sourceCodeCh, remainder: true)
       .filter{ it[1] }
+			.join(sha256sumValCh)
   )
+
+  // Push the docker containers on the registry
+  pushImages(sha256sumValCh)
 
 }
 
