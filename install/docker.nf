@@ -561,7 +561,7 @@ process buildImages {
       buildOptions = "--format docker"
     }
     """
-    ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
+    ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${key.toLowerCase()}:${sha256sum} ${contextDir}
     """
 
   stub:
