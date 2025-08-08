@@ -83,13 +83,28 @@ if(ap_install_podman_images)
 
 endif()
 
+if(ap_push_images)
+	  if(NOT ap_install_docker_images AND NOT ap_install_podman_images)
+        message_color(FATAL_ERROR
+					"ap_push_images is set to ON but both ap_install_docker_images and ap_install_podman_images are set to OFF. You must set to ON either ap_install_docker_images or ap_install_podman_images usch that you can first build the images and push them on a registry.")
+	  endif()
+
+		if(ap_docker_push_registry STREQUAL "")
+        message_color(FATAL_ERROR
+					"ap_push_images is set to ON but no registry has been provided. You must set ap_docker_push_registry with the name of your registry.")
+		endif()
+    # The option below will be pass to nextflow
+		set(push_images_nfx "true")
+else()
+		set(push_images_nfx "false")
+endif()
 
 if(NOT "${ap_singularity_image_path}" STREQUAL "")
 
     set(ap_use_singularity_image_link ON)
     if(NOT IS_ABSOLUTE ${ap_singularity_image_path})
         message_color(FATAL_ERROR
-                      "ap_singularity_image_path must be an absolute path.\n\tThe current value is invalid: \n\t'${ap_singularity_image_path}'. \n\tProvide a valid path with -Dap_singularity_image_path option")
+                      "ap_singularity_image_path must be an absolute path.\n\tThe current value is invalid: \n\t${ap_singularity_image_path}. \n\tProvide a valid path with -Dap_singularity_image_path option")
     endif()
 
     if(IS_DIRECTORY ${ap_singularity_image_path})
@@ -129,7 +144,7 @@ if(NOT "${ap_annotation_path}" STREQUAL "")
     if(NOT IS_ABSOLUTE ${ap_annotation_path})
         message_color(
             FATAL_ERROR
-            "ap_annotation_path must be an absolute path. \n\tThe current value is invalid: \n\t'${ap_annotation_path}'. \n\tProvide a valid path with -Dap_annotation_path option"
+            "ap_annotation_path must be an absolute path. \n\tThe current value is invalid: \n\t${ap_annotation_path}. \n\tProvide a valid path with -Dap_annotation_path option"
         )
     endif()
 
@@ -154,35 +169,42 @@ endif()
 
 if(NOT "${ap_docker_registry}" STREQUAL "")
   if(NOT "${ap_docker_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_registry '${ap_docker_registry}' must end with '/'")
+    message_color(ERROR "ap_docker_registry ${ap_docker_registry} must end with '/'")
+  endif()
+endif()
+
+if(NOT "${ap_docker_push_registry}" STREQUAL "")
+  if(NOT "${ap_docker_push_registry}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_push_registry ${ap_docker_push registry} must end with '/'")
   endif()
 endif()
   
 if(NOT "${ap_linux_distro}" MATCHES ".*:.*")
-  message_color(ERROR "ap_linux_distro '${ap_linux_distro}' must be formatted like 'distro:version' (e.g. almalinux:9.5).")
+  message_color(ERROR "ap_linux_distro ${ap_linux_distro} must be formatted like 'distro:version' (e.g. almalinux:9.5).")
 endif()
 
 if(NOT "${ap_container_list}" STREQUAL "")
   if(NOT IS_ABSOLUTE ${ap_container_list})
     message_color(
         FATAL_ERROR
-        "ap_container_list must be an absolute path. \n\tThe current value is invalid: \n\t'${ap_container_list}'. \n\tProvide a valid path with -Dap_container_list"
+        "ap_container_list must be an absolute path. \n\tThe current value is invalid: \n\t${ap_container_list}. \n\tProvide a valid path with -Dap_container_list"
     )
   else()
     if(IS_DIRECTORY ${ap_container_list})
       message_color(
           FATAL_ERROR
-          "ap_container_list must be a file. \n\tThe current value is invalid: \n\t'${ap_container_list}'."
+          "ap_container_list must be a file. \n\tThe current value is invalid: \n\t${ap_container_list}."
       )
     else()
       if(NOT EXISTS ${ap_container_list})
         message_color(
             FATAL_ERROR
-            "ap_container_list does no exist. \n\tThe current value is invalid: \n\t'${ap_container_list}'. \n\tProvide a valid path with -Dap_container_list"
+            "ap_container_list does no exist. \n\tThe current value is invalid: \n\t${ap_container_list}. \n\tProvide a valid path with -Dap_container_list"
         )
       endif()
     endif()
   endif()
-  # A list (sep is semi-colon is needed here to be firther expanded in the add_custom_command)
+  # A list (sep is semi-colon is needed here to be further expanded in the add_custom_command)
+  # The option below will be pass to nextflow
   set(ap_container_list "--containerList;${ap_container_list}")
 endif()

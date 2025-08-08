@@ -532,13 +532,15 @@ process buildDockerRecipeFromSourceCode {
 process buildImages {
   maxForks 1
   tag "${key}"
-  // publishDir "${projectDir}/${params.publishDirDockerImages}", overwrite: true, mode: 'copy'
 
   when:
     params.buildDockerImages
 
   input:
     tuple val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir), val(sha256sum)
+
+  output:
+    tuple val(key), file("${key}.done"), emit: done
 
   script:
     String contextDir
@@ -557,21 +559,25 @@ process buildImages {
       contextDir = "."
     }
     if (params.dockerCmd == "podman") {
-      println "We use podman"
       buildOptions = "--format docker"
+    } else {
+      buildOptions = ""
     }
     """
-    ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${key.toLowerCase()}:${sha256sum} ${contextDir}
+    ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} ${contextDir}
+    touch ${key}.done
     """
 
   stub:
     if (params.dockerCmd == "podman") {
-      println "We use podman"
       buildOptions = "--format docker"
+    } else {
+      buildOptions = ""
     }
     """
     echo "build docker image for the tool ${key}"
-    echo ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${key.toLowerCase()}:${sha256sum} contextDir
+    echo ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} contextDir
+    touch ${key}.done
     """
   
 }
@@ -599,12 +605,12 @@ process pushImages {
     params.pushDockerImages
 
   input:
-    tuple val(key), val(sha256sum)
+    tuple val(key), val(sha256sum), file(done)
 
   script:
     """
 		${params.dockerCmd} login -u \$CI_REGISTRY_USER -p \$CI_REGISTRY_PASSWORD \$CI_REGISTRY
-    ${params.dockerCmd} push ${key.toLowerCase()}:${sha256sum}
+    ${params.dockerCmd} push ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum}
     """
 
   stub:
@@ -763,7 +769,6 @@ workflow {
       tuple(it[0], sha256)
     }
     .set{ sha256sumValCh}
-  sha256sumValCh.view()
   
 
   /////////////////////////////
@@ -797,7 +802,10 @@ workflow {
   )
 
   // Push the docker containers on the registry
-  pushImages(sha256sumValCh)
+  pushImages(
+    sha256sumValCh
+      .join(buildImages.out.done)
+  )
 
 }
 

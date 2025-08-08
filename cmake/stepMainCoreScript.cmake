@@ -56,6 +56,7 @@ add_custom_command(
             -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
             -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
             -Ddocker_registry=${ap_docker_registry}
+            -Ddocker_push_registry=${ap_docker_push_registry}
             -Dlinux_distro=${ap_linux_distro}
             -Dconda_release=${ap_conda_release}
             -Dsingularity_build_options=${ap_singularity_build_options}
@@ -165,8 +166,8 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/singularityImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
     COMMAND "${cmd_build_singularity_images}"
-	COMMAND_EXPAND_LISTS
-	VERBATIM
+	  COMMAND_EXPAND_LISTS
+	  VERBATIM
     COMMENT
         "Running command: ${cmd_build_singularity_images_msg}"
     COMMAND ${CMAKE_COMMAND} -E touch
@@ -175,16 +176,16 @@ add_custom_command(
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # generate docker recipes and images
-set(cmd_build_docker_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;singularity.nf;-resume;--buildDockerImages;true")
+set(cmd_build_docker_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;docker.nf;-resume;--buildDockerImages;true")
 list(APPEND cmd_build_docker_images "${ap_container_list}")
-set(cmd_build_docker_images "${cmd_build_docker_images};-with-report;--gitCommit;${git_commit};--gitUrl;${git_url}")
+set(cmd_build_docker_images "${cmd_build_docker_images};-with-report;--pushDockerImages;${push_images_nfx};--dockerPushRegistry;${ap_docker_push_registry};--gitCommit;${git_commit};--gitUrl;${git_url}")
 string(REPLACE ";" " " cmd_build_docker_images_msg "${cmd_build_docker_images}")
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/dockerImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build docker recipes and images"
     COMMAND "${cmd_build_docker_images}"
-	COMMAND_EXPAND_LISTS
-	VERBATIM
+  	COMMAND_EXPAND_LISTS
+	  VERBATIM
     COMMENT
         "Running command: ${cmd_build_docker_images_msg}"
     COMMAND ${CMAKE_COMMAND} -E touch
@@ -193,15 +194,18 @@ add_custom_command(
     DEPENDS ${CMAKE_BINARY_DIR}/workDir.done)
 
 # generate podman recipes and images
+set(cmd_build_podman_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;docker.nf;-resume;--buildDockerImages;true")
+list(APPEND cmd_build_podman_images "${ap_container_list}")
+set(cmd_build_podman_images "${cmd_build_podman_images};-with-report;--dockerCmd;podman;--pushDockerImages;${push_images_nfx};--dockerPushRegistry;${ap_docker_push_registry};--gitCommit;${git_commit};--gitUrl;${git_url}")
+string(REPLACE ";" " " cmd_build_podman_images_msg "${cmd_build_podman_images}")
 add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/podmanImages.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build podman recipes and images"
-    COMMAND
-        NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url} --dockerCmd podman
+    COMMAND "${cmd_build_podman_images}"
+  	COMMAND_EXPAND_LISTS
+	  VERBATIM
     COMMENT
-        "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run docker.nf -resume --buildDockerImages true
-        -with-report --gitCommit ${git_commit} --gitUrl ${git_url}  --dockerCmd podman"
+        "Running command: ${cmd_build_podman_images_msg}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/podmanImages.done"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/workDir"
@@ -216,7 +220,6 @@ add_custom_target(
 
 # allows the build of the singularity recipes and images with "make
 # build_singularity_images"
-
 add_custom_target(
     build_singularity_images
     COMMAND ${CMAKE_COMMAND} -E echo "Build singularity recipes and images"
