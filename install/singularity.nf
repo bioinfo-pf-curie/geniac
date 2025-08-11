@@ -46,11 +46,11 @@ def addYumAndGitAndCmdConfs(List input) {
   return result
 }
 
-String buildCplmtGit(def gitEntries) {
+String buildCplmtGit(def gitEntries, String indentString) {
   String cplmtGit = ''
   for (String[] tab : gitEntries) {
     cplmtGit += """ \\\\
-        && mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
+    ${indentString}&& mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
   }
 
   return cplmtGit
@@ -105,6 +105,11 @@ Channel
 
 (condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
 
+// Channel for Renv environment
+condaExistingEnvsCh
+  .filter {  it[0] =~/^renv.*/ }
+  .set { condaFiles4Renv }
+
 condaPackagesCh
   .multiMap { pTool -> 
     condaChannelFromSpecs: pTool[1][0]
@@ -116,11 +121,6 @@ condaPackagesCh
 // about conda env defined in the geniac.config file
 condaChannelFromSpecsCh = condaPackages.condaChannelFromSpecs
 condaDepFromSpecsCh = condaPackages.condaDepFromSpecs
-
-// Channel for Renv environment
-condaExistingEnvsCh
-  .filter {  it[0] =~/^renv.*/ }
-  .set { condaFiles4Renv }
 
 // SINGULARITY RECIPES
 Channel
@@ -228,7 +228,7 @@ process buildSingularityRecipeFromCondaPackages {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '    ')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -313,7 +313,7 @@ process buildSingularityRecipeFromCondaFile {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '    ')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -392,7 +392,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
   script:
     def renvYml = params.geniac.tools.get(key).get('yml')
     def bioc = params.geniac.tools.get(key).get('bioc')
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '    ')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -485,7 +485,7 @@ process buildSingularityRecipeFromSourceCode {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '    ')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"

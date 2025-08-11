@@ -46,11 +46,11 @@ def addYumAndGitAndCmdConfs(List input) {
   return result
 }
 
-String buildCplmtGit(def gitEntries) {
+String buildCplmtGit(def gitEntries, String indentString) {
   String cplmtGit = ''
   for (String[] tab : gitEntries) {
     cplmtGit += """ \\\\
-    && mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
+    ${indentString}&& mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
   }
 
   return cplmtGit
@@ -213,7 +213,7 @@ process buildDockerRecipeFromCondaPackages {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -293,7 +293,7 @@ process buildDockerRecipeFromCondaFile {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -370,7 +370,7 @@ process buildDockerRecipeFromCondaFile4Renv {
   script:
     def renvYml = params.geniac.tools.get(key).get('yml')
     def bioc = params.geniac.tools.get(key).get('bioc')
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -462,7 +462,7 @@ process buildDockerRecipeFromSourceCode {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
