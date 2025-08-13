@@ -127,14 +127,14 @@ if(params.containerList != null) {
 */
 
 // Processes
-include { buildImages as buildSingularityImages } from './nf-modules/process/singularityImages'
-include { buildImages as buildDockerImages } from './nf-modules/process/dockerImages'
-include { pushDockerImages} from './nf-modules/process/pushDockerImages'
+include { buildImages as buildSingularityImages } from './nf-modules/local/process/singularityImages'
+include { buildImages as buildDockerImages } from './nf-modules/local/process/dockerImages'
+include { pushDockerImages} from './nf-modules/local/process/pushDockerImages'
 
 // Subworkflows
-include { configFiles } from './nf-modules/subworkflow/configFilesWkfl'
-include { dockerRecipes } from './nf-modules/subworkflow/dockerRecipesWkfl'
-include { singularityRecipes } from './nf-modules/subworkflow/singularityRecipesWkfl'
+include { configFiles } from './nf-modules/local/subworkflow/configFilesWkfl'
+include { dockerRecipes } from './nf-modules/local/subworkflow/dockerRecipesWkfl'
+include { singularityRecipes } from './nf-modules/local/subworkflow/singularityRecipesWkfl'
 
 workflow {
 
