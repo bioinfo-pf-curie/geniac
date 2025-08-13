@@ -208,3 +208,9 @@ if(NOT "${ap_container_list}" STREQUAL "")
   # The option below will be pass to nextflow
   set(ap_container_list "--containerList;${ap_container_list}")
 endif()
+
+if(test_stub_run)
+	set(test_stub_run "-stub-run")
+else()
+	set(test_stub_run "")
+endif()

@@ -130,6 +130,10 @@ set(ap_singularity_build_options
         "Allow to pass specific options when building singularity images. (e.g. --fakeroot). Default is empty."
 )
 
+set(test_stub_run
+    "OFF"
+		CACHE BOOL "Add the option -stub-run when running nextflow. This is useful when developing geniac. Default is OFF.")
+
 # ##############################################################################
 # Set variables
 # ##############################################################################
