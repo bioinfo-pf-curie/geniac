@@ -124,4 +124,27 @@ Build the documentation locally:
     cd docs
     python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
  
-   
+Tests
+====
+
+Perform the following tests when developing a new geniac version:
+
+::
+
+    conda activate geniac
+    pip uninstall -y geniac
+    pip install -U ~/git/gitlab/bioinfo-guidelines/geniac/
+    geniac init -w ~/tmp/geniac-test ~/git/gitlab/bioinfo-guidelines/geniac-demo/
+    cd ~/tmp/geniac-test
+    geniac lint
+    geniac recipes -v
+    geniac clean
+    geniac configs -v
+    geniac install . install -v
+    geniac install . install -v --ap_install_singularity_images --test_stub_run
+    geniac install . install -v --ap_install_docker_images --test_stub_run
+    geniac install . install -v --ap_install_docker_images --test_stub_run --ap_docker_push_registry='myregistry.org/' --ap_push_images
+    geniac install . install -v --ap_install_podman_images --test_stub_run
+    geniac install . install -v --ap_install_podman_images --test_stub_run --ap_docker_push_registry='myregistry.org/' --ap_push_images
+
+
