@@ -162,7 +162,8 @@ workflow {
       condaPackagesCh,
       dockerRecipesCh,
       fileDependenciesCh,
-      sourceCodeCh
+      sourceCodeCh,
+      containerListCh
     )
   }
 

@@ -463,6 +463,7 @@ workflow dockerRecipes {
   dockerRecipesCh
   fileDependenciesCh
   sourceCodeCh
+  containerListCh
 
   main:
 
