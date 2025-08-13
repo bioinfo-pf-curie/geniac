@@ -1,6 +1,7 @@
 
 NEW FEATURES
-  - Ad-hoc variable to sensure reproducibility set in both assets/Dockerfile.env and assets/def.env
+  - Ad-hoc variable to ensure reproducibility set in both assets/Dockerfile.env and assets/def.env
+  - Add ap_push_images and ap_docker_push_registry options to push docker/podman container on a registry
 
 version-3.7.0
 05/23/2025
