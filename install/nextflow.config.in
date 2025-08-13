@@ -27,11 +27,14 @@ params {
   // options to generate the conf/*.config files
   buildConfigFiles = false
 
+  // options to generate the containers recipes
+  buildSingularityRecipes = false
+  buildDockerRecipes = false
+
   // option to build the container images
-  // leave all the default options to false
+  // set all the default options to false
   buildSingularityImages = false
   buildDockerImages = false
-  buildPodmanImages = false
   dockerCmd = 'docker'
   singularityBuildOptions = '@singularity_build_options@'
   containerList = null
@@ -50,7 +53,6 @@ params {
   // git information
   gitUrl = 'unknown'
   gitCommit = 'unknown'
-
 
   // docker containers from 4geniac docker hub repository
   dockerCondaRelease = '@conda_release@'
