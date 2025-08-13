@@ -123,9 +123,9 @@ add_custom_command(
     OUTPUT ${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done
     COMMAND ${CMAKE_COMMAND} -E echo "Build Dockerfiles"
     COMMAND
-        NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run main.nf -resume --buildDockerfiles true
+		NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run main.nf -resume --buildDockerRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}
-    COMMENT "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run main.nf -resume --buildDockerfiles true --
+				COMMENT "Running command: NXF_DISABLE_CHECK_LATEST=true ${NEXTFLOW_EXECUTABLE} run main.nf -resume --buildDockerRecipes true
         -with-report --gitCommit ${git_commit} --gitUrl ${git_url}"
     COMMAND ${CMAKE_COMMAND} -E touch
             "${CMAKE_BINARY_DIR}/workDir/Dockerfiles.done"
