@@ -403,12 +403,6 @@ process buildSingularityRecipeFromSourceCode {
         gitUrl ${params.gitUrl}
         gitCommit ${params.gitCommit}
 
-    %files from devel
-        /usr/local/bin/${key}/ /usr/local/bin/
-
-    %post
-        ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
-
     %environment
     EOF
 
@@ -417,6 +411,12 @@ process buildSingularityRecipeFromSourceCode {
     cat << EOF >> ${key}.def
         export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
         ${cplmtCmdEnv}
+
+    %files from devel
+        /usr/local/bin/${key}/ /usr/local/bin/
+
+    %post
+        ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
     EOF
 
