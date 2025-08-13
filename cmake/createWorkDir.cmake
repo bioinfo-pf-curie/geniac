@@ -34,8 +34,6 @@ configure_file(
 	@ONLY
 )
 
-file(COPY ${geniac_source_dir}/install/singularity.nf DESTINATION ${geniac_binary_dir}/workDir)
-file(COPY ${geniac_source_dir}/install/docker.nf DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${geniac_source_dir}/install/main.nf DESTINATION ${geniac_binary_dir}/workDir)
 file(COPY ${geniac_source_dir}/install/lib/ DESTINATION ${geniac_binary_dir}/workDir/lib)
 file(COPY ${geniac_source_dir}/install/nf-modules/ DESTINATION ${geniac_binary_dir}/workDir/nf-modules)
