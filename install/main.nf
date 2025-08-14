@@ -152,6 +152,7 @@ workflow {
       singularityRecipesCh,
       fileDependenciesCh,
       sourceCodeCh
+      containerListCh
     )
   }
   

@@ -484,6 +484,7 @@ workflow singularityRecipes {
   singularityRecipesCh
   fileDependenciesCh
   sourceCodeCh
+  containerListCh
 
   main:
 
