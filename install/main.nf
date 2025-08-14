@@ -118,6 +118,11 @@ if(params.containerList != null) {
     .splitCsv()
     .set{ containerListCh }
 
+} else {
+
+  Channel
+    .empty()
+    .set { containerListCh }
 }
 
 /*
@@ -151,7 +156,7 @@ workflow {
       condaPackagesCh,
       singularityRecipesCh,
       fileDependenciesCh,
-      sourceCodeCh
+      sourceCodeCh,
       containerListCh
     )
   }

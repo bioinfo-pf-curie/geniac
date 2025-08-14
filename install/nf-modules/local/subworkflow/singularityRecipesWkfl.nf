@@ -61,6 +61,8 @@ process buildDefaultSingularityRecipe {
     key = 'onlyLinux'
     """
     # write recipe
+    echo "Test build from registry"
+    echo "The variable is ${params.buildSingularityImagesFromRegistry}"
     cat << EOF > ${key}.def
     Bootstrap: docker
     From: ${params.dockerRegistry}${params.dockerLinuxDistro}
