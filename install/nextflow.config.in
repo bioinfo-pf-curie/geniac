@@ -34,6 +34,7 @@ params {
   // option to build the container images
   // set all the default options to false
   buildSingularityImages = false
+  buildSingularityImagesFromRegistry = false
   buildDockerImages = false
   dockerCmd = 'docker'
   singularityBuildOptions = '@singularity_build_options@'
@@ -69,6 +70,7 @@ params {
 
   // docker registry used to push image
   dockerPushRegistry = '@docker_push_registry@'
+  registryUser = '@docker_push_registry_user@'
 
   // package manager for the Linux Distro
   yum = 'dnf'

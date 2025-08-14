@@ -42,7 +42,7 @@ process pushDockerImages {
 
   script:
     """
-		${params.dockerCmd} login -u \$CI_REGISTRY_USER -p \$CI_REGISTRY_PASSWORD \$CI_REGISTRY
+		${params.dockerCmd} login -u ${params.registryUser} -p \$CI_REGISTRY_PASSWORD ${params.dockerPushRegistry}
     ${params.dockerCmd} push ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum}
     """
 

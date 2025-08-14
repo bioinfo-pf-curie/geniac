@@ -55,6 +55,7 @@ process buildDefaultSingularityRecipe {
 
   output:
     tuple val(key), path("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}-4fromRegistry.def"), emit: singularityRecipes4fromRegistry
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -75,6 +76,7 @@ process buildDefaultSingularityRecipe {
     EOF
 
     cat ${projectDir}/assets/def.env >> ${key}.def
+    cp ${key}.def ${key}-4fromRegistry.def
     
     # compute hash digest of the recipe using:
     #   - only the recipe
@@ -99,6 +101,7 @@ process buildSingularityRecipeFromCondaPackages {
 
   output:
     tuple val(key), file("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}-4fromRegistry.def"), emit: singularityRecipes4fromRegistry
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -150,7 +153,11 @@ process buildSingularityRecipeFromCondaPackages {
         export PATH=${cplmtPath}\\\$PATH
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
+    EOF
 
+    cp ${key}.def ${key}-4fromRegistry.def
+
+    cat << EOF >> ${key}.def
     %post
         ${cplmtYum}${params.yum} clean all \\\\
         && conda create --no-default-packages -y -n ${key}_env \\\\
@@ -184,6 +191,7 @@ process buildSingularityRecipeFromCondaFile {
 
   output:
     tuple val(key), path("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}-4fromRegistry.def"), emit: singularityRecipes4fromRegistry
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -224,8 +232,12 @@ process buildSingularityRecipeFromCondaFile {
         export PATH=${cplmtPath}\\\$PATH
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
+    EOF
+
+    cp ${key}.def ${key}-4fromRegistry.def
 
     # real path from projectDir: ${condaFile}
+    cat << EOF >> ${key}.def
     %files
         \$(basename ${condaFile}) /opt/\$(basename ${condaFile})
 
@@ -261,6 +273,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
 
   output:
     tuple val(key), path("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}-4fromRegistry.def"), emit: singularityRecipes4fromRegistry
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -303,7 +316,11 @@ process buildSingularityRecipeFromCondaFile4Renv {
         export PATH=${cplmtPath}\\\$PATH
         source /opt/etc/bashrc
         ${cplmtCmdEnv}
+    EOF
 
+    cp ${key}.def ${key}-4fromRegistry.def
+
+    cat << EOF >> ${key}.def
     # real path from projectDir: ${renvYml}
     %files
         \$(basename ${renvYml}) /root/\$(basename ${renvYml})
@@ -356,6 +373,7 @@ process buildSingularityRecipeFromSourceCode {
 
   output:
     tuple  val(key), path("${key}.def"), emit: singularityRecipes
+    tuple val(key), path("${key}-4fromRegistry.def"), emit: singularityRecipes4fromRegistry
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
@@ -381,7 +399,7 @@ process buildSingularityRecipeFromSourceCode {
     image_name=\$(grep -q conda ${cmdPost} && echo "${params.dockerLinuxDistroConda}" || echo "${params.dockerLinuxDistro}")
 
     # write the recipe
-    cat << EOF > ${key}.def
+    cat << EOF > ${key}-stageDevel.def
     Bootstrap: docker
     From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
     Stage: devel
@@ -396,7 +414,9 @@ process buildSingularityRecipeFromSourceCode {
         && mkdir build && cd build || exit \\\\
         && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
         && make && make install ${cplmtCmdPost}
+    EOF
 
+    cat << EOF >> ${key}-stageFinal.def
     Bootstrap: docker
     From: ${params.dockerRegistry}\${image_name}
     Stage: final
@@ -408,12 +428,16 @@ process buildSingularityRecipeFromSourceCode {
     %environment
     EOF
 
-    cat ${projectDir}/assets/def.env >> ${key}.def
+    cat ${projectDir}/assets/def.env >> ${key}-stageFinal.def
 
-    cat << EOF >> ${key}.def
+    cat << EOF >> ${key}-stageFinal.def
         export PATH=/usr/local/bin/${key}:${cplmtPath}\\\$PATH
         ${cplmtCmdEnv}
+    EOF
 
+    cp ${key}-stageFinal.def ${key}-4fromRegistry.def
+
+    cat << EOF >> ${key}-stageFinal.def
     %files from devel
         /usr/local/bin/${key}/ /usr/local/bin/
 
@@ -421,6 +445,8 @@ process buildSingularityRecipeFromSourceCode {
         ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
     EOF
+
+    cat ${key}-stageDevel.def ${key}-stageFinal.def > ${key}.def
 
     # compute hash digest of the recipe using:
     #   - the recipe file without the labels / comments
@@ -446,10 +472,24 @@ process sha256sumManualRecipes {
     tuple val(key), path(recipe), file(fileDependencies)
 
   output:
+    tuple val(key), path("${key}-4fromRegistry.def"), emit: singularityRecipes4fromRegistry
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
     """
+    cat << EOF > ${key}-4fromRegistry.def
+    Bootstrap: docker
+    From: TO_CHANGE_LATTER_ON
+
+    %labels
+        gitUrl ${params.gitUrl}
+        gitCommit ${params.gitCommit}
+
+    %environment
+    EOF
+
+    cat ${projectDir}/assets/def.env >> ${key}.def
+
     if [[ -d ${key} ]] ; then
     tar --mtime='1970-01-01' -cf ${key}.tar -C ${key} --sort=name --group=0 --owner=0 --numeric-owner --mode=777 .
       cat ${key}.tar ${recipe} | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
@@ -586,8 +626,19 @@ workflow singularityRecipes {
     .concat(singularityRecipesCh)
     .set {singularityAllRecipes}
 
+  // Create a channel with all the container recipes
+  // to build the sif from a docker registry
+  buildSingularityRecipeFromCondaFile4Renv.out.singularityRecipes4fromRegistry
+    .concat(buildSingularityRecipeFromSourceCode.out.singularityRecipes4fromRegistry)
+    .concat(buildSingularityRecipeFromCondaPackages.out.singularityRecipes4fromRegistry)
+    .concat(buildSingularityRecipeFromCondaFile.out.singularityRecipes4fromRegistry)
+    .concat(buildDefaultSingularityRecipe.out.singularityRecipes4fromRegistry)
+    .concat(sha256sumManualRecipes.out.singularityRecipes4fromRegistry)
+    .set { singularityAllRecipes4fromRegistry }
+
   emit:
 
   singularityAllRecipes
+  singularityAllRecipes4fromRegistry
 }
 

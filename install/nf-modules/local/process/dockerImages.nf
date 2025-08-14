@@ -54,7 +54,9 @@ process buildImages {
       buildOptions = ""
     }
     """
-    ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} ${contextDir}
+    # docker (with new version using buildx complains if the synlink is outside the contextDir
+    # the use of realpath solves this issues
+    ${params.dockerCmd} build ${buildOptions} -f \$(realpath ${dockerRecipe}) -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} ${contextDir}
     touch ${key}.done
     """
 
@@ -66,7 +68,7 @@ process buildImages {
     }
     """
     echo "build docker image for the tool ${key}"
-    echo ${params.dockerCmd} build ${buildOptions} -f ${dockerRecipe} -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} contextDir
+    echo ${params.dockerCmd} build ${buildOptions} -f \$(realpath ${dockerRecipe}) -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} ${contextDir}
     touch ${key}.done
     """
   

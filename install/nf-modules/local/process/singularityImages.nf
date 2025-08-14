@@ -42,3 +42,30 @@ process buildImages {
     echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe} > ${key.toLowerCase()}.sif
     """
 }
+
+// This process creates the containers for all the tools
+process buildImagesFromRegistry {
+  maxForks 1
+  tag "${key}"
+  publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
+
+  input:
+    tuple val(key), file(singularityRecipe), val(sha256sum)
+
+  output:
+    path("${key.toLowerCase()}.sif")
+
+  script:
+    """
+    touch titi.txt
+    sed -e "s|From:.*|From: ${params.dockerPushRegistry}${key}:${sha256sum}|g" ${singularityRecipe} > ${key}.def
+    echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${key}.def
+    echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe} >  ${key.toLowerCase()}.sif
+    """
+
+  stub:
+    """
+    echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe} > ${key.toLowerCase()}.sif
+    
+    """
+}
