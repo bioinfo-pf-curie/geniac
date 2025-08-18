@@ -145,6 +145,6 @@ Perform the following tests when developing a new geniac version:
     geniac install . install -v --ap_install_docker_images --test_stub_run
     geniac install . install -v --ap_install_docker_images --test_stub_run --ap_docker_registry_push_repo='myregistry.org/' --ap_push_images
     geniac install . install -v --ap_install_podman_images --test_stub_run
-    geniac install . install -v --ap_install_podman_images --test_stub_run --ap_docker_registry_push_repo'myregistry.org/' --ap_push_images
+    geniac install . install -v --ap_install_podman_images --test_stub_run --ap_docker_registry_push_repo='myregistry.org/' --ap_push_images
 
 
