@@ -58,7 +58,7 @@ process buildImagesFromRegistry {
   script:
     """
     touch titi.txt
-    sed -e "s|From:.*|From: ${params.dockerPushRegistry}${key}:${sha256sum}|g" ${singularityRecipe} > ${key}.def
+    sed -e "s|From:.*|From: ${params.dockerRegistryPushRepo}${key}:${sha256sum}|g" ${singularityRecipe} > ${key}.def
     echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${key}.def
     echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${singularityRecipe} >  ${key.toLowerCase()}.sif
     """

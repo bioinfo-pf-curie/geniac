@@ -56,11 +56,12 @@ process buildImages {
     """
     # docker (with new version using buildx complains if the synlink is outside the contextDir
     # the use of realpath solves this issues
-    ${params.dockerCmd} build ${buildOptions} -f \$(realpath ${dockerRecipe}) -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} ${contextDir}
+    ${params.dockerCmd} build ${buildOptions} -f \$(realpath ${dockerRecipe}) -t ${key.toLowerCase()} -t ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum} ${contextDir}
     touch ${key}.done
     """
 
   stub:
+    String contextDir = '.'
     if (params.dockerCmd == "podman") {
       buildOptions = "--format docker"
     } else {
@@ -68,7 +69,7 @@ process buildImages {
     }
     """
     echo "build docker image for the tool ${key}"
-    echo ${params.dockerCmd} build ${buildOptions} -f \$(realpath ${dockerRecipe}) -t ${key.toLowerCase()} -t ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum} ${contextDir}
+    echo ${params.dockerCmd} build ${buildOptions} -f \$(realpath ${dockerRecipe}) -t ${key.toLowerCase()} -t ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum} ${contextDir}
     touch ${key}.done
     """
   

@@ -38,14 +38,14 @@ process pushDockerImages {
   script:
     """
     echo "push docker image for the tool ${key}"
-		${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p ${params.dockerRegistryPushPassword} ${params.dockerRegistryPushRepo}
+	${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p ${params.dockerRegistryPushPassword} ${params.dockerRegistryPushRepo}
     ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
     """
 
   stub:
     """
     echo "push docker image for the tool ${key}"
-		${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p ${params.dockerRegistryPushPassword} ${params.dockerRegistryPushRepo}
-    ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
+	echo ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p ${params.dockerRegistryPushPassword} ${params.dockerRegistryPushRepo}
+    echo ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
     """
 }

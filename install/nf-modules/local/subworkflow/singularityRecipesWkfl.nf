@@ -66,7 +66,7 @@ process buildDefaultSingularityRecipe {
     echo "The variable is ${params.buildSingularityImagesFromRegistry}"
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistro}
+    From: ${params.dockerRegistryPullRepo}${params.dockerLinuxDistro}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -138,7 +138,7 @@ process buildSingularityRecipeFromCondaPackages {
     # write the recipe
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    From: ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -217,7 +217,7 @@ process buildSingularityRecipeFromCondaFile {
     # write the recipe
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    From: ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -301,7 +301,7 @@ process buildSingularityRecipeFromCondaFile4Renv {
     # write the recipe
     cat << EOF > ${key}.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    From: ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     %labels
         gitUrl ${params.gitUrl}
@@ -401,7 +401,7 @@ process buildSingularityRecipeFromSourceCode {
     # write the recipe
     cat << EOF > ${key}-stageDevel.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}${params.dockerLinuxDistroSdk}
+    From: ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroSdk}
     Stage: devel
 
     %files
@@ -418,7 +418,7 @@ process buildSingularityRecipeFromSourceCode {
 
     cat << EOF >> ${key}-stageFinal.def
     Bootstrap: docker
-    From: ${params.dockerRegistry}\${image_name}
+    From: ${params.dockerRegistryPullRepo}\${image_name}
     Stage: final
 
     %labels
