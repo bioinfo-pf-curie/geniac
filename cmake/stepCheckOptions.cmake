@@ -89,9 +89,9 @@ if(ap_push_images)
 					"ap_push_images is set to ON but both ap_install_docker_images and ap_install_podman_images are set to OFF. You must set to ON either ap_install_docker_images or ap_install_podman_images usch that you can first build the images and push them on a registry.")
 	  endif()
 
-		if(ap_docker_push_registry STREQUAL "")
+		if(ap_docker_registry_push_repo STREQUAL "")
         message_color(FATAL_ERROR
-					"ap_push_images is set to ON but no registry has been provided. You must set ap_docker_push_registry with the name of your registry.")
+					"ap_push_images is set to ON but no registry has been provided. You must set ap_docker_registry_push_repo with the name of your registry.")
 		endif()
     # The option below will be pass to nextflow
 		set(push_images_nfx "true")
@@ -167,15 +167,15 @@ else()
 endif()
 
 
-if(NOT "${ap_docker_registry}" STREQUAL "")
-  if(NOT "${ap_docker_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_registry ${ap_docker_registry} must end with '/'")
+if(NOT "${ap_docker_registry_pull_registry}" STREQUAL "")
+  if(NOT "${ap_docker_registry_pull_registry}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_registry_pull_registry ${ap_docker_registry_pull_registry} must end with '/'")
   endif()
 endif()
 
-if(NOT "${ap_docker_push_registry}" STREQUAL "")
-  if(NOT "${ap_docker_push_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_push_registry ${ap_docker_push registry} must end with '/'")
+if(NOT "${ap_docker_push_registry_pull_registry}" STREQUAL "")
+  if(NOT "${ap_docker_push_registry_pull_registry}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_push_registry_pull_registry ${ap_docker_push registry_pull_registry} must end with '/'")
   endif()
 endif()
   

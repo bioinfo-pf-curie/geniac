@@ -24,34 +24,28 @@ of the license and that you accept its terms.
 
 // This process pushes the containers for all the tools on a registry
 // It expects that:
-// 1. 
-//   you define the secret nextflow variable with the CI_REGISTRY_PASSWORD
+// * you define the secret nextflow variable with the DOCKER_REGISTRY_PUSH_PASSWORD
 //   (this environment variable must be defined in youir shell). You must run:
-//   nextflow secrets set CI_REGISTRY_PASSWORD $CI_REGISTRY_PASSWORD
-// 2.
-//   The following variables must exist in your environment:
-//     - CI_REGISTRY_USER
-//     - CI_REGISTRY
+//   nextflow secrets set DOCKER_REGISTRY_PUSH_PASSWORD your_password
 process pushDockerImages {
   maxForks 1
   tag "${key}"
-  secret 'CI_REGISTRY_PASSWORD'
+  secret 'DOCKER_REGISTRY_PUSH_PASSWORD'
 
   input:
     tuple val(key), val(sha256sum), file(done)
 
   script:
     """
-		${params.dockerCmd} login -u ${params.registryUser} -p \$CI_REGISTRY_PASSWORD ${params.dockerPushRegistry}
-    ${params.dockerCmd} push ${params.dockerPushRegistry}${key.toLowerCase()}:${sha256sum}
+    echo "push docker image for the tool ${key}"
+		${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p ${params.dockerRegistryPushPassword} ${params.dockerRegistryPushRepo}
+    ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
     """
 
   stub:
     """
     echo "push docker image for the tool ${key}"
-    #echo ${params.dockerCmd} login -u \$CI_REGISTRY_USER -p \$CI_REGISTRY_PASSWORD \$CI_REGISTRY
-    echo ${params.dockerCmd} login -u \$CI_REGISTRY_PASSWORD
-    echo ${params.dockerCmd} push ${key.toLowerCase()}:${sha256sum}
+		${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p ${params.dockerRegistryPushPassword} ${params.dockerRegistryPushRepo}
+    ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
     """
-  
 }

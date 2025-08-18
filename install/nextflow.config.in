@@ -64,13 +64,18 @@ params {
   // avoid the use of the conda defaults channel to avoid license issue
   condaNoDefaultsChannel = true
 
-  // docker registry used to pull image
-  // used in either FROM (for docker) or Bootstrap (apptainer) directives
-  dockerRegistry = '@docker_registry@'
+  //////////////////////////////////////////////
+  // Options for docker and podman registries //
+  //////////////////////////////////////////////
 
-  // docker registry used to push image
-  dockerPushRegistry = '@docker_push_registry@'
-  registryUser = '@docker_push_registry_user@'
+  // docker registry used to pull images
+  // used in either FROM (for docker) or Bootstrap (apptainer) directives
+  dockerRegistryPullRepo = '@docker_registry_pull_repo@'
+
+  // docker registry used to push images
+  dockerRegistryPushRepo = '@docker_registry_push_repo@'
+  dockerRegistryPushUser = '@docker_registry_push_user@'
+  dockerRegistryPushPassword = '@docker_registry_push_password@'
 
   // package manager for the Linux Distro
   yum = 'dnf'
