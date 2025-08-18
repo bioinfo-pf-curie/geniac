@@ -36,16 +36,18 @@ process pushDockerImages {
     tuple val(key), val(sha256sum), file(done)
 
   script:
+    String dockerRegistryPushRepo = params.dockerRegistryPushRepo.replaceAll(/\/$/, '')
     """
     echo "push docker image for the tool ${key}"
-    ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p \$DOCKER_REGISTRY_PUSH_PASSWORD ${params.dockerRegistryPushRepo}
+    ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p \$DOCKER_REGISTRY_PUSH_PASSWORD ${dockerRegistryPushRepo}
     ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
     """
 
   stub:
+    String dockerRegistryPushRepo = params.dockerRegistryPushRepo.replaceAll(/\/$/, '')
     """
     echo "push docker image for the tool ${key}"
-    echo ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p \$DOCKER_REGISTRY_PUSH_PASSWORD ${params.dockerRegistryPushRepo}
+    echo ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p \$DOCKER_REGISTRY_PUSH_PASSWORD ${dockerRegistryPushRepo}
     echo ${params.dockerCmd} push ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}
     """
 }
