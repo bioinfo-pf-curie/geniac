@@ -167,15 +167,15 @@ else()
 endif()
 
 
-if(NOT "${ap_docker_registry_pull_registry}" STREQUAL "")
-  if(NOT "${ap_docker_registry_pull_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_registry_pull_registry ${ap_docker_registry_pull_registry} must end with '/'")
+if(NOT "${ap_docker_registry}" STREQUAL "")
+  if(NOT "${ap_docker_registry}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_registry ${ap_docker_registry_pull} must end with '/'")
   endif()
 endif()
 
-if(NOT "${ap_docker_push_registry_pull_registry}" STREQUAL "")
-  if(NOT "${ap_docker_push_registry_pull_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_push_registry_pull_registry ${ap_docker_push registry_pull_registry} must end with '/'")
+if(NOT "${ap_docker_registry_pull_repo}" STREQUAL "")
+  if(NOT "${ap_docker_registry_pull_repo}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_registry_pull_repo ${ap_docker_registry_pull_repo} must end with '/'")
   endif()
 endif()
   

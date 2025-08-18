@@ -70,7 +70,7 @@ params {
 
   // docker registry used to pull images
   // used in either FROM (for docker) or Bootstrap (apptainer) directives
-  dockerRegistryPullRepo = '@docker_registry_pull_repo@'
+  dockerRegistryPullRepo = '@docker_registry@'
 
   // docker registry used to push images
   dockerRegistryPushRepo = '@docker_registry_push_repo@'

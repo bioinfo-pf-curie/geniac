@@ -58,7 +58,7 @@ add_custom_command(
             -Dpipeline_source_dir=${pipeline_source_dir}
             -Dgeniac_source_dir=${CMAKE_SOURCE_DIR}
             -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
-            -Ddocker_registry_pull_repo=${ap_docker_registry_pull_repo}
+            -Ddocker_registry=${ap_docker_registry}
             -Ddocker_registry_push_repo=${ap_docker_registry_push_repo}
             -Ddocker_registry_push_user=${ap_docker_registry_push_user}
             -Dlinux_distro=${ap_linux_distro}
