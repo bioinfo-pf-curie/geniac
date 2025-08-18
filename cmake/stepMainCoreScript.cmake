@@ -60,6 +60,8 @@ add_custom_command(
             -Dgeniac_binary_dir=${CMAKE_BINARY_DIR}
             -Ddocker_registry_pull_repo=${ap_docker_registry_pull_repo}
             -Ddocker_registry_push_repo=${ap_docker_registry_push_repo}
+            -Ddocker_registry_push_password=${ap_docker_registry_push_password}
+            -Ddocker_registry_push_user=${ap_docker_registry_push_user}
             -Dlinux_distro=${ap_linux_distro}
             -Dconda_release=${ap_conda_release}
             -Dsingularity_build_options=${ap_singularity_build_options}
