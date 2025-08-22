@@ -50,13 +50,13 @@ if(ap_install_singularity_images AND ap_install_singularity_images_from_registry
   or ap_install_singularity_recipes set to ON ")
 endif()
 
-if(ap_install_singularity_images AND NOT ap_install_singularity_recipes)
+if(ap_install_singularity_images_from_registry AND NOT ap_install_singularity_recipes)
     message_color(
 			FATAL_ERROR "In order to build the singularity images fom a registry, you must also enable the option -Dap_install_singularity_recipes. This is necessary to obtain the list of all the containers and their recipes."
   )
 endif()
 
-if(ap_install_singularity_images AND NOT ap_install_docker_recipes)
+if(ap_install_singularity_images_from_registry AND NOT ap_install_docker_recipes)
     message_color(
 			FATAL_ERROR "In order to build the singularity images fom a registry, you must also enable the option -Dap_install_docker_recipes. This is necessary to obtain the list of all the sha256sum which is the tag on the registry." )
 endif()
