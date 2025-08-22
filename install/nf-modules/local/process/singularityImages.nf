@@ -48,6 +48,7 @@ process buildImagesFromRegistry {
   maxForks 1
   tag "${key}"
   publishDir "${projectDir}/${params.publishDirSingularityImages}", overwrite: true, mode: 'copy'
+  secret 'DOCKER_REGISTRY_PUSH_PASSWORD'
 
   input:
     tuple val(key), file(singularityRecipe), val(sha256sum)
@@ -57,6 +58,7 @@ process buildImagesFromRegistry {
 
   script:
     """
+    ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p \$DOCKER_REGISTRY_PUSH_PASSWORD ${dockerRegistryPushRepo}
     sed -e "s|From:.*|From: ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}|g" ${singularityRecipe} > ${key}-from-docker-registry.def
     singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${key}-from-docker-registry.def
     """
