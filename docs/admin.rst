@@ -125,7 +125,7 @@ Build the documentation locally:
     python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
  
 Tests
-====
+=====
 
 Perform the following tests when developing a new geniac version:
 
