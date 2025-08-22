@@ -53,6 +53,10 @@ set(ap_install_singularity_images
     "OFF"
     CACHE BOOL "Generate and install Singularity def files and images. Default is OFF.")
 
+set(ap_install_singularity_images_from_registry
+    "OFF"
+    CACHE BOOL "Generate and install Singularity def files and images. The images are built using the containers avaibable on the registry defined by the variable ap_docker_push_registry. This requires that geniac has been previously run using both ap_install_docker_images and ap_push_images options. Default is OFF.")
+
 set(ap_install_docker_recipes
     "OFF"
     CACHE BOOL "Generate and install Dockerfiles. Default is OFF.")

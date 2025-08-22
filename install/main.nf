@@ -215,7 +215,7 @@ workflow {
   }
 
   // Build singularity images pulling from a docker registry
-  // This requires that the docker containers have been build and pushed to the docker registry
+  // This requires that the docker containers have been built and pushed to the docker registry
   if (params.buildSingularityImagesFromRegistry && params.buildSingularityRecipes && params.buildDockerRecipes) {
     buildImagesFromRegistry(
       singularityRecipes.out.singularityAllRecipes4fromRegistry

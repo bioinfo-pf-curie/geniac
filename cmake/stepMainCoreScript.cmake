@@ -161,7 +161,7 @@ add_custom_target(
 # the syntax below is required with both COMMAND_EXPAND_LISTS and VERBATIM.
 # As the ap_container_list contains space, without this syntax, quotes will be put around
 # which would not take into account the correct args
-set(cmd_build_singularity_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;main.nf;-resume;--buildSingularityImages;true;--buildSingularityRecipes;true")
+set(cmd_build_singularity_images "NXF_DISABLE_CHECK_LATEST=true;${NEXTFLOW_EXECUTABLE};run;main.nf;-resume;${install_singularity_images_nfx}")
 list(APPEND cmd_build_singularity_images "${ap_container_list}")
 list(APPEND cmd_build_singularity_images "${test_stub_run}")
 set(cmd_build_singularity_images "${cmd_build_singularity_images};-with-report;--gitCommit;${git_commit};--gitUrl;${git_url}")
@@ -283,7 +283,7 @@ if(ap_install_podman_recipes)
 endif()
 
 # check if singularity recipes and images has been set
-if(ap_install_singularity_images)
+if(ap_install_singularity_images OR ap_install_singularity_images_from_registry)
     message_color(INFO "Singularity recipes and images will be installed")
 
     add_custom_target(
