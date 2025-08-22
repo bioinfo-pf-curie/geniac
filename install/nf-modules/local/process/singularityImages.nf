@@ -59,7 +59,6 @@ process buildImagesFromRegistry {
     """
     sed -e "s|From:.*|From: ${params.dockerPushRegistry}${key}:${sha256sum}|g" ${singularityRecipe} > ${key}-from-docker-registry.def
     singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${key}-from-docker-registry.def
-    singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${key}-from-docker-registry.def >  ${key.toLowerCase()}.sif
     """
 
   stub:
