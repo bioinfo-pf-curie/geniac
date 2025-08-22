@@ -62,7 +62,7 @@ process buildDefaultDockerRecipe {
     """
     # write recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistro}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistro}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -128,7 +128,7 @@ process buildDockerRecipeFromCondaPackages {
     """
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -198,7 +198,7 @@ process buildDockerRecipeFromCondaFile {
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -275,7 +275,7 @@ process buildDockerRecipeFromCondaFile4Renv {
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -369,7 +369,7 @@ process buildDockerRecipeFromSourceCode {
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroSdk} AS devel
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroSdk} AS devel
 
     RUN mkdir -p /opt/modules
 
@@ -380,7 +380,7 @@ process buildDockerRecipeFromSourceCode {
     && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
     && make && make install ${cplmtCmdPost}
 
-    FROM ${params.dockerRegistry}\${image_name}
+    FROM ${params.dockerRegistryPullRepo}\${image_name}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"

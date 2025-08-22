@@ -272,7 +272,7 @@ workflow.onComplete {
   endSummary['Error report'] = workflow.errorReport ?: '-'
   endSummary['Distro Linux'] = "${params.dockerLinuxDistro}"
   endSummary['Distro Linux / Conda'] ="${params.dockerLinuxDistroConda}"
-  endSummary['Docker registry'] = "${params.dockerRegistry}"
+  endSummary['Docker registry'] = "${params.dockerRegistryPullRepo}"
   endSummary['Cluster executor'] = "${params.clusterExecutor}"
   String endWfSummary = endSummary.collect { k,v -> "${k.padRight(30, '.')}: $v" }.join("\n")
   println endWfSummary

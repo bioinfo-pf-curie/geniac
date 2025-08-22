@@ -111,7 +111,7 @@ Geniac automatically generate recipes for Docker and Singularity. To build the c
 
 ::
    
-   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_docker_registry=my-registry-url/
+   cmake ${SRC_DIR}/geniac -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -Dap_docker_registry_pull_repo=my-registry-url/
 
 For example, ``my-registry-url`` could be a docker registry available in your gitlab.
 
