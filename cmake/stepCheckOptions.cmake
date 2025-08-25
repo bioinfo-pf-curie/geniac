@@ -227,6 +227,14 @@ if(NOT "${ap_container_list}" STREQUAL "")
   set(ap_container_list "--containerList;${ap_container_list}")
 endif()
 
+### Chech whether we have to use a docker registry or a podman registry
+### to build the singularity images from a registry
+if (ap_install_podman_recipes)
+	set(docker_cmd_nfx "--dockerCmd;podman")
+endif()
+if (ap_install_docker_recipes)
+	set(docker_cmd_nfx "--dockerCmd;docker")
+endif()
 
 ### Allow the usage of the stub-run mode with nextflow
 if(test_stub_run)
@@ -241,5 +249,5 @@ if(ap_install_singularity_images AND NOT ap_install_singularity_images_from_regi
 endif()
 
 if(ap_install_singularity_images_from_registry AND NOT ap_install_singularity_images)
-	set(install_singularity_images_nfx "--buildSingularityImagesFromRegistry;true;--buildSingularityRecipes;true;--buildDockerRecipes;true")
+	set(install_singularity_images_nfx "--buildSingularityImagesFromRegistry;true;--buildSingularityRecipes;true;--buildDockerRecipes;true;${docker_cmd_nfx}")
 endif()
