@@ -57,6 +57,7 @@ process buildImagesFromRegistry {
     path("${key.toLowerCase()}.sif")
 
   script:
+    String dockerRegistryPushRepo = params.dockerRegistryPushRepo.replaceAll(/\/$/, '')
     """
     ${params.dockerCmd} login -u ${params.dockerRegistryPushUser} -p \$DOCKER_REGISTRY_PUSH_PASSWORD ${dockerRegistryPushRepo}
     sed -e "s|From:.*|From: ${params.dockerRegistryPushRepo}${key.toLowerCase()}:${sha256sum}|g" ${singularityRecipe} > ${key}-from-docker-registry.def
@@ -64,6 +65,7 @@ process buildImagesFromRegistry {
     """
 
   stub:
+    String dockerRegistryPushRepo = params.dockerRegistryPushRepo.replaceAll(/\/$/, '')
     """
     sed -e "s|From:.*|From: ${params.dockerRegistryPushRepo}${key}:${sha256sum}|g" ${singularityRecipe} > ${key}-from-docker-registry.def
     echo singularity build ${params.singularityBuildOptions} ${key.toLowerCase()}.sif ${key}-from-docker-registry.def >  ${key.toLowerCase()}.sif
