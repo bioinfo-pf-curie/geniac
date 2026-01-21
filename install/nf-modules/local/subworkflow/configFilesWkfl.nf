@@ -220,8 +220,8 @@ process mergeCondaConfig {
     echo -e "conda {\n  cacheDir = \\\"\\\${params.condaCacheDir}\\\"\n  createTimeout = '1 h'\n  enabled = 'true'\n}\n" >> conda.config
     echo "process {"  >> conda.config
 
-    beforescript_content="\$(cat ${projectDir}/assets/def.env | sed -e 's/    //g' -e 's/\"/\\/\"/g' | sed -z 's/\\n/; /g')"
-    echo "\n  beforeScript = \\\"\$beforescript_content; export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> conda.config
+    beforescript_content="\$(cat ${projectDir}/assets/def.env | sed -e 's/    //g' -e 's/\"/\\\"/g' | sed -z 's/\\n/; /g')"
+    echo "\n  beforeScript = \\\"\$beforescript_content export PATH=\\\$PATH:\\\${projectDir}/bin/fromSource\\\"\n" >> conda.config
     for keyFile in ${key}
     do
         cat \${keyFile} >> conda.config
