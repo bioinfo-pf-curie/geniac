@@ -196,7 +196,7 @@ process buildDockerRecipeFromCondaFile {
     """
 
     # BUGFIX #353
-    declare env_name=\$(grep -oP ' *name *: *\K(.*[^ ])' ${condaFile})
+    declare env_name=\$(grep -oP ' *name *: *\\K(.[^ ]*)' ${condaFile})
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
