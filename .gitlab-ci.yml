@@ -19,16 +19,19 @@ docs:
   script:
     - conda env create -f docs/environment.yml
     - conda activate readthedocs
+    - cd docs
     - python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+
+docs:
+  stage: pytest
+  script:
+    - pytest
 
 pypi:
   stage: deploy
   script:
     - env
-    - pip install -U tox-conda
-    - pip install -U twine
-    - pip install -U sphinx-rtd-theme==1.0.0
-    - python -m pip install --upgrade build
+    - python -m pip install --upgrade build twine
     - python -m build
     - ls dist/*
     - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ python -m twine upload dist/*
