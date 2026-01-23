@@ -13,15 +13,13 @@ before_script:
   - set -euo pipefail
   - source /opt/etc/bashrc # needed to activate the geniac conda env
 
-.test_script: &test_script
-  stage: check
-  script:
-    - tox
 
 docs:
   stage: check
   script:
-    - tox -e docs
+    - conda env create -f docs/environment.yml
+    - conda activate readthedocs
+    - python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
 
 pypi:
   stage: deploy
