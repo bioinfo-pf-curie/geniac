@@ -13,24 +13,25 @@ before_script:
   - set -euo pipefail
   - source /opt/etc/bashrc # needed to activate the geniac conda env
 
-.test_script: &test_script
-  stage: check
-  script:
-    - tox
 
 docs:
   stage: check
   script:
-    - tox -e docs
+    - conda env create -f docs/environment.yml
+    - conda activate readthedocs
+    - cd docs
+    - python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+
+pytest:
+  stage: check
+  script:
+    - pytest
 
 pypi:
   stage: deploy
   script:
     - env
-    - pip install -U tox-conda
-    - pip install -U twine
-    - pip install -U sphinx-rtd-theme==1.0.0
-    - python -m pip install --upgrade build
+    - python -m pip install --upgrade build twine
     - python -m build
     - ls dist/*
     - TWINE_PASSWORD=${PYPI_TOKEN} TWINE_USERNAME=__token__ python -m twine upload dist/*
