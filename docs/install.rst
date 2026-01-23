@@ -406,6 +406,7 @@ Structure of the installation directory tree
        ├── env
        ├── modules
        │   └── helloWorld
+       ├── nf-modules
        ├── recipes
        │   ├── conda
        │   ├── dependencies
