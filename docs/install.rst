@@ -49,7 +49,7 @@ Installation requires |cmake|_ (version 3.0 or above) and consists of the follow
 
 .. note::
 
-   If you use a Linux distribution which is binary-compatible with the Red Hat Enterprise Linux (RHEL) operating system source code (such as |almalinux|_, |centos|_ or |rockylinux|_), |cmake|_ version 3 is available as ``cmake3`` executable. You can alias ``cmake3`` as ``cmake`` in your ``.bashrc`` if needed.
+   If you use a Linux distribution which is binary-compatible with the Red Hat Enterprise Linux (RHEL) operating system source code (such as |almalinux|_, |centos|_ or |rockylinux|_), |cmake|_ version 3 is available as ``cmake3`` executable for RHEL up to version 7. You can alias ``cmake3`` as ``cmake`` in your ``.bashrc`` if needed. From RHEL version 8, the default ``cmake`` version 3.
 
 Different options can be passed to |cmake|_ for the configuration step. They are described in the following section.
 
