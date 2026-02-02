@@ -53,25 +53,24 @@ The |nextflow|_ scripts that are used to generate the ``*.config`` files and con
 Generate preload cache with default values
 ==========================================
 
+The installation of a pipeline can be made using ``cmake -C myfile.cmake`` which :ref:`install-configure-file`. The geniac repository provides the default file ``geniac/install/cmake-init-default.cmake`` with all the options which are available. This secetion describes how to generate the default file. 
 In order to generate the pre-load a script ``geniac/install/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``geniac/cmake/initCmakePreload.sh`` as follows:
 
 ::
 
-   export WORK_DIR="${HOME}/tmp/myPipeline"
-   export SRC_DIR="${WORK_DIR}/src"
-   export BUILD_DIR="${WORK_DIR}/build"
-   export GIT_URL="https://github.com/bioinfo-pf-curie/geniac-demo.git"
+   # Assume that the variable SRC_DIR is set to the path of the source code of geniac
+   export SRC_DIR="${HOME}/geniac"
+   export WORK_DIR="${HOME}/tmp/"
 
-   mkdir -p ${INSTALL_DIR} ${BUILD_DIR}
+   # Create the geniac conda environment
+   conda env create -f environment.yml
 
-   # clone the repository
-   # the option --recursive is needed if you use geniac as a submodule
-   # the option --remote-submodules will pull the last geniac version
-   # using the release branch from https://github.com/bioinfo-pf-curie/geniac 
-   git clone --remote-submodules --recursive ${GIT_URL} ${SRC_DIR}
-   
-   cd {BUILD_DIR}
-   bash ${SRC_DIR}/geniac/cmake/initCmakePreload.sh ${SRC_DIR} > cmake-init-default.cmake
+   # Activate the geniac conda environment, otherwise cmake
+   # would complain about missing dependencies
+   conda activate geniac
+
+   cd ${WORK_DIR}
+   bash ${SRC_DIR}/cmake/initCmakePreload.sh ${SRC_DIR} > $SRC_DIR{}/install/cmake-init-default.cmake
 
 
 Adding ad-hoc environment variables to ensure reproducibility
