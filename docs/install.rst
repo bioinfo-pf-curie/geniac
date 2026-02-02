@@ -204,7 +204,7 @@ ap_nf_executor
 
 | STRING
 | `executor <https://www.nextflow.io/docs/latest/executor.html>`_ used by nextflow (e.g. pbs, slurm, etc.).
-| Default is pbs.
+| Default is slurm.
 
 .. _install-ap_push_images:
 

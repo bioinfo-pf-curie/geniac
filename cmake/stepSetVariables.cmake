@@ -24,8 +24,8 @@
 # ##############################################################################
 
 set(ap_nf_executor
-    "pbs"
-    CACHE STRING "executor used by nextflow (e.g. pbs, slurm, etc.). Default is pbs")
+    "slurm"
+    CACHE STRING "executor used by nextflow (e.g. pbs, slurm, etc.). Default is slurm")
 
 # ap_annotation_path must STRING (and not PATH)
 # this is the path where the annotations are available
