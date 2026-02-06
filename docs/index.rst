@@ -21,7 +21,7 @@ geniac's documentation!
    devcycle
    run
    cli
-   admin
+   contributing
    faq
    misc
 

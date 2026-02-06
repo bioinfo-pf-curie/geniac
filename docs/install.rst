@@ -258,23 +258,22 @@ Set options with a file
 -----------------------
 
 
-The file ``geniac/install/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``geniac/install/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
+The file ``geniac/data/cmake-init-default.cmake`` provides a script to set all the available variables during the configuration step. We recommend that you copy this file into ``geniac/data/cmake-init.cmake``, edit it and set the different variables to match your configuration. Then you can configure the project as follows:
 
 ::
 
-   cp ${SRC_DIR}/geniac/install/cmake-init-default.cmake ${SRC_DIR}/geniac/install/cmake-init.cmake
+   cp ${SRC_DIR}/geniac/data/cmake-init-default.cmake ${BUILD_DIR}/cmake-init.cmake
 
-   # edit the file ${SRC_DIR}/geniac/install/cmake-init.cmake to set your options
+   # edit the file ${BUILD_DIR}/cmake-init.cmake to set your options
 
    cd ${BUILD_DIR}
 
-   cmake -C ${SRC_DIR}/geniac/install/cmake-init.cmake ${SRC_DIR}/geniac
+   cmake -C cmake-init.cmake ${SRC_DIR}/geniac
 
 
 .. note::
 
-   If you use a Linux distribution which is binary-compatible with the Red Hat Enterprise Linux (RHEL) operating system source code (such as |almalinux|_, |centos|_ or |rockylinux|_), |cmake|_ version 3 is available as ``cmake3`` executable, the syntax is ``cmake3 ${SRC_DIR}/geniac -C ${SRC_DIR}/geniac/install/cmake-init.cmake``
-
+   If you use a Linux distribution which is binary-compatible with the Red Hat Enterprise Linux (RHEL) operating system source code (such as |almalinux|_, |centos|_ or |rockylinux|_), |cmake|_ version 3 is available as ``cmake3`` executable, the syntax is ``cmake3 ${SRC_DIR}/geniac -C cmake-init.cmake``
 
 
 

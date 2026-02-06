@@ -33,7 +33,7 @@ import os
 
 import re
 
-extensions = ['sphinx.ext.mathjax',
+extensions = ['sphinx.ext.mathjax', 'sphinx_mdinclude',
     'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
