@@ -290,6 +290,8 @@ Containers
 
 In order to build the containers, you can either pass the required options during the configure stage (see :ref:`install-configure`) or use custom targets (see :ref:`install-target-containers`).
 
+.. _install-custom-targets:
+
 Custom targets
 ==============
 
