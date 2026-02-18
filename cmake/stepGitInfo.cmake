@@ -31,7 +31,7 @@
 
 
 
-if(GIT_FOUND)
+if(GIT_FOUND AND NOT ap_no_git)
 
     # test if the source directory is a git repository
     execute_process(
@@ -92,8 +92,14 @@ if(GIT_FOUND)
         set(git_commit "tag:${_has_production_tag}-commit:${git_commit}") # do not change this, the variable must contain "devel"
     endif()
 
-else()
+elseif(ap_no_git)
+    set(git_url "__no_git_url__")
+    set(git_repo_name "__no_git_name__")
+    set(git_commit "__no_git_commit__")
+
+else() # means: !ap_no_git AND !GIT_FOUND
     message_color(FATAL_ERROR "GIT not found")
+
 endif()
 
 # fill the files with the git information

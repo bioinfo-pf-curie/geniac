@@ -23,6 +23,10 @@
 # Set CACHE variables
 # ##############################################################################
 
+set(ap_no_git
+    "OFF"
+    CACHE BOOL "Add the option to deploy without git retrieving informations. Default is OFF.")
+
 set(ap_nf_executor
     "slurm"
     CACHE STRING "executor used by nextflow (e.g. pbs, slurm, etc.). Default is slurm")
