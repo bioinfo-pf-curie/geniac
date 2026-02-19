@@ -21,6 +21,13 @@ docs:
     - conda activate readthedocs
     - cd docs
     - python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+    - mv _build/html $CI_PROJECT_DIR/public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 
 pytest:
   stage: check
