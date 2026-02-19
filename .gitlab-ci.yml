@@ -17,6 +17,8 @@ before_script:
 docs:
   stage: check
   script:
+    - echo "The site will be deployed to $CI_PAGES_URL"
+    - env
     - conda env create -f docs/environment.yml
     - conda activate readthedocs
     - cd docs
