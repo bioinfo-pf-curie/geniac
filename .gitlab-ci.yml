@@ -14,7 +14,7 @@ before_script:
   - source /opt/etc/bashrc # needed to activate the geniac conda env
 
 
-docs:
+pages:
   stage: deploy
   script:
     - echo "The site will be deployed to $CI_PAGES_URL"
