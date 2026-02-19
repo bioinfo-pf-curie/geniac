@@ -66,6 +66,7 @@ if(GIT_FOUND AND NOT ap_no_git)
 
     string(REGEX REPLACE ".*/" "" git_repo_name ${git_url})
     string(REGEX REPLACE ".git$" "" git_repo_name ${git_repo_name})
+    string(REGEX REPLACE "gitlab-ci-token:\\w+@" "" git_url ${git_url})
 
     message(STATUS "GIT repository name: ${git_repo_name}")
 
