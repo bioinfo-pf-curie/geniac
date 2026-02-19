@@ -15,7 +15,7 @@ before_script:
 
 
 docs:
-  stage: check
+  stage: deploy
   script:
     - echo "The site will be deployed to $CI_PAGES_URL"
     - env
