@@ -219,8 +219,8 @@ The |nextflow|_ scripts that are used to generate the ``*.config`` files and con
 Generate preload cache with default values
 ==========================================
 
-The installation of a pipeline can be made using ``cmake -C myfile.cmake`` which :ref:`install-configure-file`. The geniac repository provides the default file ``geniac/install/cmake-init-default.cmake`` with all the options which are available. This secetion describes how to generate the default file. 
-In order to generate the pre-load a script ``geniac/install/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``geniac/cmake/initCmakePreload.sh`` as follows:
+The installation of a pipeline can be made using ``cmake -C myfile.cmake`` which :ref:`install-configure-file`. The geniac repository provides the default file ``geniac/data/cmake-init-default.cmake`` with all the options which are available. This section describes how to generate the default file. 
+In order to generate the pre-load script ``geniac/data/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``geniac/cmake/initCmakePreload.sh`` as follows:
 
 ::
 

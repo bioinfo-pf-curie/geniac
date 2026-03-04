@@ -206,6 +206,13 @@ ap_nf_executor
 | `executor <https://www.nextflow.io/docs/latest/executor.html>`_ used by nextflow (e.g. pbs, slurm, etc.).
 | Default is slurm.
 
+ap_no_git
++++++++++
+
+| BOOL
+| Add the option to deploy without git retrieving informations.
+| Default is OFF.
+
 .. _install-ap_push_images:
 
 ap_push_images
