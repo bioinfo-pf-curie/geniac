@@ -5,6 +5,7 @@ NEW FEATURES
 
 BUGFIX
   - Get env name from yml conda file
+  - update valid git tag pattern to handle production versions like v12.23.34
 
 DOCUMENTATION
   - Update readthedocs config file
