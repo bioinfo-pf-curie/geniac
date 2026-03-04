@@ -1,21 +1,27 @@
 
 NEW FEATURES
-  - Ad-hoc variable to ensure reproducibility set in both assets/Dockerfile.env and assets/def.env
-  - Add ap_push_images and ap_docker_push_registry options to push docker/podman container on a registry
-  - Update (auto-generation) data/cmake-init-default.cmake and documentation accordingly
+  - Nextflow code refactoring using workfloas #352
+  - Ad-hoc variable to ensure reproducibility set in both assets/Dockerfile.env and assets/def.env #350
+  - Push docker/podman container on a registry:
+    * Add new cmake options 'ap_docker_registry_push_repo' and 'ap_docker_registry_push_user' #351
+  - Build apptainer sif file using docker/podman container available on a registry:
+    * Add new cmake option 'ap_install_singularity_images_from_registry' #351
+  - Update (auto-generation) data/cmake-init-default.cmake and documentation accordingly #358
   - Update apptainer version in conda env #360
+  - Add new cmake option 'ap_no_git' to deploy without git retrieving informations #366
   - Transfer cmake dependency from setup.cfg to conda env #364 
-   - Geniac CLI:
-    	 * Add option --ap_no_git to deploy without git retrieving informations #366
+  - Remove files not used anymore #356
 
 BUGFIX
-  - Get env name from yml conda file
+  - Get env name from yml conda file #353
   - Update valid git tag pattern to handle production versions like v12.23.34 #359
   - Remove gitlab-ci-token in the gitUrl label for container recipes (stepGitInfo.cmake) #362
   - Replace pkg_resources (deprecated) by importlib.resources #349
 
 DOCUMENTATION
-  - Update readthedocs config file
+  - Update readthedocs config files (docs/environment.yml and .readthedocs.yml) #357
+  - Update the documentation with a "Contributing" section to detail how to develop geniac #355
+  - README file added to explain the content of each folder within the source code repository, inclusion of the README files within the rst file #355
 
 version-3.7.0
 05/23/2025
