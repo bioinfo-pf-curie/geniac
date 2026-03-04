@@ -3,6 +3,8 @@ NEW FEATURES
   - Ad-hoc variable to ensure reproducibility set in both assets/Dockerfile.env and assets/def.env
   - Add ap_push_images and ap_docker_push_registry options to push docker/podman container on a registry
   - Update (auto-generation) data/cmake-init-default.cmake and documentation accordingly
+  - Update apptainer version in conda env #360
+  - Transfer cmake dependency from setup.cfg to conda env #364 
    - Geniac CLI:
     	 * Add option --ap_no_git to deploy without git retrieving informations #366
 
