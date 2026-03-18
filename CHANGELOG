@@ -11,13 +11,16 @@ NEW FEATURES
   - Add new cmake option 'ap_no_git' to deploy without git retrieving informations #366
   - Transfer cmake dependency from setup.cfg to conda env #364 
   - Remove files not used anymore #356
+  - Geniac CLI:
+    * Check conda yml format in sections dependencies and pip #368
+    * Check conda format in geniac.config #368
 
 BUGFIX
   - Get env name from yml conda file #353
   - Update valid git tag pattern to handle production versions like v12.23.34 #359
   - Remove gitlab-ci-token in the gitUrl label for container recipes (stepGitInfo.cmake) #362
   - Replace pkg_resources (deprecated) by importlib.resources #349
-
+  
 DOCUMENTATION
   - Update readthedocs config files (docs/environment.yml and .readthedocs.yml) #357
   - Update the documentation with a "Contributing" section to detail how to develop geniac #355
@@ -34,7 +37,7 @@ NEW FEATURES
    - git: geniac checks for production tage with patterns 'version-1.2.3' or 'v1.2.3'
    - The geniac conda env does not use the defaults channel but the nodefaults channel
    - Geniac CLI:
-    	 * remove the use of the defaults conda channel to comply with anaconda license:
+       * remove the use of the defaults conda channel to comply with anaconda license:
        * Check that the defaults channel is not used to comply with anaconda license
        * option 'condaNoDefaultsChannel' in geniac.ini file allows the use of the defaults conda channel if needeed
  
