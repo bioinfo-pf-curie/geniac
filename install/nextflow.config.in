@@ -75,7 +75,7 @@ params {
   // docker registry used to push images
   dockerRegistryPushRepo = '@docker_registry_push_repo@'
   dockerRegistryPushUser = '@docker_registry_push_user@'
-  // Note that the registry passworf is set through
+  // Note that the registry password is set through
   // the nextflow secret variable DOCKER_REGISTRY_PUSH_PASSWORD
 
   // package manager for the Linux Distro

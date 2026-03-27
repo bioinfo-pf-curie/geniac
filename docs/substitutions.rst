@@ -1,7 +1,6 @@
 .. |4geniac| replace:: 4geniac
 .. _4geniac: https://hub.docker.com/u/4geniac
 
-
 .. |4geniacalmalinux| replace:: 4geniac/almalinux
 .. _4geniacalmalinux: https://hub.docker.com/r/4geniac/almalinux/tags
 

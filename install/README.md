@@ -20,5 +20,5 @@ Geniac launches a nextflow pipeline which generates config files, container reci
            └── singularityRecipesWkfl.nf
 ```
 
-Note that the `nextflow.config.in` has the `.in` as it contains placeholder variables such as `@linux_distro@`. These variables will be replaced by their correct values during the `cmake` configuration step during which the file will be renamed `nextflow.config`. Therefore, `nextflow.config.in` is the template for the final file which will be used when running nextflow.
+Note that the `nextflow.config.in` has the `.in` as it contains placeholder variables such as `@linux_distro@`. These variables will be replaced by their correct values during the `cmake` configuration step which will rename the file into `nextflow.config`. Therefore, `nextflow.config.in` is the template for the final file which will be used when running nextflow.
 

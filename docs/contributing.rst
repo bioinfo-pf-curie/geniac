@@ -6,29 +6,8 @@
 Contributing
 ************
 
-This page is dedicated to both developers and maintainers contribute to geniac.
+This page is dedicated to both developers and maintainers who contribute to geniac.
 
-Source code organization
-========================
-
-.. _contributing-install-folder:
-
-.. mdinclude:: ../install/README.md
-
-.. _contributing-cmake-folder:
-
-.. mdinclude:: ../cmake/README.md
-
-.. _contributing-src-folder:
-
-.. mdinclude:: ../src/README.md
-
-.. _contributing-assets-folder:
-
-.. mdinclude:: ../assets/README.md
-
-Develop a new release
-=====================
 
 The backbone of geniac consists of:
 
@@ -37,7 +16,13 @@ The backbone of geniac consists of:
 
 In addition, a geniac Command Line Interface written in python (see :ref:`contributing-src-folder`) intends to simplify the use of geniac for users less familiar with |cmake|_ syntax. 
 
-What does this mean for the developer? Well, you will have to dig into:
+Develop a new release
+=====================
+
+What part of the code should be modified?
+-----------------------------------------
+
+You will have to dig into:
 
 * The :ref:`contributing-install-folder` if you want to:
 
@@ -62,6 +47,158 @@ What does this mean for the developer? Well, you will have to dig into:
   - improve the geniac Command Line Interface
 
   - report new functionnalities implemented in the :ref:`contributing-install-folder` and/or :ref:`contributing-cmake-folder`
+
+How the containers are built?
+-----------------------------
+
+
+Inside the :ref:`contributing-install-folder` are located the  *nextflow* scripts allowing the automatic generation of recipes *def files* and *Dockerfiles* respectively. They also allow the building of the containers.
+
+Options can be passed to these scripts and can be seen the ``geniac/install/nextflow.config.in``. 
+
+These scripts are automatically called during the build step of the project (see :ref:`install-page`), thus you don't have to run them manually.
+
+Boostrap on generic docker
+++++++++++++++++++++++++++
+
+When geniac automatically writes the container recipes, it defines on which docker images to bootstrap. The options :ref:`install-ap_linux_distro` and  :ref:`install-ap_conda_release` make it possible to select on which docker images to boostrap  and on which registry to pull with the option :ref:`install-ap_docker_registry`. By default, docker images are pulled from Docker Hub using |4geniac|_. These options will be set with the file ``install/nextflow.config.in`` file, such that these parameters will be used by nextflow to write the recipes:
+
+::
+
+  dockerCondaRelease
+  dockerLinuxDistro
+  dockerLinuxDistroConda
+  dockerLinuxDistroSdk
+
+Depending on the :ref:`process-guidelines`, the recipe will bootstrap on:
+
+* a linux distro for the :ref:`process-unix` and  the :ref:`process-exec`.
+* a linux distro with conda/mamba command available for the :ref:`process-easy-conda`, :ref:`process-custom-conda` and :ref:`process-renv`
+* a linux distro with development tools (e.g. `gcc`) for the :ref:`process-source-code`
+
+
+For the :ref:`process-custom-install`, the recipes is written manually, therefore the above explanation is not relevant in this case.
+
+The default linux distro and conda/mamba version used by geniac are set in the file ``geniac/cmake/stepSetVariables.cmake``. Whenever the default values are changed, do not forget to update the documentation accordingly such that the content of the :ref:`install-ap_linux_distro` and  :ref:`install-ap_conda_release` options are consistent.
+
+Update the generic docker images
+++++++++++++++++++++++++++++++++
+
+The update on the docker images on Docker Hub is done using the |4geniacgithub|_.
+
+
+Container labels
+++++++++++++++++
+
+In order to track from which repository and version the containers were built, some labels are added in the recipes. Here is an example from a singularity def file:
+
+::
+
+   %labels
+       gitUrl https://github.curie.fr/bioinfo-pf-curie/geniac-demo.git
+       gitCommit 80f6511b453a365be39.5bede6d79f0ce7253d16
+
+The content is extracted using ``geniac/cmake/stepGitInfo.cmake`` file.
+
+Container sha256sum
++++++++++++++++++++
+
+
+Geniac generates ``sha256sum`` to track if the container will change between different versions of the analysis pipeline. Importanly, the ``sha256sum`` is not computing on the container once it is built, but only from its recipes and dependencies. ``sha256sum`` are computed separately for |apptainer|_ and |docker|_. Basically the has is computing:
+
+* for the :ref:`process-unix` and  the :ref:`process-exec` (it corresponds to the *onlyLinux* label):
+  
+  - only the recipe
+
+* for the :ref:`process-easy-conda`:
+
+  - only the recipe file without the labels
+
+* for the :ref:`process-custom-conda`:
+
+  - the recipe file without the labels / comments
+  - the conda yml
+
+* for the :ref:`process-renv`:
+
+  - the recipe file without the labels
+  - the conda yml
+  - the renv.lock
+
+* for the :ref:`process-source-code`:
+
+  - the recipe file without the labels / comments
+  - the source code
+
+* for the :ref:`process-custom-install`
+
+  - the recipes and its depencies if they are some
+
+Geniac generates one ``sha256sum`` for each tool (e.g. ``toolNames.sha256sum``), and all files are concatenated in the file ``sha256sum``.
+
+Any modification of the computing the hash must be done in both the files ``install/nf-modules/local/subworkflow/singularityRecipesWkfl.nf`` and ``install/nf-modules/local/subworkflow/dockerRecipesWkfl.nf``.
+
+
+.. _contribution-push-docker-registry:
+
+Push the analysis pipeline containers on a docker registry
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Generate and install Singularity def files and images. The images are built using the containers avaibable on the registry defined by 
+
+When geniac is used with the options :ref:`install-ap_install_docker_images` and :ref:`install-ap_push_images` options set to ``ON``, the docker images will be pushed in the registry defined in the variable :ref:`install-ap_docker_registry_push_repo`. 
+
+As pushing an image on a docker registry requires a password, it has to be set in your environment using the command ``nextflow secrets set DOCKER_REGISTRY_PUSH_USER your_password``. This variable is used as a secret (to avoid the display of its value) in the netxflow process ``pushDockerImages`` defined in the file ``install/nf-modules/local/process/pushDockerImages.nf``.
+
+The tag of the docker images in the registry is ``toolName:sha256sumValue``. 
+
+
+Build the analysis pipeline containers (sif) from a docker registry
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The possibility to :ref:`contribution-push-docker-registry` makes it possible to build singularity/apptainer `sif` file directly from the docker registry. 
+
+To do so, the variable :ref:`install-ap_docker_registry_push_repo` has to be set to your registry and you have to set the variable ref:`install-ap_install_singularity_images_from_registry` to ``ON``. The process ``buildImagesFromRegistry`` from the file ``install/nf-modules/local/process/singularityImages.nf`` both write the recipe and build the ``sif`` file. For example, if :ref:`install-ap_docker_registry_push_repo` is set to `` myregistry.mydomain``, the definition file will look like this:
+
+
+::
+
+   bootstrap: docker
+   from: myregistry.mydomain/multiqc:76fb93fae02009c660248a016f8f765d6a3cd815a1f22c80840c60908882fd8f
+   
+   %labels
+           gitCommit commit:d13fb05b49321457809b859fcaa22070c29a93d4/devel
+           gitUrl https://gitlab-ci-token:64_Y1AUyD1hDpRifmRTy39_@gitlab.curie.fr/sc-platform/smartseq3.git
+   
+   %environment
+       export R_LIBS_USER="-"
+       export R_PROFILE_USER="-"
+       export R_ENVIRON_USER="-"
+       export PYTHONNOUSERSITE=1
+       export LC_ALL=en_US.utf-8
+       export LANG=en_US.utf-8
+       export PATH=$PATH
+       source /opt/etc/bashrc
+
+
+Source code organization
+========================
+
+.. _contributing-install-folder:
+
+.. mdinclude:: ../install/README.md
+
+.. _contributing-cmake-folder:
+
+.. mdinclude:: ../cmake/README.md
+
+.. _contributing-src-folder:
+
+.. mdinclude:: ../src/README.md
+
+.. _contributing-assets-folder:
+
+.. mdinclude:: ../assets/README.md
 
 Test a new release
 ==================
@@ -245,29 +382,6 @@ Adding ad-hoc environment variables to ensure reproducibility
 See :ref:`contributing-assets-folder`
 
 
-Containers
-==========
-
-Build
------
-
-Inside the :ref:`contributing-install-folder` are located the  *nextflow* scripts allowing the automatic generation of recipes *def files* and *Dockerfiles* respectively. They also allow the building of the containers.
-
-Options can be passed to these scripts and can be seen the ``geniac/install/nextflow.config.in``. 
-
-These scripts are automatically called during the build step of the project (see :ref:`install-page`), thus you don't have to run them manually.
-
-Labels
-------
-
-In order to tack from which repository and version the containers were built, some labels are added in the recipes. Here is an example from a singularity def file:
-
-::
-
-   %labels
-       gitUrl https://github.curie.fr/bioinfo-pf-curie/geniac-demo.git
-       gitCommit 80f6511b453a365be39.5bede6d79f0ce7253d16
-   
 
 Update the documentation
 ========================
