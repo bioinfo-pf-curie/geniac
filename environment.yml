@@ -11,7 +11,6 @@ dependencies:
   - nextflow=24.04.4=hdfd78af_0
   - pip=24.2=pyh8b19718_1
   - python=3.12.5=h2ad013b_0_cpython
-  - wheel=0.44.0=pyhd8ed1ab_0
   - importlib-resources=6.5.2=pyhd8ed1ab_0
   - apptainer=1.4.5=h6ccafba_0
   - cmake=3.30.2=hf8c4bd3_0
