@@ -58,9 +58,17 @@ geniac = "geniac.cli.__main__:main"
 [tool.setuptools]
 zip-safe = false
 include-package-data = true
-
-[tool.setuptools.packages]
-find = { where = ["src"], exclude = ["tests", "docs", "data"] }
+packages = [
+    "geniac",
+    "geniac.assets",
+    "geniac.cli",
+    "geniac.install",
+    "geniac.cmake",
+    "geniac.repo",
+    "geniac.repo.assets",
+    "geniac.repo.cmake",
+    "geniac.repo.install",
+]
 
 # Manual package declarations (non-standard src layout with external dirs)
 # These mirror the package_dir mappings from setup.cfg
