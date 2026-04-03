@@ -1,4 +1,4 @@
-## Content of the install folder
+# Content of the install folder
 
 Geniac launches a nextflow pipeline which generates config files, container recipes and build/push the containers. The nextflow pipeline is in this folder which contains the following files:
 

@@ -2,9 +2,15 @@
 
 .. _contribution-page:
 
-************
+..
+   It is mentioned in the sphinx-mdinclude that:
+   Rst heading marks are currently hard-coded and unchangeable.
+   H1: =, H2: -, H3: ^, H4: ~, H5: &quot;, H6: #
+   This means that when using mdinclude, the doc has to follow this headings definition
+
+
 Contributing
-************
+============
 
 This page is dedicated to both developers and maintainers who contribute to geniac.
 
@@ -16,11 +22,34 @@ The backbone of geniac consists of:
 
 In addition, a geniac Command Line Interface written in python (see :ref:`contributing-src-folder`) intends to simplify the use of geniac for users less familiar with |cmake|_ syntax. 
 
+Source code organization
+------------------------
+
+.. _contributing-install-folder:
+
+.. mdinclude_offset:: ../install/README.md
+   :offset: 2
+
+.. _contributing-cmake-folder:
+
+.. mdinclude_offset:: ../cmake/README.md
+   :offset: 2
+
+.. _contributing-src-folder:
+
+.. mdinclude_offset:: ../src/README.md
+   :offset: 2
+
+.. _contributing-assets-folder:
+
+.. mdinclude_offset:: ../assets/README.md
+   :offset: 2
+
 Develop a new release
-=====================
+---------------------
 
 What part of the code should be modified?
------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You will have to dig into:
 
@@ -49,8 +78,7 @@ You will have to dig into:
   - report new functionnalities implemented in the :ref:`contributing-install-folder` and/or :ref:`contributing-cmake-folder`
 
 How the containers are built?
------------------------------
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Inside the :ref:`contributing-install-folder` are located the  *nextflow* scripts allowing the automatic generation of recipes *def files* and *Dockerfiles* respectively. They also allow the building of the containers.
 
@@ -59,7 +87,7 @@ Options can be passed to these scripts and can be seen the ``geniac/install/next
 These scripts are automatically called during the build step of the project (see :ref:`install-page`), thus you don't have to run them manually.
 
 Boostrap on generic docker
-++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When geniac automatically writes the container recipes, it defines on which docker images to bootstrap. The options :ref:`install-ap_linux_distro` and  :ref:`install-ap_conda_release` make it possible to select on which docker images to boostrap  and on which registry to pull with the option :ref:`install-ap_docker_registry`. By default, docker images are pulled from Docker Hub using |4geniac|_. These options will be set with the file ``install/nextflow.config.in`` file, such that these parameters will be used by nextflow to write the recipes:
 
@@ -82,13 +110,13 @@ For the :ref:`process-custom-install`, the recipes is written manually, therefor
 The default linux distro and conda/mamba version used by geniac are set in the file ``geniac/cmake/stepSetVariables.cmake``. Whenever the default values are changed, do not forget to update the documentation accordingly such that the content of the :ref:`install-ap_linux_distro` and  :ref:`install-ap_conda_release` options are consistent.
 
 Update the generic docker images
-++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The update on the docker images on Docker Hub is done using the |4geniacgithub|_.
 
 
 Container labels
-++++++++++++++++
+~~~~~~~~~~~~~~~~
 
 In order to track from which repository and version the containers were built, some labels are added in the recipes. Here is an example from a singularity def file:
 
@@ -101,8 +129,7 @@ In order to track from which repository and version the containers were built, s
 The content is extracted using ``geniac/cmake/stepGitInfo.cmake`` file.
 
 Container sha256sum
-+++++++++++++++++++
-
+~~~~~~~~~~~~~~~~~~~
 
 Geniac generates ``sha256sum`` to track if the container will change between different versions of the analysis pipeline. Importanly, the ``sha256sum`` is not computing on the container once it is built, but only from its recipes and dependencies. ``sha256sum`` are computed separately for |apptainer|_ and |docker|_. Basically the has is computing:
 
@@ -142,7 +169,7 @@ Any modification of the computing the hash must be done in both the files ``inst
 .. _contribution-push-docker-registry:
 
 Push the analysis pipeline containers on a docker registry
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Generate and install Singularity def files and images. The images are built using the containers avaibable on the registry defined by 
 
@@ -154,7 +181,7 @@ The tag of the docker images in the registry is ``toolName:sha256sumValue``.
 
 
 Build the analysis pipeline containers (sif) from a docker registry
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The possibility to :ref:`contribution-push-docker-registry` makes it possible to build singularity/apptainer `sif` file directly from the docker registry. 
 
@@ -181,30 +208,94 @@ To do so, the variable :ref:`install-ap_docker_registry_push_repo` has to be set
        source /opt/etc/bashrc
 
 
-Source code organization
-========================
+How does the cmake/make steps work?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. _contributing-install-folder:
+This section explain how the |cmake|_ and |make|_ steps work under the hood when installing an analysis pipeline.
 
-.. mdinclude:: ../install/README.md
+Structure of the build directory tree
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _contributing-cmake-folder:
+Among the different files and folders created in the ``build`` directory, we just focus on the ``workDir`` folder that contains the files that are automatically generated by ``geniac``. For example:
 
-.. mdinclude:: ../cmake/README.md
+::
 
-.. _contributing-src-folder:
+   └── workDir
+       └── results
+           ├── conda
+           │   └── environment.yml
+           ├── conf
+           │   ├── apptainer.config
+           │   ├── cluster.config
+           │   ├── conda.config
+           │   ├── docker.config
+           │   ├── multiconda.config
+           │   ├── multipath.config
+           │   ├── path.config
+           │   ├── podman.config
+           │   └── singularity.config
+           └── singularity
+               ├── deffiles
+               │   ├── fastqc.def
+               │   ├── helloWorld.def
+               │   ├── multiqc.def
+               │   ├── onlyLinux.def
+               │   ├── python.def
+               │   └── trickySoftware.def
+               └── images
+                   ├── alpine.sif
+                   ├── fastqc.sif
+                   ├── helloworld.sif
+                   ├── multiqc.sif
+                   ├── onlylinux.sif
+                   ├── python.sif
+                   └── trickysoftware.sif
 
-.. mdinclude:: ../src/README.md
+The |nextflow|_ scripts that are used to generate the ``*.config`` files and containers are also located in the ``workDir`` folder. There are:
 
-.. _contributing-assets-folder:
+* ``docker.nf``: generates the |docker|_ containers and Dockerfiles.
+* ``singularity.nf``: generates the ``*.config`` files, the |singularity|_ images and def files.
+* ``nextflow.config``: is used by the above.
 
-.. mdinclude:: ../assets/README.md
+.. _contributing-preload:
+
+Generate preload cache with default values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The installation of a pipeline can be made using ``cmake -C myfile.cmake`` which :ref:`install-configure-file`. The geniac repository provides the default file ``geniac/data/cmake-init-default.cmake`` with all the options which are available. This section describes how to generate the default file. 
+In order to generate the pre-load script ``geniac/data/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``geniac/cmake/initCmakePreload.sh`` as follows:
+
+::
+
+   # Assume that the variable SRC_DIR is set to the path of the source code of geniac
+   export SRC_DIR="${HOME}/geniac"
+   export WORK_DIR="${HOME}/tmp/"
+
+   # Create the geniac conda environment
+   conda env create -f environment.yml
+
+   # Activate the geniac conda environment, otherwise cmake
+   # would complain about missing dependencies
+   conda activate geniac
+
+   cd ${WORK_DIR}
+   bash ${SRC_DIR}/cmake/initCmakePreload.sh ${SRC_DIR} > ${SRC_DIR}/data/cmake-init-default.cmake
+
+
+How to ensure reproducibility?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Avoid interaction with the user environment during the analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add ad-hoc environment variables to ensure reproducibility as described in :ref:`contributing-assets-folder`.
+
 
 Test a new release
-==================
+------------------
 
 Test geniac CLI
----------------
+^^^^^^^^^^^^^^^
 
 Below, we assume that:
 
@@ -265,7 +356,7 @@ Test the geniac CLI:
  
 
 Non-regression tests
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Perform the following tests when developing a new geniac version:
 
@@ -290,7 +381,7 @@ Perform the following tests when developing a new geniac version:
 
 
 Checklist for a new release
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * A new nextflow profile has been added:
 
@@ -309,82 +400,11 @@ Checklist for a new release
   - For example, the miniforge version ``25.11.0-1`` must be used. Change the value ``ap_conda_release`` in the file ``cmake/stepSetVariables.cmake``
 
 
-Structure of the build directory tree
-=====================================
-
-Among the different files and folders created in the ``build`` directory, we just focus on the ``workDir`` folder that contains the files that are automatically generated by ``geniac``. For example:
-
-::
-
-   └── workDir
-       └── results
-           ├── conda
-           │   └── environment.yml
-           ├── conf
-           │   ├── cluster.config
-           │   ├── conda.config
-           │   ├── docker.config
-           │   ├── multiconda.config
-           │   ├── multipath.config
-           │   ├── path.config
-           │   └── singularity.config
-           └── singularity
-               ├── deffiles
-               │   ├── fastqc.def
-               │   ├── helloWorld.def
-               │   ├── multiqc.def
-               │   ├── onlyLinux.def
-               │   ├── python.def
-               │   └── trickySoftware.def
-               └── images
-                   ├── alpine.sif
-                   ├── fastqc.sif
-                   ├── helloworld.sif
-                   ├── multiqc.sif
-                   ├── onlylinux.sif
-                   ├── python.sif
-                   └── trickysoftware.sif
-
-The |nextflow|_ scripts that are used to generate the ``*.config`` files and containers are also located in the ``workDir`` folder. There are:
-
-* ``docker.nf``: generates the |docker|_ containers and Dockerfiles.
-* ``singularity.nf``: generates the ``*.config`` files, the |singularity|_ images and def files.
-* ``nextflow.config``: is used by the above.
-
-.. _contributing-preload:
-
-Generate preload cache with default values
-==========================================
-
-The installation of a pipeline can be made using ``cmake -C myfile.cmake`` which :ref:`install-configure-file`. The geniac repository provides the default file ``geniac/data/cmake-init-default.cmake`` with all the options which are available. This section describes how to generate the default file. 
-In order to generate the pre-load script ``geniac/data/cmake-init-default.cmake`` to populate the *cmake* cache, use the ``geniac/cmake/initCmakePreload.sh`` as follows:
-
-::
-
-   # Assume that the variable SRC_DIR is set to the path of the source code of geniac
-   export SRC_DIR="${HOME}/geniac"
-   export WORK_DIR="${HOME}/tmp/"
-
-   # Create the geniac conda environment
-   conda env create -f environment.yml
-
-   # Activate the geniac conda environment, otherwise cmake
-   # would complain about missing dependencies
-   conda activate geniac
-
-   cd ${WORK_DIR}
-   bash ${SRC_DIR}/cmake/initCmakePreload.sh ${SRC_DIR} > ${SRC_DIR}/data/cmake-init-default.cmake
-
-
-Adding ad-hoc environment variables to ensure reproducibility
-=============================================================
-
-See :ref:`contributing-assets-folder`
-
-
+.. mdinclude_offset:: ../utils/README.md
+   :offset: 1
 
 Update the documentation
-========================
+------------------------
 
 Whenever required, update the documentation and build it locally to check the content:
 

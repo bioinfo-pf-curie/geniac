@@ -1,4 +1,4 @@
-## Content of the src folder
+# Content of the src folder
 
 Geniac comes with a command line interface (CLI) including:
 

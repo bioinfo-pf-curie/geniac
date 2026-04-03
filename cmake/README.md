@@ -1,4 +1,4 @@
-## Content of the cmake folder
+# Content of the cmake folder
 
 Geniac provides a utility to configure and install nextflow pipeline using `cmake`. The main `CMakeLists.txt` used by geniac to install a pipeline is located at the root directory of the geniac source repository. The `cmake` folder contains additional `cmake` scripts which are used by the main script. Among the `cmake` files there are:
 

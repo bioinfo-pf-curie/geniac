@@ -1,4 +1,4 @@
-## Content of the assets folder
+# Content of the assets folder
 
 Even using containers, some software may access the ``$HOME`` directory of the user and preferentially load libraries which has been previsously been installed by the user. This is the case with python or R. This behaviour hampers the reproducibility. Therefore, ad-hoc environment variables which are specific for each software have to be set in order to avoid this behaviour. These variables must be defined in the Dockerfile or definition files. If addtional variable must be set, they must be added in these two files:
 
