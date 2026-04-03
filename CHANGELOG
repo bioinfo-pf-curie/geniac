@@ -1,6 +1,6 @@
 
 NEW FEATURES
-  - Nextflow code refactoring using workfloas #352
+  - Nextflow code refactoring using workflows #352
   - Ad-hoc variable to ensure reproducibility set in both assets/Dockerfile.env and assets/def.env #350
   - Push docker/podman container on a registry:
     * Add new cmake options 'ap_docker_registry_push_repo' and 'ap_docker_registry_push_user' #351
