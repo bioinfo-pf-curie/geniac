@@ -14,6 +14,7 @@ NEW FEATURES
   - Geniac CLI:
     * Check conda yml format in sections dependencies and pip #368
     * Check conda format in geniac.config #368
+  - Merge setup.cfg (setuptools) and pyproject.toml for python packages #364
 
 BUGFIX
   - Get env name from yml conda file #353
