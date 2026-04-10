@@ -207,6 +207,13 @@ To do so, the variable :ref:`install-ap_docker_registry_push_repo` has to be set
        export PATH=$PATH
        source /opt/etc/bashrc
 
+Architecture and cmake options of the docker registries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We described in the architecture below are the different docker registries are used to build the sif images depending on the cmake option.
+
+.. image:: images/geniac-container-archi.png
+    :align: center
 
 How does the cmake/make steps work?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
