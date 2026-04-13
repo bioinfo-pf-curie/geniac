@@ -131,7 +131,7 @@ The content is extracted using ``geniac/cmake/stepGitInfo.cmake`` file.
 Container sha256sum
 ~~~~~~~~~~~~~~~~~~~
 
-Geniac generates ``sha256sum`` to track if the container will change between different versions of the analysis pipeline. Importanly, the ``sha256sum`` is not computing on the container once it is built, but only from its recipes and dependencies. ``sha256sum`` are computed separately for |apptainer|_ and |docker|_. Basically the has is computing:
+Geniac generates ``sha256sum`` to track if the container will change between different versions of the analysis pipeline. Importanly, the ``sha256sum`` is not computing on the container once it is built, but only from its recipes and dependencies. ``sha256sum`` are computed separately for |apptainer|_ and |docker|_. Basically it is computing using the following information:
 
 * for the :ref:`process-unix` and  the :ref:`process-exec` (it corresponds to the *onlyLinux* label):
   
@@ -210,7 +210,10 @@ To do so, the variable :ref:`install-ap_docker_registry_push_repo` has to be set
 Architecture and cmake options of the docker registries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We described in the architecture below are the different docker registries are used to build the sif images depending on the cmake option.
+The picture below describes how the different docker registries are related and used to build the sif images depending on the cmake options passed during the :ref:`install-configure` step.
+
+
+The ``{linuxDistro}`` and ``{condaVersion}`` are set by the :ref:`install-ap_linux_distro` and :ref:`install-ap_conda_release` options. They are used within the the ``install/nextflow.config.in`` file. 
 
 .. image:: images/geniac-container-archi.png
     :align: center
