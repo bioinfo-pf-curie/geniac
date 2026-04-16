@@ -15,7 +15,9 @@ NEW FEATURES
     * Check conda yml format in sections dependencies and pip #368
     * Check conda format in geniac.config #368
   - Merge setup.cfg (setuptools) and pyproject.toml for python packages #364
-
+  - almalinux:9.7 set as default for the containers #361
+  - conda 26.1.1-3 from miniforge set as default for the containers #361
+    
 BUGFIX
   - Get env name from yml conda file #353
   - Update valid git tag pattern to handle production versions like v12.23.34 #359
