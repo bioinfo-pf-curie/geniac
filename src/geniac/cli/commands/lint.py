@@ -735,9 +735,6 @@ class GeniacLint(GeniacCommand):
         Returns:
             labels_process (list): list of process labels in params.process with withName
         """
-        # Check parameters according to their default values
-        config.check_config_scope("process")
-
         # For each process used with withName selector, check their existence in the
         # workflow
         for config_process in config.get("process", OrderedDict()).get(
