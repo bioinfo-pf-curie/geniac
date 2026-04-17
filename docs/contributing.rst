@@ -213,7 +213,7 @@ Architecture and cmake options of the docker registries
 The picture below describes how the different docker registries are related and used to build the sif images depending on the cmake options passed during the :ref:`install-configure` step.
 
 
-The ``{linuxDistro}`` and ``{condaVersion}`` are set by the :ref:`install-ap_linux_distro` and :ref:`install-ap_conda_release` options. They are used within the the ``install/nextflow.config.in`` file. 
+The ``{linuxDistro}`` and ``{condaRelease}`` are set by the :ref:`install-ap_linux_distro` and :ref:`install-ap_conda_release` options. They are used within the the ``install/nextflow.config.in`` file. 
 
 .. image:: images/geniac-container-archi.png
     :align: center
