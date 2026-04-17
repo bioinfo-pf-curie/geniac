@@ -19,7 +19,8 @@ NEW FEATURES
     * Python packaging:
       - Merge setup.cfg (setuptools) and pyproject.toml for python packages #364
       - Transfer cmake dependency from setup.cfg to conda env #364 
-    
+    * Remove all Nextflow options from the geniac.ini file #369         
+    * Remove the checks in the linter relating to process scope options #369
 BUGFIX
   - Get env name from yml conda file #353
   - Update valid git tag pattern to handle production versions like v12.23.34 #359
