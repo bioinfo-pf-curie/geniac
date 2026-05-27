@@ -8,6 +8,7 @@ import logging
 import os
 import re
 import sys
+import importlib_resources
 from abc import ABC
 from configparser import ConfigParser, ExtendedInterpolation
 from distutils.dir_util import copy_tree
@@ -26,7 +27,7 @@ from git import Repo
 
 # TODO: use importlib.resources in the future
 # https://importlib-resources.readthedocs.io/en/latest/migration.html#pkg-resources-resource-filename
-from pkg_resources import resource_filename, resource_stream
+# from pkg_resources import resource_filename, resource_stream
 
 from geniac.cli.utils.logging import LogMixin
 from geniac import __version__
@@ -257,7 +258,12 @@ class GeniacBase(ABC, LogMixin):
         self.src_path = src_path
 
         # Init and load config files
-        self.default_config_file = Path(resource_filename(*self.DEFAULT_CONFIG))
+        # self.default_config_file = Path(resource_filename(*self.DEFAULT_CONFIG))
+
+        # BUGFIX (qduvert): 20260218 ; useless?
+        # ref = importlib_resources.files(self.DEFAULT_CONFIG[0]) / self.DEFAULT_CONFIG[1]
+        # self.default_config_file = importlib_resources.as_file(ref)
+
         self.config_file = Path(config_file) if config_file else None
         self.default_config = self._load_config(config_file=self.config_file)
         self._update_default_config(**kwargs)
@@ -301,7 +307,9 @@ class GeniacBase(ABC, LogMixin):
 
         # Read default config file
         config.optionxform = str
-        config.read_string(resource_stream(*self.DEFAULT_CONFIG).read().decode())
+        # config.read_string(resource_stream(*self.DEFAULT_CONFIG).read().decode())
+        with importlib_resources.files(self.DEFAULT_CONFIG[0]).joinpath(self.DEFAULT_CONFIG[1]).open("rb") as fp:
+            config.read_string(fp.read().decode())
         if config_file:
             # Read configuration file
             config.read(config_file)

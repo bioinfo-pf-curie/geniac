@@ -20,131 +20,15 @@ their requirements in conditions enabling the security of their systems and/or d
 The fact that you are presently reading this means that you have had knowledge
 of the license and that you accept its terms.
 
+/*
+==================================
+           INCLUDE
+==================================
 */
 
-nextflow.enable.dsl=2
-
-/********************
- * CUSTOM FUNCTIONS *
- ********************/
-
-def addYumAndGitAndCmdConfs(List input) {
-  List<String> gitList = []
-  LinkedHashMap gitConf = params.geniac.containers?.git ?: [:]
-  LinkedHashMap yumConf = params.geniac.containers?.yum ?: [:]
-  LinkedHashMap cmdPostConf = params.geniac.containers?.cmd?.post ?: [:]
-  LinkedHashMap cmdEnvConf = params.geniac.containers?.cmd?.envCustom ?: [:]
-  (gitConf[input[0]] ?:'')
-    .split()
-    .each{ gitList.add(it.split('::')) }
-
-  List result = new ArrayList<>(input)
-  result.add(yumConf[input[0]])
-  result.add(gitList)
-  result.add(cmdPostConf[input[0]])
-  result.add(cmdEnvConf[input[0]])
-  return result
-}
-
-String buildCplmtGit(def gitEntries) {
-  String cplmtGit = ''
-  for (String[] tab : gitEntries) {
-    cplmtGit += """ \\\\
-    && mkdir /opt/\$(basename ${tab[0]} .git) && cd /opt/\$(basename ${tab[0]} .git) && git clone ${tab[0]} . && git checkout ${tab[1]}"""
-  }
-
-  return cplmtGit
-
-}
-
-String buildCplmtPath(List gitEntries) {
-  String cplmtPath = ''
-  for (String[] tab : gitEntries) {
-    cplmtPath += "/opt/\$(basename ${tab[0]} .git):"
-  }
-
-  return cplmtPath
-}
-
-
-/*****************
- * CHANNELS INIT *
- *****************/
-
-// Channel with conda env info form geniac.config
-Channel
-  .from(params.geniac.tools)
-  .flatMap {
-    List<String> result = []
-    for (Map.Entry<String, String> entry : it.entrySet()) {
-      if (entry.value instanceof String || entry.value instanceof GString) {
-        List<String> tab = entry.value.split()
-        for (String s : tab) {
-          result.add([entry.key, s.split('::')])
-        }
-
-        if (tab.size == 0) {
-          result.add([entry.key, null])
-        }
-      } else {
-        result.add([entry.key, entry.value])
-      }
-    }
-
-    return result
-  }.branch {
-    condaExistingEnvsCh:
-      (it[1] && it[1] instanceof Map)
-      return [it[0], 'ENV']
-    condaFilesCh:
-      (it[1] && it[1][0].endsWith('.yml'))
-      return [it[0], file(it[1][0])]
-    condaPackagesCh: true
-      return it
-  }.set{ condaForks }
-
-(condaExistingEnvsCh, condaFilesCh, condaPackagesCh) = [condaForks.condaExistingEnvsCh, condaForks.condaFilesCh, condaForks.condaPackagesCh]
-
-// Channel for Renv environment
-condaExistingEnvsCh
-  .filter {  it[0] =~/^renv.*/ }
-  .set { condaFiles4Renv }
-
-// DOCKER RECIPES
-Channel
-  .fromPath("${projectDir}/recipes/docker/*.Dockerfile")
-  .map{ [it.simpleName, it] }
-  .set{ dockerRecipesCh }
-
-// CONDA RECIPES
-Channel
-  .fromPath("${projectDir}/recipes/conda/*.yml")
-  .map{ [it.simpleName, it] }
-  .set{ condaRecipesCh }
-
-// DEPENDENCIES
-Channel
-  .fromPath("${projectDir}/recipes/dependencies/*", type: 'dir')
-  .map{ [it.name, it] }
-  .ifEmpty(['NO_DEPENDENCIES', file('NO_DEPENDENCIES')])
-  .set{ fileDependenciesCh }
-
-// SOURCE CODE
-Channel
-  .fromPath("${projectDir}/modules/fromSource/*", type: 'dir')
-  .map{ [it.name, it] }
-  .set{ sourceCodeCh }
-
-// CONTAINER LIST
-if(params.containerList != null) {
-
-  Channel
-    .fromPath(params.containerList)
-    .splitCsv()
-    .set{ containerListCh }
-
-}
-
+include { buildCplmtGit } from '../../../lib/functions'
+include { buildCplmtPath } from '../../../lib/functions'
+include { addYumAndGitAndCmdConfs } from '../../../lib/functions'
 
 /*************
  * PROCESSES *
@@ -178,18 +62,14 @@ process buildDefaultDockerRecipe {
     """
     # write recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistro}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistro}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
     
     # compute hash digest of the recipe using:
     #   - only the recipe
@@ -217,7 +97,7 @@ process buildDockerRecipeFromCondaPackages {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -248,18 +128,17 @@ process buildDockerRecipeFromCondaPackages {
     """
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
@@ -298,7 +177,7 @@ process buildDockerRecipeFromCondaFile {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -315,22 +194,23 @@ process buildDockerRecipeFromCondaFile {
     }
 
     """
-    declare env_name=\$(head -1 ${condaFile} | cut -d' ' -f2)
+
+    # BUGFIX #353
+    declare env_name=\$(grep -oP ' *name *: *\\K(.[^ ]*)' ${condaFile})
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     ENV BASH_ENV /opt/etc/bashrc
     ${cplmtCmdEnv}
 
@@ -376,7 +256,7 @@ process buildDockerRecipeFromCondaFile4Renv {
   script:
     def renvYml = params.geniac.tools.get(key).get('yml')
     def bioc = params.geniac.tools.get(key).get('bioc')
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -397,18 +277,17 @@ process buildDockerRecipeFromCondaFile4Renv {
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroConda}
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroConda}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH ${cplmtPath}\\\$PATH
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
     ENV BASH_ENV /opt/etc/bashrc
     ENV PKG_CONFIG_PATH /usr/local/lib/pkgconfig
     ENV PKG_LIBS -liconv
@@ -469,7 +348,7 @@ process buildDockerRecipeFromSourceCode {
     tuple val(key), path("${key}.sha256sum"), emit: sha256sum
 
   script:
-    def cplmtGit = buildCplmtGit(git)
+    def cplmtGit = buildCplmtGit(git, '')
     def cplmtPath = buildCplmtPath(git)
     if ("${cplmtPath}".length()> 0 ) {
       cplmtPath += ":"
@@ -492,7 +371,7 @@ process buildDockerRecipeFromSourceCode {
 
     # write the recipe
     cat << EOF > ${key}.Dockerfile
-    FROM ${params.dockerRegistry}${params.dockerLinuxDistroSdk} AS devel
+    FROM ${params.dockerRegistryPullRepo}${params.dockerLinuxDistroSdk} AS devel
 
     RUN mkdir -p /opt/modules
 
@@ -503,7 +382,7 @@ process buildDockerRecipeFromSourceCode {
     && cmake3 ../${key} -DCMAKE_INSTALL_PREFIX=/usr/local/bin/${key} \\\\
     && make && make install ${cplmtCmdPost}
 
-    FROM ${params.dockerRegistry}\${image_name}
+    FROM ${params.dockerRegistryPullRepo}\${image_name}
 
     LABEL gitUrl="${params.gitUrl}"
     LABEL gitCommit="${params.gitCommit}"
@@ -512,12 +391,11 @@ process buildDockerRecipeFromSourceCode {
 
     RUN ${cplmtYum}${params.yum} install ${params.yumOptions} -y glibc-devel libstdc++-devel
 
-    ENV R_LIBS_USER "-"
-    ENV R_PROFILE_USER "-"
-    ENV R_ENVIRON_USER "-"
-    ENV PYTHONNOUSERSITE 1
-    ENV LC_ALL en_US.utf-8
-    ENV LANG en_US.utf-8
+    EOF
+
+    cat ${projectDir}/assets/Dockerfile.env >> ${key}.Dockerfile
+
+    cat << EOF >> ${key}.Dockerfile
     ENV PATH /usr/local/bin/${key}:${cplmtPath}\\\$PATH
     ${cplmtCmdEnv}
 
@@ -531,55 +409,6 @@ process buildDockerRecipeFromSourceCode {
     cat ${key}.tar ${key}-nolabels.def | sha256sum | awk '{print \$1}' | sed -e 's/\$/ ${key}/g' > ${key}.sha256sum
     """
 }
-
-/////////////////////////////
-// STEP - BUILD CONTAINERS //
-/////////////////////////////
-
-// This process creates the containers for all the tools
-process buildImages {
-  maxForks 1
-  tag "${key}"
-  // publishDir "${projectDir}/${params.publishDirDockerImages}", overwrite: true, mode: 'copy'
-
-  when:
-    params.buildDockerImages
-
-  input:
-    tuple val(key), file(dockerRecipe), file(fileDepDir), file(condaRecipe), file(sourceCodeDir) // from dockerAllRecipe4buildImagesCh
-    //  .join(fileDependencies, remainder: true)
-    //  .join(condaRecipes, remainder: true)
-    //  .join(sourceCodeCh4, remainder: true)
-    //  .filter{ it[1] }
-
-
-  script:
-    String contextDir
-    if (key ==~ /^renv.*/ ) {
-      contextDir = "${projectDir}/recipes"
-    } else
-    if (fileDepDir.name.toString() == key) {
-      contextDir = "${projectDir}/recipes/dependencies"
-    } else
-    if (condaRecipe.name.toString().replace('.yml', '') == key) {
-        contextDir = "${projectDir}/recipes/conda"
-    } else
-    if (sourceCodeDir.name.toString() == key) {
-        contextDir = "${projectDir}/modules/fromSource"
-    } else {
-      contextDir = "."
-    }
-    """
-    ${params.dockerCmd} build  -f ${dockerRecipe} -t ${key.toLowerCase()} ${contextDir}
-    """
-
-  stub:
-    """
-    echo "build docker image for the tool ${key}"
-    """
-  
-}
-
 
 /******************
  * SHA256SUM file *
@@ -626,7 +455,18 @@ process sha256sumFile {
     """
 }
 
-workflow {
+workflow dockerRecipes {
+
+  take:
+
+  condaFilesCh
+  condaFiles4Renv
+  condaPackagesCh
+  dockerRecipesCh
+  fileDependenciesCh
+  sourceCodeCh
+  containerListCh
+
   main:
 
   ///////////////////////////
@@ -687,6 +527,10 @@ workflow {
       )
   )
 
+  // sha256sumCh contains
+  // tuple val(key), file(sha256sum)
+  // Example:
+  // [alpine, /path/to/alpine.sha256sum]
   buildDockerRecipeFromCondaFile4Renv.out.sha256sum
     .concat(buildDockerRecipeFromSourceCode.out.sha256sum)
     .concat(buildDockerRecipeFromCondaPackages.out.sha256sum)
@@ -695,22 +539,34 @@ workflow {
     .concat(sha256sumManualRecipes.out.sha256sum)
     .set{ sha256sumCh }
 
-  // Select the list of tools if containerList has been provided
+  // Select the list of tools if containerList has been provided.
+  // containerList is a file which contains a subset of labels
+  // for which to build the container (useful when we don't want
+  // to build all the containers of the pipeline
   if (params.containerList != null) {
     sha256sumCh
       .join(containerListCh)
       .set{ sha256sumCh }
   }
 
+  // Create a single sha256sum file with all the key and sha256sum value
   sha256sumFile(
     sha256sumCh
       .map{ it[1] }
       .collect()
   )
 
-  /////////////////////////////
-  // STEP - BUILD CONTAINERS //
-  /////////////////////////////
+  // sha256sumValCh contains:
+  // tuple val(key), val(sha256sumVal)
+  // Example:
+  // [alpine, 4ddadc38f843082008fb00a3ba36232cbf5f9c71457a5afe63fabbaac7862a86]
+	sha256sumCh
+    .map{
+      sha256sumFile = it[1]
+	 	  sha256 = sha256sumFile.text.split(' ')[0]
+      tuple(it[0], sha256)
+    }
+    .set{ sha256sumValCh}
 
   // Create a channel with all the container recipes
   buildDockerRecipeFromCondaFile4Renv.out.dockerRecipes
@@ -719,42 +575,12 @@ workflow {
     .concat(buildDockerRecipeFromCondaFile.out.dockerRecipes)
     .concat(buildDefaultDockerRecipe.out.dockerRecipes)
     .concat(dockerRecipesCh)
-    // je pense que les deux lignes de dessous ne servent à rien
-    //.groupTuple()
-    //.map{ key, tab -> [key, tab[0]] }
     .set { dockerAllRecipes }
 
-  // Select the list of tools if containerList has been provided
-  if (params.containerList != null) {
-    dockerAllRecipes
-      .join(containerListCh)
-      .set{ dockerAllRecipes }
-  }
+  emit:
 
-  // Create all the containers
-  buildImages(
-    dockerAllRecipes
-      .join(fileDependenciesCh, remainder: true)
-      .join(condaRecipesCh, remainder: true)
-      .join(sourceCodeCh, remainder: true)
-      .filter{ it[1] }
-  )
-
-}
-
-workflow.onComplete {
-  Map endSummary = [:]
-  endSummary['Completed on'] = workflow.complete
-  endSummary['Duration']     = workflow.duration
-  endSummary['Success']      = workflow.success
-  endSummary['exit status']  = workflow.exitStatus
-  endSummary['Error report'] = workflow.errorReport ?: '-'
-  endSummary['Distro Linux'] = "${params.dockerLinuxDistro}"
-  endSummary['Distro Linux / Conda'] ="${params.dockerLinuxDistroConda}"
-  endSummary['Docker registry'] = "${params.dockerRegistry}"
-  endSummary['Cluster executor'] = "${params.clusterExecutor}"
-  String endWfSummary = endSummary.collect { k,v -> "${k.padRight(30, '.')}: $v" }.join("\n")
-  println endWfSummary
+  dockerAllRecipes
+  sha256sumValCh
 
 }
 

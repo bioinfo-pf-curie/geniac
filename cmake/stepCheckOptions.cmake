@@ -43,6 +43,26 @@ if(ap_install_singularity_images)
 
 endif()
 
+if(ap_install_singularity_images AND ap_install_singularity_images_from_registry)
+    message_color(
+        FATAL_ERROR
+				"Choise either ap_install_singularity_images or ap_install_singularity_images_from_registry, but not both at the same time 
+  or ap_install_singularity_recipes set to ON ")
+endif()
+
+if(ap_install_singularity_images_from_registry AND NOT ap_install_singularity_recipes)
+    message_color(
+			FATAL_ERROR "In order to build the singularity images fom a registry, you must also enable the option -Dap_install_singularity_recipes. This is necessary to obtain the list of all the containers and their recipes."
+  )
+endif()
+
+if(ap_install_singularity_images_from_registry)
+	if(NOT ap_install_docker_recipes AND NOT ap_install_podman_recipes)
+    message_color(
+			FATAL_ERROR "In order to build the singularity images fom a registry, you must also enable the option -Dap_install_docker_recipes or -Dap_install_podman_recipes. This is necessary to obtain the list of all the sha256sum which is the tag on the registry." )
+	endif()
+endif()
+
 if(ap_install_docker_images)
 
     if(NOT NEXTFLOW_FOUND OR NOT DOCKER_FOUND)
@@ -83,13 +103,28 @@ if(ap_install_podman_images)
 
 endif()
 
+if(ap_push_images)
+	  if(NOT ap_install_docker_images AND NOT ap_install_podman_images)
+        message_color(FATAL_ERROR
+					"ap_push_images is set to ON but both ap_install_docker_images and ap_install_podman_images are set to OFF. You must set to ON either ap_install_docker_images or ap_install_podman_images usch that you can first build the images and push them on a registry.")
+	  endif()
+
+		if(ap_docker_registry_push_repo STREQUAL "")
+        message_color(FATAL_ERROR
+					"ap_push_images is set to ON but no registry has been provided. You must set ap_docker_registry_push_repo with the name of your registry.")
+		endif()
+    # The option below will be pass to nextflow
+		set(push_images_nfx "true")
+else()
+		set(push_images_nfx "false")
+endif()
 
 if(NOT "${ap_singularity_image_path}" STREQUAL "")
 
     set(ap_use_singularity_image_link ON)
     if(NOT IS_ABSOLUTE ${ap_singularity_image_path})
         message_color(FATAL_ERROR
-                      "ap_singularity_image_path must be an absolute path.\n\tThe current value is invalid: \n\t'${ap_singularity_image_path}'. \n\tProvide a valid path with -Dap_singularity_image_path option")
+                      "ap_singularity_image_path must be an absolute path.\n\tThe current value is invalid: \n\t${ap_singularity_image_path}. \n\tProvide a valid path with -Dap_singularity_image_path option")
     endif()
 
     if(IS_DIRECTORY ${ap_singularity_image_path})
@@ -129,7 +164,7 @@ if(NOT "${ap_annotation_path}" STREQUAL "")
     if(NOT IS_ABSOLUTE ${ap_annotation_path})
         message_color(
             FATAL_ERROR
-            "ap_annotation_path must be an absolute path. \n\tThe current value is invalid: \n\t'${ap_annotation_path}'. \n\tProvide a valid path with -Dap_annotation_path option"
+            "ap_annotation_path must be an absolute path. \n\tThe current value is invalid: \n\t${ap_annotation_path}. \n\tProvide a valid path with -Dap_annotation_path option"
         )
     endif()
 
@@ -154,35 +189,67 @@ endif()
 
 if(NOT "${ap_docker_registry}" STREQUAL "")
   if(NOT "${ap_docker_registry}" MATCHES ".*/")
-    message_color(ERROR "ap_docker_registry '${ap_docker_registry}' must end with '/'")
+    message_color(ERROR "ap_docker_registry ${ap_docker_registry_pull} must end with '/'")
+  endif()
+endif()
+
+if(NOT "${ap_docker_registry_pull_repo}" STREQUAL "")
+  if(NOT "${ap_docker_registry_pull_repo}" MATCHES ".*/")
+    message_color(ERROR "ap_docker_registry_pull_repo ${ap_docker_registry_pull_repo} must end with '/'")
   endif()
 endif()
   
 if(NOT "${ap_linux_distro}" MATCHES ".*:.*")
-  message_color(ERROR "ap_linux_distro '${ap_linux_distro}' must be formatted like 'distro:version' (e.g. almalinux:9.5).")
+  message_color(ERROR "ap_linux_distro ${ap_linux_distro} must be formatted like 'distro:version' (e.g. almalinux:9.5).")
 endif()
 
 if(NOT "${ap_container_list}" STREQUAL "")
   if(NOT IS_ABSOLUTE ${ap_container_list})
     message_color(
         FATAL_ERROR
-        "ap_container_list must be an absolute path. \n\tThe current value is invalid: \n\t'${ap_container_list}'. \n\tProvide a valid path with -Dap_container_list"
+        "ap_container_list must be an absolute path. \n\tThe current value is invalid: \n\t${ap_container_list}. \n\tProvide a valid path with -Dap_container_list"
     )
   else()
     if(IS_DIRECTORY ${ap_container_list})
       message_color(
           FATAL_ERROR
-          "ap_container_list must be a file. \n\tThe current value is invalid: \n\t'${ap_container_list}'."
+          "ap_container_list must be a file. \n\tThe current value is invalid: \n\t${ap_container_list}."
       )
     else()
       if(NOT EXISTS ${ap_container_list})
         message_color(
             FATAL_ERROR
-            "ap_container_list does no exist. \n\tThe current value is invalid: \n\t'${ap_container_list}'. \n\tProvide a valid path with -Dap_container_list"
+            "ap_container_list does no exist. \n\tThe current value is invalid: \n\t${ap_container_list}. \n\tProvide a valid path with -Dap_container_list"
         )
       endif()
     endif()
   endif()
-  # A list (sep is semi-colon is needed here to be firther expanded in the add_custom_command)
+  # A list (sep is semi-colon is needed here to be further expanded in the add_custom_command)
+  # The option below will be pass to nextflow
   set(ap_container_list "--containerList;${ap_container_list}")
+endif()
+
+### Chech whether we have to use a docker registry or a podman registry
+### to build the singularity images from a registry
+if (ap_install_podman_recipes)
+	set(docker_cmd_nfx "--dockerCmd;podman")
+endif()
+if (ap_install_docker_recipes)
+	set(docker_cmd_nfx "--dockerCmd;docker")
+endif()
+
+### Allow the usage of the stub-run mode with nextflow
+if(test_stub_run)
+	set(test_stub_run "-stub-run")
+else()
+	set(test_stub_run "")
+endif()
+
+### Set option to build singularity images
+if(ap_install_singularity_images AND NOT ap_install_singularity_images_from_registry)
+	set(install_singularity_images_nfx "--buildSingularityImages;true;--buildSingularityRecipes;true")
+endif()
+
+if(ap_install_singularity_images_from_registry AND NOT ap_install_singularity_images)
+	set(install_singularity_images_nfx "--buildSingularityImagesFromRegistry;true;--buildSingularityRecipes;true;--buildDockerRecipes;true;${docker_cmd_nfx}")
 endif()
