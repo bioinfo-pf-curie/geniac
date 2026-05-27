@@ -27,14 +27,19 @@ params {
   // options to generate the conf/*.config files
   buildConfigFiles = false
 
+  // options to generate the containers recipes
+  buildSingularityRecipes = false
+  buildDockerRecipes = false
+
   // option to build the container images
-  // leave all the default options to false
+  // set all the default options to false
   buildSingularityImages = false
+  buildSingularityImagesFromRegistry = false
   buildDockerImages = false
-  buildPodmanImages = false
   dockerCmd = 'docker'
   singularityBuildOptions = '@singularity_build_options@'
   containerList = null
+  pushDockerImages = false
 
   // option for the cluster executor
   clusterExecutor = 'pbs'
@@ -50,7 +55,6 @@ params {
   gitUrl = 'unknown'
   gitCommit = 'unknown'
 
-
   // docker containers from 4geniac docker hub repository
   dockerCondaRelease = '@conda_release@'
   dockerLinuxDistro = '@linux_distro@'
@@ -60,8 +64,19 @@ params {
   // avoid the use of the conda defaults channel to avoid license issue
   condaNoDefaultsChannel = true
 
-  // docker registry
-  dockerRegistry = '@docker_registry@'
+  //////////////////////////////////////////////
+  // Options for docker and podman registries //
+  //////////////////////////////////////////////
+
+  // docker registry used to pull images
+  // used in either FROM (for docker) or Bootstrap (apptainer) directives
+  dockerRegistryPullRepo = '@docker_registry@'
+
+  // docker registry used to push images
+  dockerRegistryPushRepo = '@docker_registry_push_repo@'
+  dockerRegistryPushUser = '@docker_registry_push_user@'
+  // Note that the registry password is set through
+  // the nextflow secret variable DOCKER_REGISTRY_PUSH_PASSWORD
 
   // package manager for the Linux Distro
   yum = 'dnf'

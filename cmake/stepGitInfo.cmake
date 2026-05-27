@@ -24,14 +24,14 @@
 # ##############################################################################
 
 # This script retrieves information about the git repository.
-# It will detect if the current version is in developement
+# It will detect if the current version is in development
 # or a production release provided that. This will work only if
 # the production version is tag with the prefix "version-".
 #  /!\  Do not use this prefix is this is not a production version /!\ 
 
 
 
-if(GIT_FOUND)
+if(GIT_FOUND AND NOT ap_no_git)
 
     # test if the source directory is a git repository
     execute_process(
@@ -66,11 +66,12 @@ if(GIT_FOUND)
 
     string(REGEX REPLACE ".*/" "" git_repo_name ${git_url})
     string(REGEX REPLACE ".git$" "" git_repo_name ${git_repo_name})
+    string(REGEX REPLACE "gitlab-ci-token:.*@" "" git_url ${git_url})
 
     message(STATUS "GIT repository name: ${git_repo_name}")
 
     execute_process(
-        COMMAND bash "-c" "${GIT_EXECUTABLE} describe --tags --match 'version-[0-9].[0-9].[0-9]' --match 'v[0-9].[0-9].[0-9]' --exact-match ${git_commit}"
+        COMMAND bash "-c" "${GIT_EXECUTABLE} describe --tags --match 'version-[0-9]*\.[0-9]*\.[0-9]*' --match 'v[0-9]*\.[0-9]*\.[0-9]*' --exact-match ${git_commit}"
         WORKING_DIRECTORY "${pipeline_source_dir}"
         OUTPUT_VARIABLE _has_production_tag
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -92,8 +93,14 @@ if(GIT_FOUND)
         set(git_commit "tag:${_has_production_tag}-commit:${git_commit}") # do not change this, the variable must contain "devel"
     endif()
 
-else()
+elseif(ap_no_git)
+    set(git_url "__no_git_url__")
+    set(git_repo_name "__no_git_name__")
+    set(git_commit "__no_git_commit__")
+
+else() # means: !ap_no_git AND !GIT_FOUND
     message_color(FATAL_ERROR "GIT not found")
+
 endif()
 
 # fill the files with the git information

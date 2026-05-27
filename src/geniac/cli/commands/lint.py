@@ -27,15 +27,15 @@ class GeniacLint(GeniacCommand):
 
     # REGEX check if a string is a valid conda recipe
     CONDA_RECIPES_RE = re.compile(
-        r"(?P<recipes>(([\w-]+::[.\w-]+==?[\d.]+.*==?[\w]+) ?)+)"
+        r"(?P<recipes>(([\w-]+::[.\w-]+=[^=]+=[\w]+) ?)+)"
     )
     # REGEX check if a string from a yml recipe is valid
     CONDA_YML_RECIPES_RE = re.compile(
-        r"(?P<recipes>(([.\w-]+==?[\d.]+.*==?[\w]+|[\w-]+::[.\w-]+==?[\d.]+.*==?[\w]+) ?)+)"
+        r"(?P<recipes>(([.\w-]+=[^=]+=[\w]+|[\w-]+::[.\w-]+=[^=]+=[\w]+) ?)+)"
     )
     # REGEX check if a string from a yml recipe with pip is valid
     CONDA_YML_PIP_RECIPES_RE = re.compile(
-        r"(?P<recipes>([.\w-]+==?[\d.]))"
+        r"(?P<recipes>([.\w-]+==[\d.]))"
     )
     # REGEX to check if a string is a path for yml or yaml file
     CONDA_PATH_RE = re.compile(
@@ -735,9 +735,6 @@ class GeniacLint(GeniacCommand):
         Returns:
             labels_process (list): list of process labels in params.process with withName
         """
-        # Check parameters according to their default values
-        config.check_config_scope("process")
-
         # For each process used with withName selector, check their existence in the
         # workflow
         for config_process in config.get("process", OrderedDict()).get(

@@ -33,7 +33,7 @@ import os
 
 import re
 
-extensions = ['sphinx.ext.mathjax',
+extensions = ['sphinx.ext.mathjax', 'sphinx_mdinclude',
     'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'geniac'
-copyright = u'2019-2025, Institut Curie'
+copyright = u'2019-2026, Institut Curie'
 author = u'Philippe Hupé'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -72,7 +72,7 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*.inc.rst']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '*.inc.rst', 'README.md']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -170,3 +170,62 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+
+# -- Below is a custom Geniac function --------------------------------------
+
+# it provide the mdinclude_offset command to include markdown file
+# and shift the heading by an offset
+# usage:
+# 
+#     .. mdinclude:: path/markdown/file.md
+#        :offset: 2
+
+from sphinx_mdinclude.sphinx import MdInclude
+from docutils.parsers.rst.directives import unchanged
+import tempfile
+
+class MdIncludeWithOffset(MdInclude):
+    option_spec = MdInclude.option_spec.copy()
+    option_spec['offset'] = unchanged  # Add the offset option
+
+    def run(self):
+        offset = int(self.options.get('offset', 0))
+        md_file = self.arguments[0]
+
+        # Read the Markdown file
+        with open(md_file, 'r') as f:
+            content = f.readlines()
+
+        # Apply the offset to headings
+        if offset > 0:
+            new_content = []
+            for line in content:
+                if line.lstrip().startswith('#'):
+                    # Increase heading level by `offset`
+                    new_line = line[:line.index('#')] + '#' * offset + line[line.index('#'):]
+                    new_content.append(new_line)
+                else:
+                    new_content.append(line)
+            content = new_content
+
+        # Convert the content to a string
+        modified_content = ''.join(content)
+
+        # Write the modified content to a temporary file in /tmp
+        temp_file_path = '/tmp/modified_content.md'
+        with open(temp_file_path, 'w') as temp_file:
+            temp_file.write(modified_content)
+
+        try:
+            # Override the arguments to use the temporary file
+            self.arguments[0] = temp_file_path
+
+            # Call the parent class's run method
+            return super().run()
+        finally:
+            # Optionally, you can choose not to clean up the file if you want to inspect it later
+            pass  # os.unlink(temp_file_path)
+
+def setup(app: Sphix):
+    app.add_directive('mdinclude_offset', MdIncludeWithOffset)
+    return {'version': '1.0', 'parallel_read_safe': True}
