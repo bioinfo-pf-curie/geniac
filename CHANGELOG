@@ -1,5 +1,5 @@
-version-x.y.z
-MM/DD/YYYY
+version-3.8.0
+05/27/2026
 
 NEW FEATURES
   - Nextflow code refactoring using workflows #352
