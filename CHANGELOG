@@ -1,3 +1,9 @@
+version-y.x.z
+MM/DD/YYY
+
+DOCUMENTATION
+  - Reference to geniac-template as been deleted. geniac-demo can serve as a template. #377
+
 version-3.8.0
 05/27/2026
 

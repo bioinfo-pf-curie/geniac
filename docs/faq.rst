@@ -22,7 +22,6 @@ All the resources for geniac are available here:
 * |geniacdoc|_
 * |geniacrepo|_
 * |geniacdemo|_
-* |geniactemplate|_
 * Example: :download:`useCases.bash <../data/useCases.bash>`
 
 Follow the guidelines below if you want to use geniac on an existing repository. 

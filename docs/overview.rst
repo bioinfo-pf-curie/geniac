@@ -11,9 +11,9 @@ This section just provides a general overview of the guidelines for the structur
 
 .. important::
 
-   It is important to note that the |geniacrepo|_ relies on the structure of the |geniactemplate|_ while the |geniactemplate|_ could work without the |geniacrepo|_ (provided that you generate manually the missing :ref:`profiles-page`).
+   It is important to note that the |geniacrepo|_ relies on the structure of the |geniacdemo|_.
    
-   It means also that this documentation explains how the |geniactemplate|_ works with the |geniacrepo|_. 
+   It means also that this documentation explains how the |geniacdemo|_ works with the |geniacrepo|_. 
    
    All the examples shown in the documentation are taken from the |geniacdemo|_. You can clone this repository and reproduce what is presented.
 
@@ -74,7 +74,7 @@ As a quick start, you can try the |geniacdemo|_ pipeline as follows:
 Start a new repository
 ======================
 
-The best way to initiate your repository is to create a new |git|_ project from the |geniactemplate|_. Indeed, `geniac` expects that the repository contains specific folders and files that are already set up in the template. However, you can use `geniac` on an existing repository and you can follow the procedure described in the :ref:`faq-page`.
+The best way to initiate your repository is to create a new |git|_ project boostraping on the |geniacdemo|_. Indeed, `geniac` expects that the repository contains specific folders and files that are already set up in the |geniacdemo|_. However, you can use `geniac` on an existing repository and you can follow the procedure described in the :ref:`faq-page`.
 
 
 .. _overview-naming:
