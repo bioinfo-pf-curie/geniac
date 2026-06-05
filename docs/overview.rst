@@ -46,7 +46,7 @@ As a quick start, you can try the |geniacdemo|_ pipeline as follows:
 ::
 
    # Create the geniac conda environment (use conda >= 4.12.0)
-   export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/environment.yml"
+   export GENIAC_CONDA="https://raw.githubusercontent.com/bioinfo-pf-curie/geniac/release/utils/environment.yml"
    wget ${GENIAC_CONDA}
    conda env create -f environment.yml
    conda activate geniac
