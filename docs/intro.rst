@@ -53,7 +53,6 @@ Useful resources for geniac are available here:
 * |geniacdoc|_
 * |geniacrepo|_
 * |geniacdemo|_
-* |geniactemplate|_
 * |4geniac|_ docker hub repository with the :ref:`linux-page`
 * Example: :download:`useCases.bash <../data/useCases.bash>`
 
