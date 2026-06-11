@@ -307,7 +307,7 @@ When you use the :ref:`run-profile-singularity` profile, the  |singularity|_ con
 Analysis options
 ----------------
 
-Two generic options are available in the |geniactemplate|_. Refer to the *README* of the pipeline for details about `ad-hoc` options to analyze the data.
+Two generic options are available in the |geniacdemo|_. Refer to the *README* of the pipeline for details about `ad-hoc` options to analyze the data.
 
 .. _run-options-sampleplan:
 

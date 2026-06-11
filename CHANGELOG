@@ -1,3 +1,13 @@
+version-3.8.1
+06/10/2026
+
+DOCUMENTATION
+   - Update install procedure with link to utils/environment.yml #378
+   - Reference to geniac-template as been deleted. geniac-demo can serve as a template. #377
+
+BUGFIX
+   - Fix a bug in definition files of recipes #381
+ 
 version-3.8.0
 05/27/2026
 

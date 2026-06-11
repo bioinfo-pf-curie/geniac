@@ -490,7 +490,7 @@ process sha256sumManualRecipes {
     %environment
     EOF
 
-    cat ${projectDir}/assets/def.env >> ${key}.def
+    cat ${projectDir}/assets/def.env >> ${key}-4fromRegistry.def
 
     if [[ -d ${key} ]] ; then
     tar --mtime='1970-01-01' -cf ${key}.tar -C ${key} --sort=name --group=0 --owner=0 --numeric-owner --mode=777 .
